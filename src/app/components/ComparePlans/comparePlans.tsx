@@ -7,9 +7,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import PlansCompare from "./PlanCompares";
 import InsuranceCalculator from "../CalculatorComponents/InsuranceCalculator";
+import { usePremiumStore } from "@/app/stores/premiumStore";
 
 export default function ComparePlans() {
   const router = useRouter();
+  const { premium } = usePremiumStore();
 
   const [viewMode, setViewMode] = useState("default");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -19,11 +21,11 @@ export default function ComparePlans() {
 
   const plans = [
     {
-      id: "barmer",
-      name: "Barmer",
+      id: "tk",
+      name: "TK",
       price: "62",
       period: "/ Month",
-      logo: "/icons/barme.svg",
+      logo: "/icons/tk.svg",
       description: "For short term visitors with no fixed plan of stay",
       features: [
         "24/7 medical assistance/emergency call centre",
@@ -32,12 +34,12 @@ export default function ComparePlans() {
         "Excellent coverage for families",
       ],
       bgColor: "bg-white",
-      available: false, // Not available yet
+      available: false,
     },
     {
       id: "hallesche",
       name: "Hallesche",
-      price: "305",
+      price: premium ? premium.toString() : "40",
       period: "/ Month",
       logo: "/icons/h.svg",
       description:
@@ -50,7 +52,7 @@ export default function ComparePlans() {
       ],
       bgColor: "bg-purple-50",
       highlighted: true,
-      available: true, // This one is available
+      available: true,
     },
     {
       id: "dak",
@@ -66,7 +68,7 @@ export default function ComparePlans() {
         "Excellent customer support in English",
       ],
       bgColor: "bg-pink-50",
-      available: false, // Not available yet
+      available: false,
     },
   ];
 
@@ -87,10 +89,8 @@ export default function ComparePlans() {
 
   const handleChoosePlan = (plan: typeof plans[0]) => {
     if (plan.available) {
-      // Navigate to the next step for Hallesche
-      router.push("/calculator/premiumEstimation");
+      router.push("/calculator/submitApplication");
     } else {
-      // Show "Coming Soon" modal for other plans
       setSelectedPlanName(plan.name);
       setShowComingSoonModal(true);
     }
@@ -155,7 +155,7 @@ export default function ComparePlans() {
           </div>
         </div>
 
-        {/* Insurance Calculator - Shows when Personalize is active */}
+        {/* Insurance Calculator */}
         <AnimatePresence>
           {showCalculator && (
             <motion.div
@@ -170,7 +170,7 @@ export default function ComparePlans() {
           )}
         </AnimatePresence>
 
-        {/* Mobile Scroll Cards */}
+        {/* Cards with Equal Heights */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -191,13 +191,14 @@ export default function ComparePlans() {
                 min-w-[85%] xs:min-w-[75%] sm:min-w-[60%] md:min-w-0
                 snap-center
                 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all
+                flex flex-col
                 ${plan.bgColor}
                 ${plan.highlighted ? "ring-2 ring-primary" : ""}
               `}
             >
+              {/* Header */}
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-sm text-gray-500 mb-2">From</h3>
                   <div className="flex items-baseline gap-1">
                     <span className="text-gray-500 text-xl">€</span>
                     <span className="text-5xl text-gray-900">{plan.price}</span>
@@ -218,20 +219,23 @@ export default function ComparePlans() {
                 />
               </div>
 
+              {/* Description */}
               <p className="text-sm text-gray-700 mb-6">{plan.description}</p>
 
-              <ul className="space-y-3 mb-6">
+              {/* Features - Flex grow to push button down */}
+              <ul className="space-y-3 mb-6 flex-grow">
                 {plan.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-gray-900 mt-0.5" />
+                    <Check className="w-5 h-5 text-gray-900 mt-0.5 flex-shrink-0" />
                     <span className="text-sm text-gray-700">{feature}</span>
                   </li>
                 ))}
               </ul>
 
+              {/* Button - Stays at bottom */}
               <button
                 onClick={() => handleChoosePlan(plan)}
-                className={`w-full py-3 rounded-lg font-semibold cursor-pointer transition-all mb-3 ${
+                className={`w-full py-3 rounded-lg font-semibold cursor-pointer transition-all mt-auto ${
                   plan.highlighted
                     ? "bg-primary text-white shadow-md hover:bg-primary/90"
                     : "bg-white text-primary border-2 border-primary hover:bg-gray-50"
@@ -274,7 +278,6 @@ export default function ComparePlans() {
       <AnimatePresence>
         {showComingSoonModal && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -283,14 +286,12 @@ export default function ComparePlans() {
               className="fixed inset-0 bg-black/50 z-40"
             />
 
-            {/* Modal */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 z-50"
             >
-              {/* Close Button */}
               <button
                 onClick={() => setShowComingSoonModal(false)}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
@@ -298,7 +299,6 @@ export default function ComparePlans() {
                 <X className="w-6 h-6" />
               </button>
 
-              {/* Content */}
               <div className="text-center">
                 <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg

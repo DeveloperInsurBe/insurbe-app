@@ -106,10 +106,37 @@ export default function InsuranceJourney() {
     }
   };
 
-  const handleOtherSubmit = () => {
-    setPopup("We will connect with you shortly!");
+ const handleOtherSubmit = () => {
+  // Validate fields
+  if (!otherEmployment || !email || !phone) {
+    setPopup("Please fill in all fields");
     setTimeout(() => setPopup(""), 2000);
-  };
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    setPopup("Please enter a valid email address");
+    setTimeout(() => setPopup(""), 2000);
+    return;
+  }
+
+  // Basic phone validation (at least 10 digits)
+  const phoneRegex = /^\+?[\d\s-]{10,}$/;
+  if (!phoneRegex.test(phone)) {
+    setPopup("Please enter a valid phone number");
+    setTimeout(() => setPopup(""), 2000);
+    return;
+  }
+
+  setPopup("Thank you! We will connect with you shortly!");
+ setTimeout(() => {
+    setPopup("");
+    router.push("/products/privateProducts");
+  }, 2000);
+};
+
 
   const handleContactSubmit = () => {
     setPopup("We will connect with you shortly!");
@@ -265,40 +292,59 @@ export default function InsuranceJourney() {
         </div>
       )}
 
-      {/* If "Others" Employment */}
-      {step === 99 && (
-        <div className="w-full max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="flex justify-center items-center">
-              <Image
-                src={stepImages[99]}
-                alt="Other Employment GIF"
-                width={400}
-                height={300}
-                className="w-full max-w-md"
-              />
-            </div>
+     {/* If "Others" Employment */}
+{step === 99 && (
+  <div className="w-full max-w-6xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      <div className="flex justify-center items-center">
+        <Image
+          src={stepImages[99]}
+          alt="Other Employment GIF"
+          width={400}
+          height={300}
+          className="w-full max-w-md"
+        />
+      </div>
 
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold mb-4 text-gray-700">
-                Please specify:
-              </h3>
-              <input
-                className="w-full border p-3 rounded-lg"
-                placeholder="Enter employment type"
-                value={otherEmployment}
-                onChange={(e) => setOtherEmployment(e.target.value)}
-              />
-              <button
-                onClick={handleOtherSubmit}
-                className="px-6 py-3 bg-primary text-white rounded-lg w-full"
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold mb-4 text-gray-700">
+          Please provide your details
+        </h3>
+        
+        <input
+          className="w-full border p-3 rounded-lg"
+          placeholder="Enter employment type"
+          value={otherEmployment}
+          onChange={(e) => setOtherEmployment(e.target.value)}
+        />
+
+        <input
+          type="email"
+          className="w-full border p-3 rounded-lg"
+          placeholder="Email address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <input
+          type="tel"
+          className="w-full border p-3 rounded-lg"
+          placeholder="Phone number"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+        />
+
+        <button
+          onClick={handleOtherSubmit}
+          className="px-6 py-3 bg-primary text-white rounded-lg w-full hover:bg-primary/90 transition"
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* Income Range Step */}
       {step === 2 && (
@@ -555,7 +601,7 @@ export default function InsuranceJourney() {
                     Calculating Premium...
                   </span>
                 ) : (
-                  "Get My Quote"
+                  "Calculate My Premium"
                 )}
               </button>
             </div>
