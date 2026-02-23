@@ -4,7 +4,17 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, LogIn, Shield, Sparkles, AlertCircle, LogInIcon } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  LogIn,
+  Shield,
+  Sparkles,
+  AlertCircle,
+  LogInIcon,
+} from "lucide-react";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -33,8 +43,13 @@ export default function LoginPage() {
       return;
     }
 
-    // Login success → go to dashboard
-    router.push("/dashboard");
+    const allowedEmails = ["developer@insurbe.com", "admin@insurbe.com"];
+
+    if (allowedEmails.includes(email)) {
+      router.push("/insuranceSignupFlow");
+    } else {
+      router.push("/");
+    }
   };
 
   return (
@@ -93,7 +108,10 @@ export default function LoginPage() {
           </motion.div>
 
           <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
-            Welcome <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-primary">back</span>
+            Welcome{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-primary">
+              back
+            </span>
           </h1>
           <p className="text-gray-600">Access your policies and documents</p>
         </motion.div>
@@ -161,7 +179,11 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
           </motion.div>
@@ -173,7 +195,10 @@ export default function LoginPage() {
             transition={{ delay: 0.5 }}
             className="text-right"
           >
-            <Link href="/forgot-password" className="text-sm text-purple-600 hover:text-purple-700 font-semibold hover:underline transition">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-purple-600 hover:text-purple-700 font-semibold hover:underline transition"
+            >
               Forgot password?
             </Link>
           </motion.div>
@@ -192,7 +217,7 @@ export default function LoginPage() {
             {!loading && (
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                animate={{ x: ['-100%', '100%'] }}
+                animate={{ x: ["-100%", "100%"] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
               />
             )}
@@ -201,14 +226,18 @@ export default function LoginPage() {
                 <>
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
                     className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
                   />
                   Logging in...
                 </>
               ) : (
                 <>
-                  Login 
+                  Login
                   <LogInIcon className="w-5 h-5" />
                 </>
               )}
@@ -223,7 +252,10 @@ export default function LoginPage() {
             className="text-sm text-center text-gray-600"
           >
             Don't have an account?{" "}
-            <Link href="/signup" className="font-semibold text-purple-600 hover:text-purple-700 hover:underline transition">
+            <Link
+              href="/signup"
+              className="font-semibold text-purple-600 hover:text-purple-700 hover:underline transition"
+            >
               Sign up
             </Link>
           </motion.p>
