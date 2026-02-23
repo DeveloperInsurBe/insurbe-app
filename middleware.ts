@@ -24,6 +24,6 @@ export const config = {
   matcher: [
     "/insuranceSignupFlow/:path*",
     "/calculator/submitApplication/:path*",
-    "ottonovaSignupform/:path*",
+    "/ottonovaSignupform/:path*",
   ],
 };
