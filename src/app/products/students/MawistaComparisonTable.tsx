@@ -25,7 +25,7 @@ const PLANS: Plan[] = [
     name: "Student Classic",
     logo: "/partners_asset/mawista.svg",
     applyLink:
-      "https://www.mawista.com/en/tariffs/health-insurance-student/online-application/",
+      "/mawistaBooking",
   },
   {
     id: "plus",
@@ -33,14 +33,14 @@ const PLANS: Plan[] = [
     logo: "/partners_asset/mawista.svg",
     featured: true,
     applyLink:
-      "https://www.mawista.com/en/tariffs/health-insurance-student/online-application/",
+      "/mawistaBooking",
   },
   {
     id: "comfort",
     name: "Student Comfort",
     logo: "/partners_asset/mawista.svg",
     applyLink:
-      "https://www.mawista.com/en/tariffs/health-insurance-student/online-application/",
+      "/mawistaBooking",
   },
 ];
 
@@ -331,14 +331,14 @@ export default function MawistaComparisonTable() {
             <table className="w-full">
               {/* Table Header */}
               <thead>
-                <tr className="bg-gradient-to-r from-purple-50 to-pink-50">
+                <tr className="">
                   <th className="py-6 px-6 text-left font-semibold text-gray-700 w-2/5">
                     Features
                   </th>
                   {PLANS.map((plan) => (
                     <th key={plan.id} className="py-6 px-4 w-1/5">
                       <div className="flex flex-col items-center">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-200 to-primary flex items-center justify-center mb-3 shadow-lg">
+                        {/* <div className="w-16 h-16 flex items-center justify-center mb-3 ">
                           <Image
                             src={plan.logo}
                             alt={plan.name}
@@ -346,7 +346,7 @@ export default function MawistaComparisonTable() {
                             height={50}
                             className="object-contain"
                           />
-                        </div>
+                        </div> */}
                         <div className="text-xs text-gray-500 uppercase mb-1">
                           MAWISTA
                         </div>

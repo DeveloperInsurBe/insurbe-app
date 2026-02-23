@@ -85,7 +85,7 @@ function HeroStudents() {
                 onClick={() => router.push("/products/insuranceJourney")}
                 className="flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-primary to-purple-600 text-white font-semibold shadow-lg hover:opacity-90 transition"
               >
-               Get a Quote
+                Get a Quote
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -175,8 +175,8 @@ function HeroStudents() {
                     €{INSURANCE_PLANS.INSURBE_STUDENT_BONUS}
                   </span>
 
-                  <span className="block text-[14px] font-semibold px-2 leading-tight opacity-95 mt-0.5">
-                     Welcome Bonus*
+                  <span className="block text-[12px] font-semibold px-2 leading-tight opacity-95 mt-0.5">
+                    Amazon Welcome Bonus*
                   </span>
                 </motion.div>
               </motion.div>

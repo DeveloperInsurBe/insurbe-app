@@ -34,7 +34,7 @@ const plans = [
     href: "/ottonovaSignupform",
     gradient: "from-purple-500 to-pink-500",
     bgGradient: "from-purple-50 to-pink-50",
-    badge: "Expat Choice",
+    badge: "Students Choice",
     priceNote: `Starts at ${INSURANCE_PLANS.INSURBE_STUDENT_MAWISTA} € / month`,
   },
 ];

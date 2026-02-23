@@ -514,187 +514,214 @@ export default function InsuranceEligibilityQuiz() {
                       </div>
                     </div>
                   ) : (
-                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-  {/* ================= OTTONOVA ================= */}
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5 }}
-    whileHover={{ y: -4 }}
-    className="relative group"
-  >
-    <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 rounded-2xl sm:rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
-    
-    <div className="relative bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-purple-200">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3 sm:mb-4">
-        <div className="flex-1">
-          <div className="w-24 h-8 sm:w-32 sm:h-10 relative mb-2">
-            <Image
-              src="/partners_asset/ottonova.png"
-              alt="Ottonova"
-              fill
-              className="object-contain object-left"
-            />
-          </div>
-          <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
-            Ottonova Private Insurance
-          </h4>
-          <p className="text-xs text-gray-600 line-clamp-2">
-            Premium private health coverage for students
-          </p>
-        </div>
-       
-      </div>
+                    // <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                                        <div className="grid grid-cols-1 gap-4 sm:gap-6">
 
-      {/* Features - Compact */}
-      <div className="grid grid-cols-2 gap-2 mb-3 sm:mb-4">
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-5 h-5 rounded bg-green-50 flex items-center justify-center flex-shrink-0">
-            <CheckCircle className="w-3 h-3 text-green-600" />
-          </div>
-          <span className="text-gray-700 truncate">Digital-first</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-5 h-5 rounded bg-purple-50 flex items-center justify-center flex-shrink-0">
-            <Star className="w-3 h-3 text-purple-600" />
-          </div>
-          <span className="text-gray-700 truncate">English support</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-5 h-5 rounded bg-blue-50 flex items-center justify-center flex-shrink-0">
-            <Zap className="w-3 h-3 text-blue-600" />
-          </div>
-          <span className="text-gray-700 truncate">Fast processing</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-5 h-5 rounded bg-pink-50 flex items-center justify-center flex-shrink-0">
-            <Shield className="w-3 h-3 text-pink-600" />
-          </div>
-          <span className="text-gray-700 truncate">Full coverage</span>
-        </div>
-      </div>
+                      {/* ================= OTTONOVA ================= */}
+                      {/* <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5 }}
+                        whileHover={{ y: -4 }}
+                        className="relative group"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 rounded-2xl sm:rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
 
-      {/* Price Section - Compact */}
-      <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
-        <p className="text-[10px] sm:text-xs text-gray-600 mb-1">Starting from</p>
-        <div className="flex items-baseline gap-1">
-          <span className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
-            €{INSURANCE_PLANS.INSURBE_STUDENT_OTTONOVA}
-          </span>
-          <span className="text-sm text-gray-500 font-semibold">/month</span>
-        </div>
-      </div>
+                        <div className="relative bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-purple-200">
 
-      {/* CTA Button - Compact */}
-      <motion.button
-        onClick={() => {
-          handlePlanSelect({
-            title: "Ottonova Private Insurance",
-            price: INSURANCE_PLANS.INSURBE_STUDENT_CLASSIC.toString(),
-            category: "Private",
-          });
-          router.push("/ottonovaSignupform");
-        }}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="w-full py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
-      >
-        Get Started
-        <ArrowRight className="w-4 h-4" />
-      </motion.button>
-    </div>
-  </motion.div>
+                          <div className="flex items-start justify-between mb-3 sm:mb-4">
+                            <div className="flex-1">
+                              <div className="w-24 h-8 sm:w-32 sm:h-10 relative mb-2">
+                                <Image
+                                  src="/partners_asset/ottonova.png"
+                                  alt="Ottonova"
+                                  fill
+                                  className="object-contain object-left"
+                                />
+                              </div>
+                              <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
+                                Ottonova Private Insurance
+                              </h4>
+                              <p className="text-xs text-gray-600 line-clamp-2">
+                                Premium private health coverage for students
+                              </p>
+                            </div>
+                          </div>
 
-  {/* ================= MAWISTA ================= */}
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5, delay: 0.1 }}
-    whileHover={{ y: -4 }}
-    className="relative group"
-  >
-    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-2xl sm:rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
-    
-    <div className="relative bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-blue-200">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3 sm:mb-4">
-        <div className="flex-1">
-          <div className="w-24 h-8 sm:w-32 sm:h-10 relative mb-2">
-            <Image
-              src="/partners_asset/mawista.svg"
-              alt="Mawista"
-              fill
-              className="object-contain object-left"
-            />
-          </div>
-          <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
-            Mawista Student Insurance
-          </h4>
-          <p className="text-xs text-gray-600 line-clamp-2">
-            Affordable coverage tailored for international students
-          </p>
-        </div>
-        
-      </div>
+                          
+                          <div className="grid grid-cols-2 gap-2 mb-3 sm:mb-4">
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-5 h-5 rounded bg-green-50 flex items-center justify-center flex-shrink-0">
+                                <CheckCircle className="w-3 h-3 text-green-600" />
+                              </div>
+                              <span className="text-gray-700 truncate">
+                                Digital-first
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-5 h-5 rounded bg-purple-50 flex items-center justify-center flex-shrink-0">
+                                <Star className="w-3 h-3 text-purple-600" />
+                              </div>
+                              <span className="text-gray-700 truncate">
+                                English support
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-5 h-5 rounded bg-blue-50 flex items-center justify-center flex-shrink-0">
+                                <Zap className="w-3 h-3 text-blue-600" />
+                              </div>
+                              <span className="text-gray-700 truncate">
+                                Fast processing
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-5 h-5 rounded bg-pink-50 flex items-center justify-center flex-shrink-0">
+                                <Shield className="w-3 h-3 text-pink-600" />
+                              </div>
+                              <span className="text-gray-700 truncate">
+                                Full coverage
+                              </span>
+                            </div>
+                          </div>
 
-      {/* Features - Compact */}
-      <div className="grid grid-cols-2 gap-2 mb-3 sm:mb-4">
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-5 h-5 rounded bg-green-50 flex items-center justify-center flex-shrink-0">
-            <Euro className="w-3 h-3 text-green-600" />
-          </div>
-          <span className="text-gray-700 truncate">Budget-friendly</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-5 h-5 rounded bg-blue-50 flex items-center justify-center flex-shrink-0">
-            <Globe className="w-3 h-3 text-blue-600" />
-          </div>
-          <span className="text-gray-700 truncate">International</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-5 h-5 rounded bg-purple-50 flex items-center justify-center flex-shrink-0">
-            <Clock className="w-3 h-3 text-purple-600" />
-          </div>
-          <span className="text-gray-700 truncate">Quick setup</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-5 h-5 rounded bg-pink-50 flex items-center justify-center flex-shrink-0">
-            <Heart className="w-3 h-3 text-pink-600" />
-          </div>
-          <span className="text-gray-700 truncate">Great value</span>
-        </div>
-      </div>
+                         
+                          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
+                            <p className="text-[10px] sm:text-xs text-gray-600 mb-1">
+                              Starting from
+                            </p>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+                                €{INSURANCE_PLANS.INSURBE_STUDENT_OTTONOVA}
+                              </span>
+                              <span className="text-sm text-gray-500 font-semibold">
+                                /month
+                              </span>
+                            </div>
+                          </div>
 
-      {/* Price Section - Compact */}
-     <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
-        <p className="text-[10px] sm:text-xs text-gray-600 mb-1">Starting from</p>
-        <div className="flex items-baseline gap-1">
-          <span className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
-            €{INSURANCE_PLANS.INSURBE_STUDENT_MAWISTA}
-          </span>
-          <span className="text-sm text-gray-500 font-semibold">/month</span>
-        </div>
-      </div>
+                        
+                          <motion.button
+                            onClick={() => {
+                              handlePlanSelect({
+                                title: "Ottonova Private Insurance",
+                                price:
+                                  INSURANCE_PLANS.INSURBE_STUDENT_CLASSIC.toString(),
+                                category: "Private",
+                              });
+                              router.push("/ottonovaSignupform");
+                            }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                          >
+                            Get Started
+                            <ArrowRight className="w-4 h-4" />
+                          </motion.button>
+                        </div>
+                      </motion.div> */}
 
-      {/* CTA Button - Compact */}
-      <motion.button
-        onClick={() => {
-          window.location.href =
-            "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25";
-        }}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="w-full py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
-      >
-        Get Started
-        <ArrowRight className="w-4 h-4" />
-      </motion.button>
-    </div>
-  </motion.div>
-</div>
+                      {/* ================= MAWISTA ================= */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        whileHover={{ y: -4 }}
+                        className="relative group"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-2xl sm:rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
+
+                        <div className="relative bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-blue-200">
+                          {/* Header */}
+                          <div className="flex items-start justify-between mb-3 sm:mb-4">
+                            <div className="flex-1">
+                              <div className="w-24 h-8 sm:w-32 sm:h-10 relative mb-2">
+                                <Image
+                                  src="/partners_asset/mawista.svg"
+                                  alt="Mawista"
+                                  fill
+                                  className="object-contain object-left"
+                                />
+                              </div>
+                              <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
+                                Mawista Student Insurance
+                              </h4>
+                              <p className="text-xs text-gray-600 line-clamp-2">
+                                Affordable coverage tailored for international
+                                students
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Features - Compact */}
+                          <div className="grid grid-cols-2 gap-2 mb-3 sm:mb-4">
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-5 h-5 rounded bg-green-50 flex items-center justify-center flex-shrink-0">
+                                <Euro className="w-3 h-3 text-green-600" />
+                              </div>
+                              <span className="text-gray-700 truncate">
+                                Budget-friendly
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-5 h-5 rounded bg-blue-50 flex items-center justify-center flex-shrink-0">
+                                <Globe className="w-3 h-3 text-blue-600" />
+                              </div>
+                              <span className="text-gray-700 truncate">
+                                International
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-5 h-5 rounded bg-purple-50 flex items-center justify-center flex-shrink-0">
+                                <Clock className="w-3 h-3 text-purple-600" />
+                              </div>
+                              <span className="text-gray-700 truncate">
+                                Quick setup
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-5 h-5 rounded bg-pink-50 flex items-center justify-center flex-shrink-0">
+                                <Heart className="w-3 h-3 text-pink-600" />
+                              </div>
+                              <span className="text-gray-700 truncate">
+                                Great value
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Price Section - Compact */}
+                          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
+                            <p className="text-[10px] sm:text-xs text-gray-600 mb-1">
+                              Starting from
+                            </p>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+                                €{INSURANCE_PLANS.INSURBE_STUDENT_MAWISTA}
+                              </span>
+                              <span className="text-sm text-gray-500 font-semibold">
+                                /month
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* CTA Button - Compact */}
+                          <motion.button
+                            // onClick={() => {
+                            //   window.location.href =
+                            //     "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25";
+                            // }}
+                            onClick={() => router.push("/mawistaBooking")}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                          >
+                            Get Started
+                            <ArrowRight className="w-4 h-4" />
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    </div>
                   )}
 
                   {/* Reset Button */}
