@@ -14,5 +14,5 @@ export default withAuth({
 });
 
 export const config = {
-  matcher: ["/insuranceSignupFlow"],
+  matcher: ["/insuranceSignupFlow/:path*"],
 };
