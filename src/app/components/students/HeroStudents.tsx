@@ -82,7 +82,10 @@ function HeroStudents() {
               className="flex flex-col sm:flex-row gap-4 max-w-md"
             >
               <button
-                onClick={() => router.push("/products/insuranceJourney")}
+                onClick={() => {
+                  const section = document.getElementById("studentjourney");
+                  section?.scrollIntoView({ behavior: "smooth" });
+                }}
                 className="flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-primary to-purple-600 text-white font-semibold shadow-lg hover:opacity-90 transition"
               >
                 Get a Quote

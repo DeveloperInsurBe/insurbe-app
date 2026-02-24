@@ -77,7 +77,7 @@ Amazon.de is not the organizer of this promotion. Amazon.de vouchers ("Vouchers"
 
 The issuer of the vouchers is Amazon EU S.à r.l., Luxembourg. Neither Amazon EU nor its affiliates are liable in the event of loss, theft, damage, or misuse of a voucher.
 
-Vouchers can be redeemed at [www.amazon.de/einloesen](https://www.amazon.de/einloesen). Full terms and conditions are available there. All Amazon® ™ & © products are the property of Amazon.com, Inc. or its affiliates. Vouchers are valid until the specified expiration date. No service fees apply.`,
+Vouchers can be redeemed at https://www.amazon.de/einloesen. Full terms and conditions are available there. All Amazon® ™ & © products are the property of Amazon.com, Inc. or its affiliates. Vouchers are valid until the specified expiration date. No service fees apply.`,
 },
   {
     number: "4",
