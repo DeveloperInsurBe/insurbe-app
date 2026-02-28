@@ -48,13 +48,57 @@ export async function POST(req: Request) {
   from: "no-reply@insurbe.com",
   to: email,
   subject: "Reset your password",
-  html: `
-    <p>You requested a password reset.</p>
-    <p>
-      <a href="${resetLink}">Click here to reset your password</a>
-    </p>
-    <p>This link will expire in 15 minutes.</p>
-  `,
+html: `
+  <div style="font-family: Arial, sans-serif; background-color: #f4f6fb; padding: 40px 20px;">
+    <div style="max-width: 520px; margin: auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+
+      <!-- Header -->
+      <div style="background: linear-gradient(90deg, #6D28D9, #9333EA); padding: 24px; text-align: center;">
+      
+        <h2 style="color: white; margin: 0; font-weight: 600;">Insurbe</h2>
+      </div>
+
+      <!-- Body -->
+      <div style="padding: 32px 28px; color: #333;">
+        <h3 style="margin-top: 0; font-size: 20px;">Reset Your Password</h3>
+
+        <p style="font-size: 15px; line-height: 1.6;">
+          We received a request to reset your password.
+          Click the button below to create a new one.
+        </p>
+
+        <!-- Button -->
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetLink}" 
+             style="background: linear-gradient(90deg, #6D28D9, #9333EA); 
+                    color: #ffffff; 
+                    padding: 14px 28px; 
+                    text-decoration: none; 
+                    border-radius: 10px; 
+                    font-weight: 600; 
+                    display: inline-block;">
+            Reset Password
+          </a>
+        </div>
+
+        <p style="font-size: 14px; color: #666;">
+          This link will expire in <strong>15 minutes</strong> for security reasons.
+        </p>
+
+        <p style="font-size: 14px; color: #666;">
+          If you didn’t request a password reset, you can safely ignore this email.
+        </p>
+
+      </div>
+
+      <!-- Footer -->
+      <div style="background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #888;">
+        © ${new Date().getFullYear()} Insurbe. All rights reserved.
+      </div>
+
+    </div>
+  </div>
+`
 });
 
 console.log("RESEND RESULT:", result);

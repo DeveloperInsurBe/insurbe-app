@@ -33,7 +33,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/app/HallescheQuote/page.jsx",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
