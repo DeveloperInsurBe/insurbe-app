@@ -3,8 +3,11 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 
+console.log("RESEND KEY:", process.env.RESEND_API_KEY);
 const resend = new Resend(process.env.RESEND_API_KEY);
+console.log("RESEND KEY:", process.env.RESEND_API_KEY);
 
+console.log("FORGOT PASSWORD API HIT");
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
@@ -41,18 +44,20 @@ export async function POST(req: Request) {
     const resetLink = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
 
     // ✅ SEND EMAIL
-    await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: email,
-      subject: "Reset your password",
-      html: `
+   const result = await resend.emails.send({
+  from: "no-reply@insurbe.com",
+  to: email,
+  subject: "Reset your password",
+  html: `
     <p>You requested a password reset.</p>
     <p>
       <a href="${resetLink}">Click here to reset your password</a>
     </p>
     <p>This link will expire in 15 minutes.</p>
   `,
-    });
+});
+
+console.log("RESEND RESULT:", result);
 
     return NextResponse.json(
       { message: "Reset link sent if email exists" },

@@ -6,18 +6,29 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
+  console.log("Submitting forgot password for:", email);
+
+  try {
     const res = await fetch("/api/auth/forgot-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
 
+    console.log("Response status:", res.status);
+
     const data = await res.json();
+    console.log("Response data:", data);
+
     setMessage(data.message);
-  };
+  } catch (error) {
+    console.error("Fetch error:", error);
+    setMessage("Something went wrong");
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center">
