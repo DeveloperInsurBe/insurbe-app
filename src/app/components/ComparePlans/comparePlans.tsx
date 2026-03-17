@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, Star } from "lucide-react";
 import Image from "next/image";
@@ -20,8 +20,6 @@ interface HealthAnswer {
   dentalVisit: string | null;
   missingTeeth: string | null;
 }
-
-
 
 export default function ComparePlans() {
   const router = useRouter();
@@ -56,131 +54,110 @@ export default function ComparePlans() {
   const availableProducts = useJourneyStore((state) => state.availableProducts);
 
   // ✅ Fetch premiums on mount for products with loading=true
-  useEffect(() => {
-    const fetchPremiums = async () => {
-      if (!availableProducts || availableProducts.length === 0) return;
+  const fetchedRef = useRef(false);
 
-      const currentYear = new Date().getFullYear();
-      const age = dob ? currentYear - parseInt(dob) : 25;
-      const fullDob = dob ? `${dob}-01-01` : "2000-01-01";
-      const coverageStart = new Date().toISOString().split("T")[0];
-      const EU_COUNTRIES = [
-        "Austria",
-        "Belgium",
-        "Bulgaria",
-        "Croatia",
-        "Cyprus",
-        "Czech Republic",
-        "Denmark",
-        "Estonia",
-        "Finland",
-        "France",
-        "Germany",
-        "Greece",
-        "Hungary",
-        "Ireland",
-        "Italy",
-        "Latvia",
-        "Lithuania",
-        "Luxembourg",
-        "Malta",
-        "Netherlands",
-        "Poland",
-        "Portugal",
-        "Romania",
-        "Slovakia",
-        "Slovenia",
-        "Spain",
-        "Sweden",
-        "Iceland",
-        "Liechtenstein",
-        "Norway",
-        "Switzerland",
-        "United Kingdom",
-      ];
-      const isEU = selectedCountry
-        ? EU_COUNTRIES.includes(selectedCountry)
-        : true;
+useEffect(() => {
+  if (fetchedRef.current) return;
 
-      const updatedProducts = await Promise.all(
-        availableProducts.map(async (product: any) => {
-          // Skip if already has premium
-          if (product.premium !== null && product.premium !== undefined) {
-            return { ...product, loading: false };
-          }
+  fetchedRef.current = true;
 
-          // Fetch Hallesche Premium
-          if (product.id === "hallesche-premium" && product.loading) {
-            try {
-              const res = await fetch("/api/getOfferEinzel", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  tariffIds: ["35659", "36129", "24332", "1803"],
-                  vorname: "User",
-                  name: "Customer",
-                  geburtsdatum: fullDob,
-                  beginn: coverageStart,
-                }),
-              });
+  const fetchPremiums = async () => {
+    if (!availableProducts || availableProducts.length === 0) return;
 
-              if (res.ok) {
-                const data = await res.json();
-                setHalleschePremiumDocs(data.documents || []);
-               setPremium(Number(data.premium));
-                return {
-                  ...product,
-                  premium: data.premium,
-                  documentCount: data.documents?.length || 0,
-                  loading: false,
-                };
-              }
-            } catch (err) {
-              console.error("Error fetching Hallesche Premium:", err);
-            }
-          }
+    const currentYear = new Date().getFullYear();
+    const fullDob = dob ? `${dob}-01-01` : "2000-01-01";
+    const coverageStart = new Date().toISOString().split("T")[0];
 
-          // Fetch Hallesche Expat
-          if (product.id === "hallesche-expat" && product.loading && !isEU) {
-            try {
-              const res = await fetch("/api/getOfferEinzel", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  tariffIds: ["35057", "35063", "24332", "1803"],
-                  vorname: "User",
-                  name: "Customer",
-                  geburtsdatum: fullDob,
-                  beginn: coverageStart,
-                }),
-              });
+    const EU_COUNTRIES = [
+      "Austria","Belgium","Bulgaria","Croatia","Cyprus","Czech Republic",
+      "Denmark","Estonia","Finland","France","Germany","Greece","Hungary",
+      "Ireland","Italy","Latvia","Lithuania","Luxembourg","Malta",
+      "Netherlands","Poland","Portugal","Romania","Slovakia","Slovenia",
+      "Spain","Sweden","Iceland","Liechtenstein","Norway","Switzerland",
+      "United Kingdom",
+    ];
 
-              if (res.ok) {
-                const data = await res.json();
-                setHallescheExpatDocs(data.documents || []);
-                return {
-                  ...product,
-                  premium: data.premium,
-                  documentCount: data.documents?.length || 0,
-                  loading: false,
-                };
-              }
-            } catch (err) {
-              console.error("Error fetching Hallesche Expat:", err);
-            }
-          }
+    const isEU = selectedCountry
+      ? EU_COUNTRIES.includes(selectedCountry)
+      : true;
 
-          return { ...product, loading: false };
-        }),
+    const requests: Promise<any>[] = [];
+
+    const premiumProduct = availableProducts.find(
+      (p: any) => p.id === "hallesche-premium" && p.loading
+    );
+
+    const expatProduct = availableProducts.find(
+      (p: any) => p.id === "hallesche-expat" && p.loading && !isEU
+    );
+
+    if (premiumProduct) {
+      requests.push(
+        fetch("/api/getOfferEinzel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tariffIds: ["35659","36129","24332","1803"],
+            vorname: "User",
+            name: "Customer",
+            geburtsdatum: fullDob,
+            beginn: coverageStart,
+          }),
+        }).then((res) => res.json())
       );
+    }
 
-      // ✅ Update store with fetched premiums
-      useJourneyStore.setState({ availableProducts: updatedProducts });
-    };
+    if (expatProduct) {
+      requests.push(
+        fetch("/api/getOfferEinzel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tariffIds: ["35057","35063","24332","1803"],
+            vorname: "User",
+            name: "Customer",
+            geburtsdatum: fullDob,
+            beginn: coverageStart,
+          }),
+        }).then((res) => res.json())
+      );
+    }
 
-    fetchPremiums();
-  }, [dob, selectedCountry]);
+    const results = await Promise.all(requests);
 
+    let resultIndex = 0;
+
+    const updatedProducts = availableProducts.map((product: any) => {
+      if (product.id === "hallesche-premium" && premiumProduct) {
+        const data = results[resultIndex++];
+
+        return {
+          ...product,
+          premium: data.premium,
+          documentCount: data.documents?.length || 0,
+          loading: false,
+        };
+      }
+
+      if (product.id === "hallesche-expat" && expatProduct) {
+        const data = results[resultIndex++];
+
+        return {
+          ...product,
+          premium: data.premium,
+          documentCount: data.documents?.length || 0,
+          loading: false,
+        };
+      }
+
+      return product;
+    });
+
+    useJourneyStore.getState().setAvailableProducts(updatedProducts);
+  };
+
+  fetchPremiums();
+}, []);
   // ✅ Transform store products to display format
   const plans = useMemo(() => {
     if (!availableProducts || availableProducts.length === 0) {
@@ -203,7 +180,8 @@ export default function ComparePlans() {
         available = false; // TK coming soon
       } else if (product.id === "hallesche-premium") {
         logo = "/icons/H.svg";
-        bgColor = "bg-gradient-to-br from-purple-200 via-purple-300 to-pink-200  hover:from-purple-200 hover:via-purple-300 hover:to-pink-300";
+        bgColor =
+          "bg-gradient-to-br from-purple-200 via-purple-300 to-pink-200  hover:from-purple-200 hover:via-purple-300 hover:to-pink-300";
         textColor = "text-purple-900";
         buttonColor = "bg-white text-purple-600";
         available = true;
@@ -368,66 +346,59 @@ export default function ComparePlans() {
     setShowHealthModal(false);
 
     // ✅ Reset AFTER navigation is scheduled
-    requestAnimationFrame(() => {
-      if (canProceed && pendingPlanId) {
-        useJourneyStore.setState({ selectedPlan: pendingPlanId });
-        router.push("/calculator/submitApplication");
-      } else {
-        router.push("/book-appointment");
-      }
+    //   requestAnimationFrame(() => {
+    //     if (canProceed && pendingPlanId) {
+    //       useJourneyStore.setState({ selectedPlan: pendingPlanId });
+    //       router.push("/calculator/submitApplication");
+    //     } else {
+    //       router.push("/book-appointment");
+    //     }
 
-      // Cleanup state safely
-      setCurrentHealthQuestion(0);
-      setHealthAnswers({
-        doctorVisit: null,
-        doctorPreventative: null,
-        hospitalized: null,
-        psychotherapy: null,
-        chronicDiseases: null,
-        dentalVisit: null,
-        missingTeeth: null,
-      });
-    });
+    //     // Cleanup state safely
+    //     setCurrentHealthQuestion(0);
+    //     setHealthAnswers({
+    //       doctorVisit: null,
+    //       doctorPreventative: null,
+    //       hospitalized: null,
+    //       psychotherapy: null,
+    //       chronicDiseases: null,
+    //       dentalVisit: null,
+    //       missingTeeth: null,
+    //     });
+    //   });
   };
 
   // ✅ Handle Choose Plan - Opens Health Modal for available plans
-  const handleChoosePlan = (plan: (typeof plans)[0]) => {
-    if (plan.id === "tk") {
+  const setSelectedPlan = useJourneyStore((s) => s.setSelectedPlan);
+
+const handleChoosePlan = (plan: (typeof plans)[0]) => {
+  if (plan.id === "tk") {
     router.push("/insuranceSignupFlow");
     return;
-  }  
-    if (plan.available) {
-      // ✅ Check if self-employed (always eligible for private)
-      const isSelfEmployed =
-        employmentStatus?.toLowerCase().includes("self") || false;
+  }
 
-      if (!isSelfEmployed && incomeRange !== ">77400") {
-        // Not eligible for private
-        setSelectedPlanName(plan.name);
-        setShowComingSoonModal(true);
-        return;
-      }
+  if (!plan.available) {
+    setSelectedPlanName(plan.name);
+    setShowComingSoonModal(true);
+    return;
+  }
 
-      // ✅ Store plan details in sessionStorage BEFORE health modal
-      const planData = {
-        title: plan.name,
-        price: plan.price,
-        category: "Private Hallesche",
-      };
-      sessionStorage.setItem("selectedPlan", JSON.stringify(planData));
+  const isSelfEmployed =
+    employmentStatus?.toLowerCase().includes("self") || false;
 
-      // ✅ Open health questions modal
-      // setPendingPlanId(plan.id);
-      // setShowHealthModal(true);
-      // setCurrentHealthQuestion(0);
-      // ✅ Directly go to next route
-      useJourneyStore.setState({ selectedPlan: plan.id });
-      router.push("/calculator/submitApplication");
-    } else {
-      setSelectedPlanName(plan.name);
-      setShowComingSoonModal(true);
-    }
-  };
+  if (!isSelfEmployed && incomeRange !== ">77400") {
+    setSelectedPlanName(plan.name);
+    setShowComingSoonModal(true);
+    return;
+  }
+
+  sessionStorage.setItem("selectedPlan", JSON.stringify(plan));
+
+  // ✅ Use the hook result here
+  setSelectedPlan(plan);
+
+  router.push("/calculator/submitApplication");
+};
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -607,7 +578,10 @@ export default function ComparePlans() {
                     transition={{ delay: 0.6, type: "spring" }}
                     className="absolute -top-4 -right-4 bg-linear-to-r from-purple-400 to-blue-400 text-black text-xs font-bold px-4 py-2 rounded-full shadow-xl z-10 border-2 border-white"
                   >
-                      <span className="flex gap-1 items-center"><Star className="w-3 h-3 fill-current" />Recommended</span>
+                    <span className="flex gap-1 items-center">
+                      <Star className="w-3 h-3 fill-current" />
+                      Recommended
+                    </span>
                   </motion.div>
                 )}
 

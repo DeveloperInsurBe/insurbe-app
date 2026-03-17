@@ -8,6 +8,13 @@ import { Shield, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 /* ---------------- Helpers ---------------- */
 
+type Plan = {
+  title: string;
+  price: string;
+  category: string;
+  tariffIds: string[];
+};
+
 function getTwoDaysFromNow() {
   const date = new Date();
   date.setDate(date.getDate() + 2);
@@ -25,21 +32,7 @@ export default function SubmitApplication() {
   const { form: premiumForm } = usePremiumStore();
   const journeyStore = useJourneyStore();
 
-  const selectedPlan = journeyStore.selectedPlan;
-
-  const [plan, setPlan] = useState<{
-    title: string;
-    price: string;
-    category: string;
-  } | null>(null);
-
-  useEffect(() => {
-    const storedPlan = sessionStorage.getItem("selectedPlan");
-
-    if (storedPlan) {
-      setPlan(JSON.parse(storedPlan));
-    }
-  }, []);
+  const [plan, setPlan] = useState<Plan | null>(null);
 
   /* ---------- Form state ---------- */
 
@@ -54,6 +47,8 @@ export default function SubmitApplication() {
   const [address, setAddress] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [seriousIllness, setSeriousIllness] = useState<string>(""); // NEW
+  const selectedPlan = useJourneyStore((s) => s.selectedPlan);
+  const hasHydrated = useJourneyStore.persist.hasHydrated();
 
   /* ---------- UI state ---------- */
 
@@ -65,10 +60,25 @@ export default function SubmitApplication() {
   /* ---------- Guard ---------- */
 
   useEffect(() => {
+    const storedPlan = sessionStorage.getItem("selectedPlan");
+
+    if (storedPlan) {
+      try {
+        const parsedPlan = JSON.parse(storedPlan);
+        setPlan(parsedPlan);
+      } catch (err) {
+        console.error("Invalid stored plan", err);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+
     if (!selectedPlan) {
       router.push("/calculator");
     }
-  }, [selectedPlan, router]);
+  }, [hasHydrated, selectedPlan, router]);
 
   /* ---------- Submit ---------- */
 
@@ -91,141 +101,178 @@ export default function SubmitApplication() {
     },
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    console.log("🟡 Submit clicked");
+  console.log("🟡 Submit clicked");
 
-    if (!firstName || !lastName || !dob || !email || !phone) {
-      setError("Please fill all required fields");
-      return;
-    }
+  if (!firstName || !lastName || !dob || !email || !phone) {
+    setError("Please fill all required fields");
+    return;
+  }
 
-    if (!agreeTerms) {
-      setError("Please agree to the Terms and Conditions");
-      return;
-    }
+  if (!agreeTerms) {
+    setError("Please agree to the Terms and Conditions");
+    return;
+  }
 
-    if (!seriousIllness) {
-      setError("Please answer the health question");
-      return;
-    }
+  if (!seriousIllness) {
+    setError("Please answer the health question");
+    return;
+  }
 
-    setLoading(true);
-    setError(null);
+  if (!plan?.tariffIds) {
+    setError("Tariff ID missing. Please select a plan again.");
+    return;
+  }
 
-    const genderMap: Record<string, string> = {
-      Male: "Item1",
-      Female: "Item2",
-      Other: "Item1",
-    };
+  setLoading(true);
+  setError(null);
 
-    const salutationMap: Record<string, string> = {
-      Mr: "Item1",
-      Mrs: "Item2",
-      Ms: "Item2",
-      Dr: "Item1",
-    };
-
-    /* ✅ DUMMY TARIFF ID (TEMPORARY) */
-    const DUMMY_TARIFF_ID = "35659";
-
-    /* ---------- FINAL PAYLOAD ---------- */
-
-    const payload = {
-      tariffId: DUMMY_TARIFF_ID,
-
-      vorname: firstName,
-      name: lastName,
-      geburtsdatum: dob,
-      anrede: salutationMap[salutation],
-      geschlecht: genderMap[gender],
-      beginn: coverageStart,
-
-      email,
-      telefon: normalizePhone(phone),
-
-      strasse: address || "Teststrasse",
-      hausnummer: "1",
-      plz: "10115",
-      ort: "Berlin",
-      land: "DE",
-
-      seriousIllness, // NEW
-
-      /* ✅ ONLY BANK DATA IS DUMMY */
-      bank: {
-        iban: "DE44500105175407324931",
-        bic: "INGDDEFFXXX",
-        kontoinhaber: `${firstName} ${lastName}`,
-        zahlungsart: "SEPA",
-        sepaMandat: true,
-      },
-    };
-
-    console.log("📦 SUBMIT APPLICATION PAYLOAD");
-    console.log(payload);
-
-    try {
-      const res = await fetch("/api/getorder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const responseText = await res.text();
-
-      console.log("⬅️ RESPONSE STATUS:", res.status);
-      console.log("📄 RAW SOAP RESPONSE:", responseText || "(empty)");
-
-      if (!res.ok) {
-        setError("Application submission failed");
-        return;
-      }
-
-      sessionStorage.setItem(
-        "applicationDetails",
-        JSON.stringify({
-          name: `${salutation} ${firstName} ${lastName}`,
-          email,
-          phone,
-          dob,
-          coverageStart,
-          tariffId: DUMMY_TARIFF_ID,
-          soapResponse: responseText,
-        }),
-      );
-
-      /* ✅ SEND ACKNOWLEDGEMENT EMAIL (ADDED) */
-      try {
-        const orderId = `INS-${Date.now()}`;
-
-        await fetch("/api/sendAcknowledgement", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            name: `${firstName} ${lastName}`,
-            orderId,
-            formType: "private", // change if needed (public/private/expat)
-          }),
-        });
-
-        console.log("📧 Acknowledgement email sent");
-      } catch (emailError) {
-        console.error("⚠️ Email sending failed:", emailError);
-      }
-      router.push("/calculator/submitApplication/success");
-    } catch (err) {
-      console.error("❌ Submit error:", err);
-      setError("Failed to submit application");
-    } finally {
-      setLoading(false);
-    }
+  const genderMap: Record<string, string> = {
+    Male: "Item1",
+    Female: "Item2",
+    Other: "Item1",
   };
 
+  const salutationMap: Record<string, string> = {
+    Mr: "Item1",
+    Mrs: "Item2",
+    Ms: "Item2",
+    Dr: "Item1",
+  };
+
+  const payload = {
+    tariffIds: plan?.tariffIds || ["35653", "24449", "24332", "1803"],
+    vorname: firstName,
+    name: lastName,
+    geburtsdatum: dob,
+    anrede: salutationMap[salutation],
+    geschlecht: genderMap[gender],
+    beginn: coverageStart,
+    email,
+    telefon: normalizePhone(phone),
+    strasse: address,
+    hausnummer: "1",
+    plz: "10115",
+    ort: "Berlin",
+    land: "DE",
+    seriousIllness,
+    bank: {
+      iban: "DE44500105175407324931",
+      bic: "INGDDEFFXXX",
+      kontoinhaber: `${firstName} ${lastName}`,
+    },
+  };
+
+  console.log("📦 SUBMIT APPLICATION PAYLOAD");
+  console.log(payload);
+
+  try {
+    const res = await fetch("/api/getorder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const responseText = await res.text();
+
+    // console.log("⬅️ RESPONSE STATUS:", res.status);
+    // console.log("📄 RAW SOAP RESPONSE:", responseText || "(empty)");
+
+    /* ✅ CHECK SOAP FAULT */
+    if (responseText.includes("Fault")) {
+      // console.error("SOAP Fault detected:", responseText);
+      setError("Insurance provider rejected the request. Please try again.");
+      return;
+    }
+
+    if (!res.ok) {
+      setError("Application submission failed");
+      return;
+    }
+
+    /* ✅ PARSE SOAP RESPONSE */
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(responseText, "application/xml");
+
+    // Log all fields so we can see what the server returns
+    const allElements = xmlDoc.querySelectorAll("*");
+    allElements.forEach((el) => {
+      if (el.textContent?.trim() && el.children.length === 0) {
+        // console.log(`🔍 ${el.tagName}:`, el.textContent.trim().substring(0, 100));
+      }
+    });
+
+    // Extract PDF
+    const valueField = xmlDoc.querySelector("valueField");
+    const dateinameField = xmlDoc.querySelector("dateinameField");
+    const pdfBase64 = valueField?.textContent || null;
+    const pdfName = dateinameField?.textContent || "application.pdf";
+
+    // console.log("📄 PDF found:", !!pdfBase64);
+    // console.log("📄 PDF name:", pdfName);
+
+    // Extract real order ID from SOAP response
+    const realOrderId =
+      xmlDoc.querySelector("antragsnummerField")?.textContent ||
+      xmlDoc.querySelector("vorgangsnummerVUField")?.textContent ||
+      xmlDoc.querySelector("vorgangsnummerVMField")?.textContent ||
+      xmlDoc.querySelector("vertragsnummerField")?.textContent ||
+      null;
+
+    console.log("🆔 Real Order ID from SOAP:", realOrderId);
+
+    const finalOrderId = realOrderId || `INS-${Date.now()}`;
+
+    /* ✅ SAVE TO SESSION STORAGE — only once, correctly */
+    sessionStorage.setItem("applicationOrderId", finalOrderId);
+
+    if (pdfBase64) {
+      sessionStorage.setItem("applicationPdfBase64", pdfBase64);
+      sessionStorage.setItem("applicationPdfFilename", pdfName);
+    }
+
+    sessionStorage.setItem(
+      "applicationDetails",
+      JSON.stringify({
+        name: `${salutation} ${firstName} ${lastName}`,
+        email,
+        phone,
+        dob,
+        coverageStart,
+        tariffId: plan?.tariffIds,
+      }),
+    );
+
+    /* ✅ SEND EMAIL with real order ID */
+    try {
+      await fetch("/api/sendAcknowledgement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          name: `${firstName} ${lastName}`,
+          orderId: finalOrderId,
+          formType: "private",
+        }),
+      });
+
+      console.log("📧 Acknowledgement email sent");
+    } catch (emailError) {
+      console.error("⚠️ Email sending failed:", emailError);
+    }
+
+    console.log("Selected plan:", plan);
+    router.push("/calculator/submitApplication/success");
+
+  } catch (err) {
+    console.error("❌ Submit error:", err);
+    setError("Failed to submit application");
+  } finally {
+    setLoading(false);
+  }
+};
   const calculateAge = (date: string) => {
     if (!date) return "";
     const today = new Date();
