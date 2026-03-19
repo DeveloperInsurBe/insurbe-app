@@ -6,6 +6,7 @@ import { usePremiumStore } from "@/app/stores/premiumStore";
 import { useJourneyStore } from "@/app/stores/journeyStore";
 import { Shield, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 /* ---------------- Helpers ---------------- */
 
 type Plan = {
@@ -49,7 +50,7 @@ export default function SubmitApplication() {
   const [seriousIllness, setSeriousIllness] = useState<string>(""); // NEW
   const selectedPlan = useJourneyStore((s) => s.selectedPlan);
   const hasHydrated = useJourneyStore.persist.hasHydrated();
-
+  const { data: session } = useSession();
   /* ---------- UI state ---------- */
 
   const [loading, setLoading] = useState(false);
@@ -101,178 +102,236 @@ export default function SubmitApplication() {
     },
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  console.log("🟡 Submit clicked");
+    console.log("🟡 Submit clicked");
 
-  if (!firstName || !lastName || !dob || !email || !phone) {
-    setError("Please fill all required fields");
-    return;
-  }
-
-  if (!agreeTerms) {
-    setError("Please agree to the Terms and Conditions");
-    return;
-  }
-
-  if (!seriousIllness) {
-    setError("Please answer the health question");
-    return;
-  }
-
-  if (!plan?.tariffIds) {
-    setError("Tariff ID missing. Please select a plan again.");
-    return;
-  }
-
-  setLoading(true);
-  setError(null);
-
-  const genderMap: Record<string, string> = {
-    Male: "Item1",
-    Female: "Item2",
-    Other: "Item1",
-  };
-
-  const salutationMap: Record<string, string> = {
-    Mr: "Item1",
-    Mrs: "Item2",
-    Ms: "Item2",
-    Dr: "Item1",
-  };
-
-  const payload = {
-    tariffIds: plan?.tariffIds || ["35653", "24449", "24332", "1803"],
-    vorname: firstName,
-    name: lastName,
-    geburtsdatum: dob,
-    anrede: salutationMap[salutation],
-    geschlecht: genderMap[gender],
-    beginn: coverageStart,
-    email,
-    telefon: normalizePhone(phone),
-    strasse: address,
-    hausnummer: "1",
-    plz: "10115",
-    ort: "Berlin",
-    land: "DE",
-    seriousIllness,
-    bank: {
-      iban: "DE44500105175407324931",
-      bic: "INGDDEFFXXX",
-      kontoinhaber: `${firstName} ${lastName}`,
-    },
-  };
-
-  console.log("📦 SUBMIT APPLICATION PAYLOAD");
-  console.log(payload);
-
-  try {
-    const res = await fetch("/api/getorder", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const responseText = await res.text();
-
-    // console.log("⬅️ RESPONSE STATUS:", res.status);
-    // console.log("📄 RAW SOAP RESPONSE:", responseText || "(empty)");
-
-    /* ✅ CHECK SOAP FAULT */
-    if (responseText.includes("Fault")) {
-      // console.error("SOAP Fault detected:", responseText);
-      setError("Insurance provider rejected the request. Please try again.");
+    if (!firstName || !lastName || !dob || !email || !phone) {
+      setError("Please fill all required fields");
       return;
     }
 
-    if (!res.ok) {
-      setError("Application submission failed");
+    if (!agreeTerms) {
+      setError("Please agree to the Terms and Conditions");
       return;
     }
 
-    /* ✅ PARSE SOAP RESPONSE */
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(responseText, "application/xml");
+    if (!seriousIllness) {
+      setError("Please answer the health question");
+      return;
+    }
+    //  LOGIC: If serious illness → stop flow
+    if (seriousIllness === "yes") {
+      console.log("⚠️ High-risk user → redirecting to appointment");
 
-    // Log all fields so we can see what the server returns
-    const allElements = xmlDoc.querySelectorAll("*");
-    allElements.forEach((el) => {
-      if (el.textContent?.trim() && el.children.length === 0) {
-        // console.log(`🔍 ${el.tagName}:`, el.textContent.trim().substring(0, 100));
-      }
-    });
-
-    // Extract PDF
-    const valueField = xmlDoc.querySelector("valueField");
-    const dateinameField = xmlDoc.querySelector("dateinameField");
-    const pdfBase64 = valueField?.textContent || null;
-    const pdfName = dateinameField?.textContent || "application.pdf";
-
-    // console.log("📄 PDF found:", !!pdfBase64);
-    // console.log("📄 PDF name:", pdfName);
-
-    // Extract real order ID from SOAP response
-    const realOrderId =
-      xmlDoc.querySelector("antragsnummerField")?.textContent ||
-      xmlDoc.querySelector("vorgangsnummerVUField")?.textContent ||
-      xmlDoc.querySelector("vorgangsnummerVMField")?.textContent ||
-      xmlDoc.querySelector("vertragsnummerField")?.textContent ||
-      null;
-
-    console.log("🆔 Real Order ID from SOAP:", realOrderId);
-
-    const finalOrderId = realOrderId || `INS-${Date.now()}`;
-
-    /* ✅ SAVE TO SESSION STORAGE — only once, correctly */
-    sessionStorage.setItem("applicationOrderId", finalOrderId);
-
-    if (pdfBase64) {
-      sessionStorage.setItem("applicationPdfBase64", pdfBase64);
-      sessionStorage.setItem("applicationPdfFilename", pdfName);
+      router.push("/book-appointment");
+      return;
     }
 
-    sessionStorage.setItem(
-      "applicationDetails",
-      JSON.stringify({
-        name: `${salutation} ${firstName} ${lastName}`,
-        email,
-        phone,
-        dob,
-        coverageStart,
-        tariffId: plan?.tariffIds,
-      }),
-    );
+    if (!plan?.tariffIds) {
+      setError("Tariff ID missing. Please select a plan again.");
+      return;
+    }
 
-    /* ✅ SEND EMAIL with real order ID */
+    setLoading(true);
+    setError(null);
+
+    const genderMap: Record<string, string> = {
+      Male: "Item1",
+      Female: "Item2",
+      Other: "Item1",
+    };
+
+    const salutationMap: Record<string, string> = {
+      Mr: "Item1",
+      Mrs: "Item2",
+      Ms: "Item2",
+      Dr: "Item1",
+    };
+
+    const payload = {
+      tariffIds: plan?.tariffIds || ["35653", "24449", "24332", "1803"],
+      vorname: firstName,
+      name: lastName,
+      geburtsdatum: dob,
+      anrede: salutationMap[salutation],
+      geschlecht: genderMap[gender],
+      beginn: coverageStart,
+      email,
+      telefon: normalizePhone(phone),
+      strasse: address,
+      hausnummer: "1",
+      plz: "10115",
+      ort: "Berlin",
+      land: "DE",
+      seriousIllness,
+      bank: {
+        iban: "DE44500105175407324931",
+        bic: "INGDDEFFXXX",
+        kontoinhaber: `${firstName} ${lastName}`,
+      },
+    };
+
+    console.log("📦 SUBMIT APPLICATION PAYLOAD");
+    console.log(payload);
+
     try {
-      await fetch("/api/sendAcknowledgement", {
+      const res = await fetch("/api/getorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          name: `${firstName} ${lastName}`,
-          orderId: finalOrderId,
-          formType: "private",
-        }),
+        body: JSON.stringify(payload),
       });
 
-      console.log("📧 Acknowledgement email sent");
-    } catch (emailError) {
-      console.error("⚠️ Email sending failed:", emailError);
+      const responseText = await res.text();
+
+      // console.log("⬅️ RESPONSE STATUS:", res.status);
+      // console.log("📄 RAW SOAP RESPONSE:", responseText || "(empty)");
+
+      /* ✅ CHECK SOAP FAULT */
+      if (responseText.includes("Fault")) {
+        // console.error("SOAP Fault detected:", responseText);
+        setError("Insurance provider rejected the request. Please try again.");
+        return;
+      }
+
+      if (!res.ok) {
+        setError("Application submission failed");
+        return;
+      }
+
+      /* ✅ PARSE SOAP RESPONSE */
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(responseText, "application/xml");
+
+      // Log all fields so we can see what the server returns
+      const allElements = xmlDoc.querySelectorAll("*");
+      allElements.forEach((el) => {
+        if (el.textContent?.trim() && el.children.length === 0) {
+          // console.log(`🔍 ${el.tagName}:`, el.textContent.trim().substring(0, 100));
+        }
+      });
+
+      // Extract PDF
+      const valueField = xmlDoc.querySelector("valueField");
+      const dateinameField = xmlDoc.querySelector("dateinameField");
+      const pdfBase64 = valueField?.textContent || null;
+      const pdfName = dateinameField?.textContent || "application.pdf";
+
+      // console.log("📄 PDF found:", !!pdfBase64);
+      // console.log("📄 PDF name:", pdfName);
+
+      // Extract real order ID from SOAP response
+      const realOrderId =
+        xmlDoc.querySelector("antragsnummerField")?.textContent ||
+        xmlDoc.querySelector("vorgangsnummerVUField")?.textContent ||
+        xmlDoc.querySelector("vorgangsnummerVMField")?.textContent ||
+        xmlDoc.querySelector("vertragsnummerField")?.textContent ||
+        null;
+
+      console.log("🆔 Real Order ID from SOAP:", realOrderId);
+
+      const finalOrderId = realOrderId || `INS-${Date.now()}`;
+
+      let applicationId = null;
+
+      if (pdfBase64) {
+        try {
+          const saveRes = await fetch("/api/application/save", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              orderId: finalOrderId,
+              pdfBase64,
+            }),
+          });
+
+          const saveData = await saveRes.json();
+
+          applicationId = saveData.applicationId;
+
+          console.log("✅ Application saved:", applicationId);
+
+          // store only ID (not full PDF)
+          sessionStorage.setItem("applicationId", applicationId);
+        } catch (err) {
+          console.error("❌ Failed to save application:", err);
+        }
+      }
+
+      /* ✅ SAVE TO SESSION STORAGE — only once, correctly */
+      sessionStorage.setItem("applicationOrderId", finalOrderId);
+
+      // if (pdfBase64) {
+      //   sessionStorage.setItem("applicationPdfBase64", pdfBase64);
+      //   sessionStorage.setItem("applicationPdfFilename", pdfName);
+      // }
+
+      sessionStorage.setItem(
+        "applicationDetails",
+        JSON.stringify({
+          name: `${salutation} ${firstName} ${lastName}`,
+          email,
+          phone,
+          dob,
+          coverageStart,
+          tariffId: plan?.tariffIds,
+        }),
+      );
+
+      /* ✅ SEND EMAIL with real order ID */
+      // try {
+      //   await fetch("/api/sendAcknowledgement", {
+      //     method: "POST",
+      //     headers: { "Content-Type": "application/json" },
+      //     body: JSON.stringify({
+      //       email,
+      //       name: `${firstName} ${lastName}`,
+      //       orderId: finalOrderId,
+      //       formType: "private",
+      //     }),
+      //   });
+
+      //   console.log("📧 Acknowledgement email sent");
+      // } catch (emailError) {
+      //   console.error("⚠️ Email sending failed:", emailError);
+      // }
+      // 🔥 Attach immediately if user already logged in
+      if (session && applicationId) {
+        try {
+          console.log("🔗 Attaching immediately (user already logged in)");
+
+          await fetch("/api/application/assign", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ applicationId }),
+          });
+
+          console.log("✅ Application linked instantly");
+
+          sessionStorage.removeItem("applicationId");
+        } catch (err) {
+          console.error("❌ Failed to link application:", err);
+        }
+      }
+      console.log("Selected plan:", plan);
+      // router.push("/calculator/submitApplication/success");.
+      if (session) {
+        router.push("/dashboard");
+      } else {
+        router.push("/login");
+      }
+    } catch (err) {
+      console.error("❌ Submit error:", err);
+      setError("Failed to submit application");
+    } finally {
+      setLoading(false);
     }
-
-    console.log("Selected plan:", plan);
-    router.push("/calculator/submitApplication/success");
-
-  } catch (err) {
-    console.error("❌ Submit error:", err);
-    setError("Failed to submit application");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   const calculateAge = (date: string) => {
     if (!date) return "";
     const today = new Date();

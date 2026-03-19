@@ -24,33 +24,50 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  const res = await signIn("credentials", {
+    email,
+    password,
+    redirect: false,
+  });
 
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+  setLoading(false);
 
-    setLoading(false);
+  if (!res || res.error) {
+    setError("Invalid email or password");
+    return;
+  }
 
-    if (!res || res.error) {
-      setError("Invalid email or password");
-      return;
+  // 🔥 Attach application (if exists)
+  const applicationId = sessionStorage.getItem("applicationId");
+  console.log("🆔 applicationId:", applicationId);
+
+  if (applicationId) {
+    try {
+      await fetch("/api/application/assign", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ applicationId }),
+      });
+
+      console.log("✅ Application linked");
+
+      sessionStorage.removeItem("applicationId");
+    } catch (err) {
+      console.error("❌ Failed to link application:", err);
     }
+  }
 
-    const allowedEmails = ["developer@insurbe.com", "admin@insurbe.com"];
-
-    if (allowedEmails.includes(email)) {
-      router.push("/insuranceSignupFlow");
-    } else {
-      router.push("/");
-    }
-  };
+  // ✅ Redirect manually
+  router.push("/dashboard");
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 px-4 py-8 relative overflow-hidden">
