@@ -3,28 +3,17 @@ import { NextResponse } from "next/server";
 
 export default withAuth(
   function middleware(req) {
-    const token = req.nextauth.token;
-
-    const allowedEmails = ["developer@insurbe.com", "admin@insurbe.com"];
-
-    if (token && !allowedEmails.includes(token.email as string)) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-
+    // Just allow request if user is authenticated
     return NextResponse.next();
   },
   {
     callbacks: {
+      // Only check if user is logged in
       authorized: ({ token }) => !!token,
     },
-  },
+  }
 );
 
 export const config = {
   matcher: ["/dashboard/:path*"],
 };
-
-//  "/insuranceSignupFlow/:path*",
-//     "/calculator/submitApplication/:path*",
-//     "/ottonovaSignupform/:path*",
-//     "/insurance/public-health/:path*",
