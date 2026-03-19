@@ -15,3 +15,16 @@ model User {
   resetTokenExpiry  DateTime?
   createdAt         DateTime @default(now())
 }
+
+model Application {
+  id          String   @id @default(uuid())
+  orderId     String
+  userId      String?   // null until login
+  pdfBase64   String    @db.Text
+  status      String    // pending_login | incomplete | completed
+  createdAt   DateTime  @default(now())
+  personalDetails Json?   
+  healthAnswers   Json?   
+  uploadedDocs    Json?   
+  signature       String? 
+}

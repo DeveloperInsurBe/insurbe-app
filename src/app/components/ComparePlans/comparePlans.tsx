@@ -21,6 +21,8 @@ interface HealthAnswer {
   missingTeeth: string | null;
 }
 
+
+
 export default function ComparePlans() {
   const router = useRouter();
   // const { setPremium, setTKPremium } = usePremiumStore();
@@ -55,109 +57,139 @@ export default function ComparePlans() {
 
   // ✅ Fetch premiums on mount for products with loading=true
   const fetchedRef = useRef(false);
+ 
+   
+  useEffect(() => {
+    if (fetchedRef.current) return;
 
-useEffect(() => {
-  if (fetchedRef.current) return;
+    fetchedRef.current = true;
 
-  fetchedRef.current = true;
+  
+    const fetchPremiums = async () => {
+      if (!availableProducts || availableProducts.length === 0) return;
 
-  const fetchPremiums = async () => {
-    if (!availableProducts || availableProducts.length === 0) return;
+      const currentYear = new Date().getFullYear();
+      const fullDob = dob ? `${dob}-01-01` : "2000-01-01";
+      const coverageStart = new Date().toISOString().split("T")[0];
 
-    const currentYear = new Date().getFullYear();
-    const fullDob = dob ? `${dob}-01-01` : "2000-01-01";
-    const coverageStart = new Date().toISOString().split("T")[0];
+      const EU_COUNTRIES = [
+        "Austria",
+        "Belgium",
+        "Bulgaria",
+        "Croatia",
+        "Cyprus",
+        "Czech Republic",
+        "Denmark",
+        "Estonia",
+        "Finland",
+        "France",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "Ireland",
+        "Italy",
+        "Latvia",
+        "Lithuania",
+        "Luxembourg",
+        "Malta",
+        "Netherlands",
+        "Poland",
+        "Portugal",
+        "Romania",
+        "Slovakia",
+        "Slovenia",
+        "Spain",
+        "Sweden",
+        "Iceland",
+        "Liechtenstein",
+        "Norway",
+        "Switzerland",
+        "United Kingdom",
+      ];
 
-    const EU_COUNTRIES = [
-      "Austria","Belgium","Bulgaria","Croatia","Cyprus","Czech Republic",
-      "Denmark","Estonia","Finland","France","Germany","Greece","Hungary",
-      "Ireland","Italy","Latvia","Lithuania","Luxembourg","Malta",
-      "Netherlands","Poland","Portugal","Romania","Slovakia","Slovenia",
-      "Spain","Sweden","Iceland","Liechtenstein","Norway","Switzerland",
-      "United Kingdom",
-    ];
+      const isEU = selectedCountry
+        ? EU_COUNTRIES.includes(selectedCountry)
+        : true;
 
-    const isEU = selectedCountry
-      ? EU_COUNTRIES.includes(selectedCountry)
-      : true;
+      const requests: Promise<any>[] = [];
 
-    const requests: Promise<any>[] = [];
-
-    const premiumProduct = availableProducts.find(
-      (p: any) => p.id === "hallesche-premium" && p.loading
-    );
-
-    const expatProduct = availableProducts.find(
-      (p: any) => p.id === "hallesche-expat" && p.loading && !isEU
-    );
-
-    if (premiumProduct) {
-      requests.push(
-        fetch("/api/getOfferEinzel", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tariffIds: ["35659","36129","24332","1803"],
-            vorname: "User",
-            name: "Customer",
-            geburtsdatum: fullDob,
-            beginn: coverageStart,
-          }),
-        }).then((res) => res.json())
+      const premiumProduct = availableProducts.find(
+        (p: any) => p.id === "hallesche-premium" && p.loading,
       );
-    }
 
-    if (expatProduct) {
-      requests.push(
-        fetch("/api/getOfferEinzel", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tariffIds: ["35057","35063","24332","1803"],
-            vorname: "User",
-            name: "Customer",
-            geburtsdatum: fullDob,
-            beginn: coverageStart,
-          }),
-        }).then((res) => res.json())
+      const expatProduct = availableProducts.find(
+        (p: any) => p.id === "hallesche-expat" && p.loading && !isEU,
       );
-    }
 
-    const results = await Promise.all(requests);
-
-    let resultIndex = 0;
-
-    const updatedProducts = availableProducts.map((product: any) => {
-      if (product.id === "hallesche-premium" && premiumProduct) {
-        const data = results[resultIndex++];
-
-        return {
-          ...product,
-          premium: data.premium,
-          documentCount: data.documents?.length || 0,
-          loading: false,
-        };
+      if (premiumProduct) {
+        requests.push(
+          fetch("/api/getOfferEinzel", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              tariffIds: ["35659", "36129", "24332", "1803"],
+              vorname: "User",
+              name: "Customer",
+              geburtsdatum: fullDob,
+              beginn: coverageStart,
+            }),
+          }).then((res) => res.json()),
+        );
       }
 
-      if (product.id === "hallesche-expat" && expatProduct) {
-        const data = results[resultIndex++];
-
-        return {
-          ...product,
-          premium: data.premium,
-          documentCount: data.documents?.length || 0,
-          loading: false,
-        };
+      if (expatProduct) {
+        requests.push(
+          fetch("/api/getOfferEinzel", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              tariffIds: ["35057", "35063", "24332", "1803"],
+              vorname: "User",
+              name: "Customer",
+              geburtsdatum: fullDob,
+              beginn: coverageStart,
+            }),
+          }).then((res) => res.json()),
+        );
       }
 
-      return product;
-    });
+      const results = await Promise.all(requests);
 
-    useJourneyStore.getState().setAvailableProducts(updatedProducts);
-  };
+      let resultIndex = 0;
 
-  fetchPremiums();
-}, []);
+      const updatedProducts = availableProducts.map((product: any) => {
+        if (product.id === "hallesche-premium" && premiumProduct) {
+          const data = results[resultIndex++];
+          setHalleschePremiumDocs(data.documents || []);
+          return {
+            ...product,
+            premium: data.premium,
+            documentCount: data.documents?.length || 0,
+            loading: false,
+          };
+        }
+
+        if (product.id === "hallesche-expat" && expatProduct) {
+          const data = results[resultIndex++];
+
+          // ✅ STORE DOCUMENTS HERE
+          setHallescheExpatDocs(data.documents || []);
+          return {
+            ...product,
+            premium: data.premium,
+            documentCount: data.documents?.length || 0,
+            loading: false,
+          };
+        }
+
+        return product;
+      });
+
+      useJourneyStore.getState().setAvailableProducts(updatedProducts);
+    };
+
+    fetchPremiums();
+  }, []);
   // ✅ Transform store products to display format
   const plans = useMemo(() => {
     if (!availableProducts || availableProducts.length === 0) {
@@ -371,34 +403,34 @@ useEffect(() => {
   // ✅ Handle Choose Plan - Opens Health Modal for available plans
   const setSelectedPlan = useJourneyStore((s) => s.setSelectedPlan);
 
-const handleChoosePlan = (plan: (typeof plans)[0]) => {
-  if (plan.id === "tk") {
-    router.push("/insuranceSignupFlow");
-    return;
-  }
+  const handleChoosePlan = (plan: (typeof plans)[0]) => {
+    if (plan.id === "tk") {
+      router.push("/insuranceSignupFlow");
+      return;
+    }
 
-  if (!plan.available) {
-    setSelectedPlanName(plan.name);
-    setShowComingSoonModal(true);
-    return;
-  }
+    if (!plan.available) {
+      setSelectedPlanName(plan.name);
+      setShowComingSoonModal(true);
+      return;
+    }
 
-  const isSelfEmployed =
-    employmentStatus?.toLowerCase().includes("self") || false;
+    const isSelfEmployed =
+      employmentStatus?.toLowerCase().includes("self") || false;
 
-  if (!isSelfEmployed && incomeRange !== ">77400") {
-    setSelectedPlanName(plan.name);
-    setShowComingSoonModal(true);
-    return;
-  }
+    if (!isSelfEmployed && incomeRange !== ">77400") {
+      setSelectedPlanName(plan.name);
+      setShowComingSoonModal(true);
+      return;
+    }
 
-  sessionStorage.setItem("selectedPlan", JSON.stringify(plan));
+    sessionStorage.setItem("selectedPlan", JSON.stringify(plan));
 
-  // ✅ Use the hook result here
-  setSelectedPlan(plan);
+    // ✅ Use the hook result here
+    setSelectedPlan(plan);
 
-  router.push("/calculator/submitApplication");
-};
+    router.push("/calculator/submitApplication");
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -423,6 +455,29 @@ const handleChoosePlan = (plan: (typeof plans)[0]) => {
       </div>
     );
   }
+  const { halleschePremiumDocs } = useDocumentStore();
+  const downloadPDF = (base64: string, fileName: string) => {
+    const byteCharacters = atob(base64);
+
+    const byteNumbers = new Array(byteCharacters.length)
+      .fill(0)
+      .map((_, i) => byteCharacters.charCodeAt(i));
+
+    const byteArray = new Uint8Array(byteNumbers);
+
+    const blob = new Blob([byteArray], {
+      type: "application/pdf",
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.click();
+
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <motion.div
@@ -717,6 +772,16 @@ const handleChoosePlan = (plan: (typeof plans)[0]) => {
                       ? "Apply Now →"
                       : "Apply Now →"}
                 </motion.button>
+                {/* pdf download button  */}
+                {/* {halleschePremiumDocs?.map((doc, index) => (
+                  <button
+                    key={index}
+                    onClick={() => downloadPDF(doc.base64, doc.name)}
+                    className="bg-blue-500 text-white px-4 py-2 rounded mb-2"
+                  >
+                    Download {doc.name}
+                  </button>
+                ))} */}
               </motion.div>
             );
           })}
