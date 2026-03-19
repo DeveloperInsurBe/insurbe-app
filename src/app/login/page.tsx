@@ -33,7 +33,8 @@ const handleSubmit = async (e: React.FormEvent) => {
   const res = await signIn("credentials", {
     email,
     password,
-    redirect: false,
+    // redirect: false,
+    callbackUrl: "/dashboard",
   });
 
   setLoading(false);
