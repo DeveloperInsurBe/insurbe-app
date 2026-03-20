@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Shield, FileText, User } from "lucide-react";
+import { Shield, FileText, User, LogOut, Download, ArrowRight, ChevronRight } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Policy {
   id: number;
@@ -20,43 +21,43 @@ interface Document {
   uploadedAt: string;
 }
 
+const containerVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+};
+
 export default function DashboardPage() {
   const { data: session } = useSession();
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
 
-  // Extract name from email
   const userEmail = session?.user?.email || "";
   const userName = userEmail.split("@")[0] || "User";
-  // Capitalize first letter
   const displayName = userName.charAt(0).toUpperCase() + userName.slice(1);
   const router = useRouter();
 
-  // TODO: Fetch real data from API
   useEffect(() => {
     const attachAndFetch = async () => {
       try {
         const applicationId = sessionStorage.getItem("applicationId");
 
-        // 🔥 STEP 1: Attach application
         if (applicationId) {
           console.log("🔗 Attaching application:", applicationId);
-
           await fetch("/api/application/assign", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ applicationId }),
           });
-
           sessionStorage.removeItem("applicationId");
         }
 
-        // 🔥 STEP 2: Fetch applications
         const res = await fetch("/api/application/user");
         const data = await res.json();
-
         console.log("📄 Applications:", data);
 
         const policyData = data.map((app: any) => ({
@@ -80,221 +81,287 @@ export default function DashboardPage() {
       }
     };
 
-    if (session) {
-      attachAndFetch();
-    }
+    if (session) attachAndFetch();
   }, [session]);
 
   const downloadPDF = (base64: string) => {
     const byteCharacters = atob(base64);
-
-    const byteNumbers = new Array(byteCharacters.length)
-      .fill(0)
-      .map((_, i) => byteCharacters.charCodeAt(i));
-
+    const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
     const byteArray = new Uint8Array(byteNumbers);
-
-    const blob = new Blob([byteArray], {
-      type: "application/pdf",
-    });
-
+    const blob = new Blob([byteArray], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
-
     window.open(url);
   };
 
+  const stats = [
+    { icon: <Shield className="w-4 h-4" />, value: policies.length, label: "Policies", color: "text-violet-600", bg: "bg-violet-50", border: "border-violet-100" },
+    { icon: <FileText className="w-4 h-4" />, value: documents.length, label: "Documents", color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100" },
+    { icon: <User className="w-4 h-4" />, value: "Premium", label: "Member Type", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-xl p-6 shadow-sm flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Welcome, {displayName}
-            </h1>
-            <p className="text-gray-600">{userEmail}</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 relative overflow-hidden">
+
+      {/* Background orbs */}
+      <motion.div
+        className="fixed top-[-120px] left-[-120px] w-[400px] h-[400px] rounded-full bg-violet-400/10 blur-[100px] pointer-events-none"
+        animate={{ scale: [1, 1.1, 1], x: [0, 20, 0], y: [0, -15, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="fixed bottom-[-100px] right-[-80px] w-[350px] h-[350px] rounded-full bg-pink-400/10 blur-[100px] pointer-events-none"
+        animate={{ scale: [1, 1.08, 1], x: [0, -20, 0], y: [0, 20, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+      />
+      <div className="fixed inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-5">
+
+        {/* ── Header ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-2xl px-6 py-5 shadow-sm shadow-black/[0.04] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-md shadow-violet-200">
+              <span className="text-white font-bold text-lg">{displayName.charAt(0)}</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight">Welcome back, {displayName}</h1>
+              <p className="text-xs text-slate-400 mt-0.5">{userEmail}</p>
+            </div>
           </div>
 
-          <button
+          <motion.button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="px-4 py-2 cursor-pointer bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-100 text-red-500 hover:bg-red-100 hover:text-red-600 rounded-xl text-sm font-medium transition-colors duration-150 self-start sm:self-auto"
           >
-            Logout
-          </button>
-        </div>
+            <LogOut className="w-3.5 h-3.5" />
+            Sign out
+          </motion.button>
+        </motion.div>
 
-        {/* Stats */}
-        <div className="grid sm:grid-cols-3 gap-4">
-          <StatCard
-            icon={<Shield className="w-5 h-5 text-purple-600" />}
-            value={policies.length}
-            label="Policies"
-          />
-          <StatCard
-            icon={<FileText className="w-5 h-5 text-blue-600" />}
-            value={documents.length}
-            label="Documents"
-          />
-          <StatCard
-            icon={<User className="w-5 h-5 text-green-600" />}
-            value="Premium"
-            label="Member Type"
-          />
-        </div>
+        {/* ── Stats ── */}
+        <motion.div
+          className="grid grid-cols-3 gap-3"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {stats.map((s) => (
+            <motion.div
+              key={s.label}
+              variants={itemVariants}
+              className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-2xl p-4 shadow-sm shadow-black/[0.04]"
+            >
+              <div className={`w-8 h-8 rounded-lg ${s.bg} border ${s.border} flex items-center justify-center mb-3 ${s.color}`}>
+                {s.icon}
+              </div>
+              <p className="text-2xl font-bold text-slate-900 tracking-tight">{s.value}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
+            </motion.div>
+          ))}
+        </motion.div>
 
-        {/* Policies */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">My Policies</h2>
-
-          {policies.length === 0 ? (
-            <div className="text-center py-12">
-              <Shield className="w-12 h-12 text-purple-300 mx-auto mb-4" />
-              <p className="text-lg font-semibold">
-                Start your insurance journey 🚀
-              </p>
-              <p className="text-sm text-gray-500 mt-2 mb-6">
-                Explore plans and get insured today.
-              </p>
-              <button
-                onClick={() => router.push("/insurance/private-health")}
-                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-              >
-                Explore Plans
-              </button>
+        {/* ── Policies ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.04]"
+        >
+          <div className="px-6 py-4 border-b border-black/[0.05] flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center">
+                <Shield className="w-3.5 h-3.5 text-violet-600" />
+              </div>
+              <h2 className="text-sm font-bold text-slate-800 tracking-tight">My Policies</h2>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {policies.map((policy) => {
-                const progress =
-                  policy.status === "completed"
-                    ? 100
-                    : policy.status === "incomplete"
-                      ? 60
-                      : 20;
+            <span className="text-xs text-slate-400 bg-slate-50 border border-black/[0.06] px-2.5 py-1 rounded-full font-medium">
+              {policies.length} total
+            </span>
+          </div>
 
-                return (
-                  <div
-                    key={policy.id}
-                    className="p-4 border rounded-lg hover:bg-gray-50 transition"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          {policy.name}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Start: {policy.startDate}
-                        </p>
-
-                        {/* Status Badge */}
-                        <span
-                          className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${
-                            policy.status === "completed"
-                              ? "bg-green-100 text-green-700"
-                              : policy.status === "incomplete"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {policy.status === "completed"
-                            ? "Completed"
-                            : policy.status === "incomplete"
-                              ? "In Progress"
-                              : "Pending"}
-                        </span>
-                      </div>
-
-                      {/* Action Button */}
-                      <div className="flex flex-col items-end gap-2">
-                        <button
-                          onClick={() => {
-                            if (
-                              policy.status === "completed" &&
-                              policy.pdfBase64
-                            ) {
-                              downloadPDF(policy.pdfBase64);
-                            } else {
-                              router.push(`/application/${policy.id}`);
-                            }
-                          }}
-                          className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm"
-                        >
-                          {policy.status === "completed"
-                            ? "Download PDF"
-                            : "Continue"}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="mt-4">
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-purple-600 h-2 rounded-full transition-all"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {progress}% completed
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Documents */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Documents</h2>
-
-          {documents.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-blue-300 mx-auto mb-4" />
-              <p className="text-gray-700 font-medium">
-                No documents available yet.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {documents.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                >
-                  <div>
-                    <p className="font-semibold text-gray-900">{doc.title}</p>
-                    <p className="text-sm text-gray-600">
-                      Uploaded: {doc.uploadedAt}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => downloadPDF((doc as any).pdfBase64)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg"
-                  >
-                    View PDF
-                  </button>
+          <div className="p-4">
+            {policies.length === 0 ? (
+              <div className="text-center py-12 px-4">
+                <div className="w-14 h-14 rounded-2xl bg-violet-50 border border-violet-100 flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-6 h-6 text-violet-400" />
                 </div>
-              ))}
+                <p className="text-sm font-semibold text-slate-700 mb-1">Start your insurance journey 🚀</p>
+                <p className="text-xs text-slate-400 mb-5">Explore plans and get insured today.</p>
+                <motion.button
+                  onClick={() => router.push("/insurance/private-health")}
+                  whileHover={{ y: -2, scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-violet-200 hover:shadow-violet-300 hover:shadow-lg transition-shadow"
+                >
+                  Explore Plans <ArrowRight className="w-3.5 h-3.5" />
+                </motion.button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <AnimatePresence>
+                  {policies.map((policy, i) => {
+                    const progress = policy.status === "completed" ? 100 : policy.status === "incomplete" ? 60 : 20;
+                    const statusConfig = policy.status === "completed"
+                      ? { label: "Completed", cls: "bg-emerald-50 text-emerald-600 border-emerald-100" }
+                      : policy.status === "incomplete"
+                      ? { label: "In Progress", cls: "bg-amber-50 text-amber-600 border-amber-100" }
+                      : { label: "Pending", cls: "bg-slate-50 text-slate-500 border-slate-200" };
+
+                    return (
+                      <motion.div
+                        key={policy.id}
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                        className="border border-black/[0.07] rounded-xl p-4 bg-slate-50/60 hover:bg-slate-50 transition-colors duration-150"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-slate-800 truncate">{policy.name}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">Started {policy.startDate}</p>
+                            <span className={`inline-flex items-center mt-2 px-2 py-0.5 text-[10px] font-semibold rounded-full border ${statusConfig.cls}`}>
+                              {statusConfig.label}
+                            </span>
+                          </div>
+
+                          <motion.button
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => {
+                              if (policy.status === "completed" && policy.pdfBase64) {
+                                downloadPDF(policy.pdfBase64);
+                              } else {
+                                router.push(`/application/${policy.id}`);
+                              }
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-lg transition-colors duration-150 flex-shrink-0 shadow-sm shadow-violet-200"
+                          >
+                            {policy.status === "completed" ? (
+                              <><Download className="w-3 h-3" /> View</>
+                            ) : (
+                              <>Continue <ChevronRight className="w-3 h-3" /></>
+                            )}
+                          </motion.button>
+                        </div>
+
+                        {/* Progress bar */}
+                        <div className="mt-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] text-slate-400">Progress</span>
+                            <span className="text-[10px] font-semibold text-violet-600">{progress}%</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                            <motion.div
+                              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${progress}%` }}
+                              transition={{ delay: 0.3 + i * 0.06, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* ── Documents ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.04]"
+        >
+          <div className="px-6 py-4 border-b border-black/[0.05] flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center">
+                <FileText className="w-3.5 h-3.5 text-blue-600" />
+              </div>
+              <h2 className="text-sm font-bold text-slate-800 tracking-tight">Documents</h2>
             </div>
-          )}
-        </div>
+            <span className="text-xs text-slate-400 bg-slate-50 border border-black/[0.06] px-2.5 py-1 rounded-full font-medium">
+              {documents.length} total
+            </span>
+          </div>
+
+          <div className="p-4">
+            {documents.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-6 h-6 text-blue-400" />
+                </div>
+                <p className="text-sm font-medium text-slate-600">No documents available yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <AnimatePresence>
+                  {documents.map((doc, i) => (
+                    <motion.div
+                      key={doc.id}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      className="flex items-center justify-between gap-3 p-3.5 border border-black/[0.07] rounded-xl bg-slate-50/60 hover:bg-slate-50 transition-colors duration-150 group"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+                          <FileText className="w-3.5 h-3.5 text-blue-500" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-700 truncate">{doc.title}</p>
+                          <p className="text-[10px] text-slate-400">Uploaded {doc.uploadedAt}</p>
+                        </div>
+                      </div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => downloadPDF((doc as any).pdfBase64)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors duration-150 flex-shrink-0 shadow-sm shadow-blue-100"
+                      >
+                        <Download className="w-3 h-3" /> PDF
+                      </motion.button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="text-center text-[11px] text-black/80 pb-4"
+        >
+          🔒 Your data is encrypted and never shared
+        </motion.p>
+
       </div>
     </div>
   );
 }
 
 const StatCard = ({ icon, value, label }: any) => (
-  <div className="bg-white rounded-xl p-6 shadow-sm">
+  <div className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-2xl p-4 shadow-sm shadow-black/[0.04]">
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+      <div className="w-10 h-10 rounded-lg bg-slate-50 border border-black/[0.06] flex items-center justify-center">
         {icon}
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-600">{label}</p>
+        <p className="text-2xl font-bold text-slate-900">{value}</p>
+        <p className="text-sm text-slate-400">{label}</p>
       </div>
     </div>
   </div>
