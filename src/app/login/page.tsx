@@ -126,9 +126,9 @@ const handleSubmit = async (e: React.FormEvent) => {
           </motion.div>
 
           <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
-            Welcome{" "}
+            Let's continue with a{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-primary">
-              back
+              Insurbe account
             </span>
           </h1>
           <p className="text-gray-600">Access your policies and documents</p>

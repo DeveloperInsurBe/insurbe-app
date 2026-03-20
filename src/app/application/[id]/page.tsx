@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 const steps = [
-  { label: "Order Created",      key: null,              icon: "🎯" },
+  { label: "Application Created",      key: null,              icon: "🎯" },
   { label: "Personal Details",   key: "personalDetails", icon: "👤" },
   { label: "Health Information", key: "healthAnswers",   icon: "🏥" },
   { label: "Documents Upload",   key: "uploadedDocs",    icon: "📎" },
