@@ -26,5 +26,7 @@ model Application {
   personalDetails Json?   
   healthAnswers   Json?   
   uploadedDocs    Json?   
+  financialHistory Json?
+  insuranceHistory Json?
   signature       String? 
 }

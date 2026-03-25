@@ -11,17 +11,14 @@ export async function PUT(
     const updated = await prisma.application.update({
       where: { id },
       data: {
-        personalDetails: {
-          ...body,
-          isComplete: false,
-        },
+        financialHistory: body,
         status: "incomplete",
       },
     });
 
     return Response.json(updated); // ✅ IMPORTANT
   } catch (error) {
-    console.error("❌ API ERROR:", error);
+    console.error("❌ financialdetails API error:", error);
     return Response.json({ error: "Failed" }, { status: 500 });
   }
 }
