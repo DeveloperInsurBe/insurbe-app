@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApplicationStore } from "@/app/stores/applicationStore";
+import { useJourneyStore } from "@/app/stores/journeyStore";
 
 type StepKey =
   | "personalDetails"
@@ -74,7 +75,29 @@ export default function ApplicationPage() {
         const res = await fetch(`/api/application/${id}`);
         const data = await res.json();
         console.log("📄 Application:", data);
-        setApplication(data);
+        // inside fetchApplication
+        const journey = useJourneyStore.getState();
+        setApplication({
+          ...data,
+
+          personalDetails: {
+            ...data.personalDetails,
+            email: data.personalDetails?.email || journey.email,
+            phone: data.personalDetails?.phone || journey.phone,
+            dob: data.personalDetails?.dob || journey.dob,
+          },
+
+          financialHistory: {
+            ...data.financialHistory,
+            employmentStatus:
+              data.financialHistory?.employmentStatus ||
+              journey.employmentStatus,
+            incomeRange:
+              data.financialHistory?.incomeRange || journey.incomeRange,
+            actualIncome:
+              data.financialHistory?.actualIncome || journey.actualIncome,
+          },
+        });
         // sessionStorage.setItem("applicationData", JSON.stringify(data));
       } catch (err) {
         console.error("❌ Failed to fetch application", err);
@@ -187,7 +210,7 @@ export default function ApplicationPage() {
 
           <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-2">
             Let's get you{" "}
-            <span className="bg-gradient-to-r from-violet-600 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent">
               covered
             </span>
           </h1>
@@ -323,7 +346,7 @@ export default function ApplicationPage() {
           </div>
           <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
             <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500"
+              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500"
               initial={{ width: 0 }}
               animate={{ width: `${progressPct}%` }}
               transition={{
@@ -396,7 +419,7 @@ export default function ApplicationPage() {
             disabled={!agreed}
             whileHover={agreed ? { y: -2, scale: 1.02 } : {}}
             whileTap={agreed ? { scale: 0.97 } : {}}
-            className="relative overflow-hidden rounded-xl px-8 py-3.5 font-bold text-sm text-white bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 shadow-lg shadow-violet-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-violet-300 hover:shadow-xl flex items-center justify-center gap-2 sm:flex-shrink-0"
+            className="relative overflow-hidden rounded-xl px-8 py-3.5 font-bold text-sm text-white bg-gradient-to-r from-violet-600 via-purple-600 to-purple-600 shadow-lg shadow-violet-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-violet-300 hover:shadow-xl flex items-center justify-center gap-2 sm:flex-shrink-0"
           >
             {/* Shimmer */}
             <motion.span

@@ -185,7 +185,7 @@ function BookAppointmentScreen({ onBack }: { onBack: () => void }) {
             onClick={() => router.push("/book-appointment")}
             whileHover={{ y: -2, scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600  text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow"
           >
             Book Appointment
           </motion.button>
@@ -383,9 +383,8 @@ export default function MedicalPage() {
   const isLast = stepIndex === totalSteps - 1;
   const progress = Math.round((stepIndex / totalSteps) * 100);
   const application = useApplicationStore((s) => s.application);
-  const setApplication = useApplicationStore((s) => s.setApplication);
   const updateStep = useApplicationStore((s) => s.updateStep);
-
+  const setApplication = useApplicationStore((s) => s.setApplication);
   // ── Canvas helpers ──────────────────────────────────────────────────────────
   const getCtx = () => {
     const canvas = canvasRef.current!;
@@ -393,7 +392,7 @@ export default function MedicalPage() {
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.strokeStyle = "#7c3aed";
+    ctx.strokeStyle = "#1e293b";
     return { canvas, ctx };
   };
   const getPos = (
@@ -428,27 +427,64 @@ export default function MedicalPage() {
     ctx.moveTo(x, y);
     setHasDrawn(true);
   };
-  const startDrawTouch = (e: React.TouchEvent) => {
-    e.preventDefault();
-    isDrawing.current = true;
-    const t = e.touches[0];
-    const { canvas, ctx } = getCtx();
-    const { x, y } = getPos(canvas, t.clientX, t.clientY);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  };
-  const drawTouch = (e: React.TouchEvent) => {
-    if (!isDrawing.current) return;
-    e.preventDefault();
-    const t = e.touches[0];
-    const { canvas, ctx } = getCtx();
-    const { x, y } = getPos(canvas, t.clientX, t.clientY);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    setHasDrawn(true);
-  };
+  // ── Non-passive touch listeners (attached via useEffect) ─────────────────
+
+  useEffect(() => {
+    if (!application?.healthAnswers) return;
+
+    setForm(application.healthAnswers || {});
+  }, [application]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const onTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      isDrawing.current = true;
+      const t = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = (t.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (t.clientY - rect.top) * (canvas.height / rect.height);
+      const ctx = canvas.getContext("2d")!;
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#1e293b";
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isDrawing.current) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = (t.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (t.clientY - rect.top) * (canvas.height / rect.height);
+      const ctx = canvas.getContext("2d")!;
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      setHasDrawn(true);
+    };
+    const onTouchEnd = () => {
+      isDrawing.current = false;
+      canvas.getContext("2d")!.beginPath();
+    };
+    canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+    canvas.addEventListener("touchend", onTouchEnd, { passive: false });
+    return () => {
+      canvas.removeEventListener("touchstart", onTouchStart);
+      canvas.removeEventListener("touchmove", onTouchMove);
+      canvas.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [screen, postStepIndex]);
   const clearCanvas = () => {
     const { canvas, ctx } = getCtx();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -460,14 +496,14 @@ export default function MedicalPage() {
     handleChange("signature", canvas.toDataURL("image/png"));
   };
 
-  // ── File upload helper ──────────────────────────────────────────────────────
-
+  // ✅ Sync initial data to store
   useEffect(() => {
-    if (!application?.healthAnswers) return;
+    if (!form || Object.keys(form).length === 0) return;
 
-    setForm(application.healthAnswers);
-  }, [application]);
+    updateStep("healthAnswers", form);
+  }, []);
 
+  // ── File upload helper ──────────────────────────────────────────────────────
   const handleFileChange = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const uploaded = await Promise.all(
@@ -485,37 +521,15 @@ export default function MedicalPage() {
     handleChange("documents", [...(form.documents || []), ...uploaded]);
   };
 
- const handleChange = (name: string, value: any) => {
-  const updated = { ...form, [name]: value };
+  const handleChange = (name: string, value: any) => {
+    const updated = { ...form, [name]: value };
 
-  setForm(updated);
+    setForm(updated);
+    setError(null);
 
-  // 🛑 delay to next tick
-  setTimeout(() => {
+    // ✅ SAVE TO GLOBAL STORE
     updateStep("healthAnswers", updated);
-  }, 0);
-
-  setError(null);
-};
-
-  useEffect(() => {
-    if (!id || !form) return;
-
-    const timeout = setTimeout(async () => {
-      try {
-        await fetch(`/api/application/${id}/health`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
-      } catch (err) {
-        console.error("Auto-save failed", err);
-      }
-    }, 800);
-
-    return () => clearTimeout(timeout);
-  }, [form]);
-
+  };
   // ── Validate medical step ───────────────────────────────────────────────────
   const validate = (): string | null => {
     const q = current;
@@ -602,58 +616,51 @@ export default function MedicalPage() {
     }
   };
 
- const handleSubmit = async () => {
-  setLoading(true);
-
-  try {
-    // ✅ 1. Save health data
-    const res = await fetch(`/api/application/${id}/health`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-
-    let updated = null;
+  const handleSubmit = async () => {
+    setLoading(true);
 
     try {
-      updated = await res.json();
-    } catch {
-      console.warn("No JSON response");
+      // ✅ STEP 1: Save health data
+      const cleanForm = JSON.parse(JSON.stringify(form));
+
+      const healthRes = await fetch(`/api/application/${id}/health`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(cleanForm), // ✅ CLEAN DATA
+      });
+
+      if (!healthRes.ok) {
+        throw new Error("Health save failed");
+      }
+
+      console.log("✅ Health saved");
+
+      // ✅ STEP 2: Call COMPLETE API
+      const completeRes = await fetch(`/api/application/${id}/complete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          signature: form.signature || null, // 🔥 IMPORTANT
+        }),
+      });
+
+      if (!completeRes.ok) {
+        throw new Error("Complete API failed");
+      }
+
+      console.log("🔥 Application completed");
+
+      // ✅ Redirect
+      router.push(`/application/${id}`);
+    } catch (err) {
+      console.error("❌ Error:", err);
+      setLoading(false);
     }
-
-    if (updated) {
-      setApplication(updated);
-    }
-
-    // ✅ 2. CALL PDF GENERATION API (🔥 IMPORTANT)
-    console.log("📄 Calling PDF API...");
-
-    await fetch(`/api/application/${id}/complete`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        signature: form?.signature || null, // if available
-      }),
-    });
-
-    console.log("✅ PDF Generated");
-
-    // ✅ 3. Navigate
-    router.push(`/application/${id}`);
-  } catch (err) {
-    console.error("❌ Error saving", err);
-    setLoading(false);
-  }
-};
-  useEffect(() => {
-    if (!application?.healthAnswers) return;
-
-    const data = application.healthAnswers;
-
-    const index = questions.findIndex((q) => !data[q.key]);
-
-    setStepIndex(index === -1 ? questions.length - 1 : index);
-  }, [application]);
+  };
 
   // ════════════════════════════════════════════════════════════════════════════
   // ── BOOK APPOINTMENT ───────────────────────────────────────────────────────
@@ -822,7 +829,7 @@ export default function MedicalPage() {
                 onClick={() => setScreen("complete")}
                 whileHover={{ y: -2, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-lg shadow-slate-900/20 transition-colors"
+                className="w-full py-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-bold shadow-lg shadow-slate-900/20 transition-colors"
               >
                 Continue
               </motion.button>
@@ -853,7 +860,7 @@ export default function MedicalPage() {
                 </svg>
               </button>
               <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full w-full bg-slate-700 rounded-full" />
+                <div className="h-full w-full bg-violet-600 rounded-full" />
               </div>
               <span className="text-xs text-slate-400 font-medium flex-shrink-0">
                 {summaryRows.length}/{summaryRows.length}
@@ -955,7 +962,7 @@ export default function MedicalPage() {
                 }}
                 whileHover={{ y: -2, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full sm:w-auto px-10 py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-lg shadow-slate-900/20 transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto px-10 py-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-bold shadow-lg shadow-slate-900/20 transition-colors flex items-center gap-2"
               >
                 Continue
                 <svg
@@ -996,7 +1003,7 @@ export default function MedicalPage() {
                 </svg>
               </button>
               <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full w-full bg-slate-700 rounded-full" />
+                <div className="h-full w-full bg-violet-600 rounded-full" />
               </div>
               <span className="text-xs text-slate-400 font-medium flex-shrink-0">
                 21/21
@@ -1054,7 +1061,7 @@ export default function MedicalPage() {
             >
               <div className="w-12 h-12 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-black"
+                  className="w-5 h-5 text-violet-600"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -1201,9 +1208,7 @@ export default function MedicalPage() {
                 onMouseUp={endDraw}
                 onMouseLeave={endDraw}
                 onMouseMove={draw}
-                onTouchStart={startDrawTouch}
-                onTouchEnd={endDraw}
-                onTouchMove={drawTouch}
+                // touch events attached via useEffect (non-passive)
               />
             </motion.div>
             <div className="flex justify-end">
@@ -1351,7 +1356,7 @@ export default function MedicalPage() {
             {POST_STEPS.map((s, i) => (
               <div
                 key={s.key}
-                className={`flex-1 h-1.5 rounded-full transition-all duration-300 ${i <= postStepIndex ? "bg-gradient-to-r from-violet-500 to-pink-500" : "bg-slate-200"}`}
+                className={`flex-1 h-1.5 rounded-full transition-all duration-300 ${i <= postStepIndex ? "bg-gradient-to-r from-violet-500 to-blue-500" : "bg-slate-200"}`}
               />
             ))}
           </div>
@@ -1438,7 +1443,7 @@ export default function MedicalPage() {
                   disabled={loading}
                   whileHover={!loading ? { y: -1, scale: 1.01 } : {}}
                   whileTap={!loading ? { scale: 0.98 } : {}}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {loading ? (
                     <>
@@ -1700,7 +1705,7 @@ export default function MedicalPage() {
           </div>
           <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
             <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500"
+              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500"
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             />
@@ -1767,7 +1772,7 @@ export default function MedicalPage() {
                 onClick={handleNext}
                 whileHover={{ y: -1, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2"
               >
                 {isLast ? "Review & Continue" : "Continue"}
                 <svg

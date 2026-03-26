@@ -16,12 +16,15 @@ export const useApplicationStore = create<ApplicationState>((set) => ({
   setApplication: (data) => set({ application: data }),
 
   updateStep: (step, data) =>
-    set((state) => ({
-      application: {
-        ...state.application,
-        [step]: data,
+  set((state) => ({
+    application: {
+      ...state.application,
+      [step]: {
+        ...state.application?.[step],
+        ...data,
       },
-    })),
+    },
+  })),
 
   clearApplication: () => set({ application: null }),
 }));

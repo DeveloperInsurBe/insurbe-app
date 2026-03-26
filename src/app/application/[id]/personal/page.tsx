@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import ApplicationStepper from "@/app/components/privateApplications/ApplicationStepper";
 import { useApplicationStore } from "@/app/stores/applicationStore";
+import { useJourneyStore } from "@/app/stores/journeyStore";
 
 // ── Country list with flags ──────────────────────────────────────────────────
 const COUNTRIES = [
@@ -162,8 +163,13 @@ const steps = [
   "residence",
 ];
 
+const hasInitialized = useRef(false);
+
 useEffect(() => {
   if (!application?.personalDetails) return;
+
+  if (hasInitialized.current) return; // ✅ STOP re-running
+  hasInitialized.current = true;
 
   const data = application.personalDetails;
 
@@ -219,10 +225,52 @@ useEffect(() => {
 // }, [application]);
 
 useEffect(() => {
-  if (!application?.personalDetails) return;
+  if (!application) return;
 
-  setForm(application.personalDetails);
+  const journey = useJourneyStore.getState();
+
+  const personal = application.personalDetails || {}; // ✅ FIX
+
+  setForm({
+    ...personal,
+
+    email: personal.email || journey.email,
+    phone: personal.phone || journey.phone,
+    day:
+      personal.day ||
+      (journey.dob ? journey.dob.split("-")[2] : ""),
+    month:
+      personal.month ||
+      (journey.dob ? journey.dob.split("-")[1] : ""),
+    year:
+      personal.year ||
+      (journey.dob ? journey.dob.split("-")[0] : ""),
+  });
 }, [application]);
+
+useEffect(() => {
+  if (!application) return;
+
+  const journey = useJourneyStore.getState();
+
+  setForm({
+    ...application.personalDetails,
+
+    // ✅ fallback from journey
+    email: application.personalDetails?.email || journey.email,
+    phone: application.personalDetails?.phone || journey.phone,
+    day:
+      application.personalDetails?.day ||
+      (journey.dob ? journey.dob.split("-")[2] : ""),
+    month:
+      application.personalDetails?.month ||
+      (journey.dob ? journey.dob.split("-")[1] : ""),
+    year:
+      application.personalDetails?.year ||
+      (journey.dob ? journey.dob.split("-")[0] : ""),
+  });
+}, [application]);
+
 
   const questions = [
     { key: "name",            title: "What is your name?",                            fields: ["firstName", "lastName"],                          placeholders: ["First name", "Last name"] },
@@ -241,23 +289,18 @@ useEffect(() => {
   const isLast = stepIndex === questions.length - 1;
   const progress = Math.round(((stepIndex) / questions.length) * 100);
 
-//   const handleChange = (name: string, value: any) => {
-//     setForm((prev) => ({ ...prev, [name]: value }));
-//     setError(null);
-//   };
-
 const handleChange = (name: string, value: any) => {
-  setForm((prev) => {
-    const updated = { ...prev, [name]: value };
+  const updatedForm = { ...form, [name]: value };
 
-    // ✅ update global store
-    updateStep("personalDetails", updated);
-
-    return updated;
-  });
-
+  setForm(updatedForm);
   setError(null);
+
+  // ✅ save to global store
+  updateStep("personalDetails", updatedForm);
 };
+
+
+
   const toggleCountry = (code: string) => {
     const current = form.countries || [];
     const updated = current.includes(code)
@@ -286,23 +329,33 @@ const handleChange = (name: string, value: any) => {
     }
   };
 
-  useEffect(() => {
+ useEffect(() => {
   if (!id || !form) return;
 
   const timeout = setTimeout(async () => {
     try {
-      await fetch(`/api/application/${id}/personal`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+      await fetch(`/api/application/${id}/personalDetails`, {
+        method: "PATCH", // or PUT depending on your API
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(form),
       });
+
+      console.log("✅ Auto-saved to backend");
     } catch (err) {
-      console.error("Auto-save failed", err);
+      console.error("❌ Auto-save failed", err);
     }
-  }, 800);
+  }, 800); // debounce
 
   return () => clearTimeout(timeout);
-}, [form]);
+}, [form, id]);
+
+useEffect(() => {
+  if (!form || Object.keys(form).length === 0) return;
+
+  updateStep("personalDetails", form);
+}, []);
 
 const handleSubmit = async () => {
   setLoading(true);
@@ -414,7 +467,7 @@ const handleSubmit = async () => {
                 disabled={loading}
                 whileHover={!loading ? { y: -2, scale: 1.01 } : {}}
                 whileTap={!loading ? { scale: 0.98 } : {}}
-                className="w-full py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors duration-150"
+                className="w-full py-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors duration-150"
               >
                 {loading ? (
                   <>
@@ -444,7 +497,7 @@ const handleSubmit = async () => {
                 </svg>
               </button>
               <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full w-full bg-slate-700 rounded-full" />
+                <div className="h-full w-full bg-violet-500 rounded-full" />
               </div>
               <span className="text-xs text-slate-400 font-medium flex-shrink-0">10/10</span>
             </motion.div>
@@ -473,7 +526,7 @@ const handleSubmit = async () => {
           </div>
           <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
             <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500"
+              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500"
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             />
@@ -731,7 +784,7 @@ const handleSubmit = async () => {
                 onClick={handleNext}
                 whileHover={{ y: -1, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600  text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2"
               >
                 {isLast ? "Review & Continue" : "Continue"}
                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
