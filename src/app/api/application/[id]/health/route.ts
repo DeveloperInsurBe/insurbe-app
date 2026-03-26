@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-export async function POST(
+export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
@@ -8,7 +8,7 @@ export async function POST(
     const { id } = await context.params;
     const body = await req.json();
 
-    await prisma.application.update({
+    const updated = await prisma.application.update({
       where: { id },
       data: {
         healthAnswers: body,
@@ -16,7 +16,7 @@ export async function POST(
       },
     });
 
-    return Response.json({ success: true });
+    return Response.json(updated); // ✅ IMPORTANT
   } catch (error) {
     console.error("❌ Health API error:", error);
     return Response.json({ error: "Failed" }, { status: 500 });

@@ -208,7 +208,7 @@ export default function SubmitApplication() {
       const allElements = xmlDoc.querySelectorAll("*");
       allElements.forEach((el) => {
         if (el.textContent?.trim() && el.children.length === 0) {
-          // console.log(`🔍 ${el.tagName}:`, el.textContent.trim().substring(0, 100));
+          console.log(`🔍 ${el.tagName}:`, el.textContent.trim().substring(0, 100));
         }
       });
 
