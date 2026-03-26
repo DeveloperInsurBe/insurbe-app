@@ -101,7 +101,7 @@ function IneligibleScreen({ status, onBack }: { status: string; onBack: () => vo
                 onClick={() => router.push("/recommendation")}
                 whileHover={{ y: -2, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow"
               >
                 Find Out
               </motion.button>
@@ -161,7 +161,7 @@ const updateStep = useApplicationStore((s) => s.updateStep);
   useEffect(() => {
   if (!application?.financialHistory) return;
 
-  setForm(application.financialHistory);
+  setForm(application.financialHistory || {});
 }, [application]);
 
 //   const handleChange = (name: string, value: any) => {
@@ -170,16 +170,13 @@ const updateStep = useApplicationStore((s) => s.updateStep);
 //   };
 
 const handleChange = (name: string, value: any) => {
-  setForm((prev) => {
-    const updated = { ...prev, [name]: value };
+  const updated = { ...form, [name]: value };
 
-    // ✅ update global store
-    updateStep("financialHistory", updated);
-
-    return updated;
-  });
-
+  setForm(updated);
   setError(null);
+
+  // ✅ safe (after render)
+  updateStep("financialHistory", updated);
 };
 
 useEffect(() => {
@@ -285,8 +282,13 @@ useEffect(() => {
   "hasGermanTaxId",
 ];
 
+const hasInitialized = useRef(false);
+
 useEffect(() => {
   if (!application?.financialHistory) return;
+
+  if (hasInitialized.current) return; // ✅ stop loop
+  hasInitialized.current = true;
 
   const data = application.financialHistory;
 
@@ -338,7 +340,7 @@ useEffect(() => {
                 disabled={loading}
                 whileHover={!loading ? { y: -2, scale: 1.01 } : {}}
                 whileTap={!loading ? { scale: 0.98 } : {}}
-                className="w-full py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors duration-150"
+                className="w-full py-4 rounded-xl bg-violet-600 hover:bg-violet-800 text-white text-sm font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors duration-150"
               >
                 {loading ? (<><svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>Saving…</>) : "Continue"}
               </motion.button>
@@ -375,7 +377,7 @@ useEffect(() => {
             <span className="text-xs font-semibold text-violet-600">{progress}%</span>
           </div>
           <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-            <motion.div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500" animate={{ width: `${progress}%` }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} />
+            <motion.div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-blue-500" animate={{ width: `${progress}%` }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} />
           </div>
         </div>
 
@@ -613,7 +615,7 @@ useEffect(() => {
                 >←</motion.button>
               )}
               <motion.button onClick={handleNext} whileHover={{ y: -1, scale: 1.01 }} whileTap={{ scale: 0.98 }}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2"
               >
                 {isLast ? "Review & Continue" : "Continue"}
                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">

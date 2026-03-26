@@ -54,79 +54,70 @@ export default function DashboardPage() {
   const displayName = userName.charAt(0).toUpperCase() + userName.slice(1);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
+ useEffect(() => {
+  if (!session?.user?.email) return;
 
-        const cachedPolicies = sessionStorage.getItem("policies");
-        const cachedDocuments = sessionStorage.getItem("documents");
-        if (cachedPolicies && cachedDocuments) {
-          setPolicies(JSON.parse(cachedPolicies));
-          setDocuments(JSON.parse(cachedDocuments));
-          setLoading(false);
-          return; // 🚀 STOP API CALL
-        }
+  const fetchData = async () => {
+    try {
+      setLoading(true);
 
-        const applicationId = sessionStorage.getItem("applicationId");
+      const applicationId = sessionStorage.getItem("applicationId");
 
-        // 🔥 Run APIs in parallel (non-blocking)
-        const assignPromise = applicationId
-          ? fetch("/api/application/assign", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ applicationId }),
-            })
-          : Promise.resolve();
-
-        const userPromise = fetch("/api/application/user");
-
-        const [, userRes] = await Promise.all([assignPromise, userPromise]);
-
-        if (applicationId) {
-          sessionStorage.removeItem("applicationId");
-        }
-
-        const data = await userRes.json();
-
-        // 🔥 single loop optimization
-        const policyData: Policy[] = [];
-        const documentData: Document[] = [];
-
-        data.forEach((app: any) => {
-          policyData.push({
-            id: app.id,
-            name: "Hallesche Private Insurance",
-            status: app.status,
-            startDate: new Date(app.createdAt).toDateString(),
-            // pdfBase64: app.pdfBase64,
-          });
-
-          documentData.push({
-            id: app.id,
-            title: "Application PDF",
-            uploadedAt: new Date(app.createdAt).toDateString(),
-            pdfBase64: app.pdfBase64,
-          });
+      // 🔥 Assign API (optional)
+      if (applicationId) {
+        await fetch("/api/application/assign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ applicationId }),
         });
 
-        setPolicies(policyData);
-        setDocuments(documentData);
-        sessionStorage.setItem("policies", JSON.stringify(policyData));
-        // sessionStorage.setItem("documents", JSON.stringify(documentData));
-        sessionStorage.setItem(
-          "documents",
-          JSON.stringify(documentData.map(({ pdfBase64, ...rest }) => rest)),
-        );
-      } catch (err) {
-        console.error("❌ Dashboard error:", err);
-      } finally {
-        setLoading(false);
+        sessionStorage.removeItem("applicationId");
       }
-    };
 
-    if (session) fetchData();
-  }, [session]);
+      // 🔥 MAIN FETCH
+      const userRes = await fetch("/api/application/user");
+
+      if (!userRes.ok) {
+        throw new Error("Failed to fetch user applications");
+      }
+
+      const data = await userRes.json();
+
+      console.log("🔥 API DATA:", data);
+
+      const apps = Array.isArray(data)
+        ? data
+        : data.applications || []; // 👈 SAFE fallback
+
+      const policyData: Policy[] = apps.map((app: any) => ({
+        id: app.id,
+        name: "Hallesche Private Insurance",
+        status: app.status || "pending",
+        startDate: new Date(app.createdAt).toDateString(),
+      }));
+
+      const documentData: Document[] = apps.map((app: any) => ({
+        id: app.id,
+        title: "Application PDF",
+        uploadedAt: new Date(app.createdAt).toDateString(),
+      }));
+
+      setPolicies(policyData);
+      setDocuments(documentData);
+
+      // ✅ Cache AFTER success
+      sessionStorage.setItem("policies", JSON.stringify(policyData));
+      sessionStorage.setItem("documents", JSON.stringify(documentData));
+
+    } catch (err) {
+      console.error("❌ Dashboard error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, [session]);
 
   const downloadPDF = (base64: string) => {
     const byteCharacters = atob(base64);

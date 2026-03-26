@@ -130,7 +130,7 @@ function EmployerWarningScreen({
             onClick={onContinue}
             whileHover={{ y: -2, scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600  text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow"
           >
             Continue sign-up
           </motion.button>
@@ -694,7 +694,7 @@ export default function InsurancePage() {
                 disabled={loading}
                 whileHover={!loading ? { y: -2, scale: 1.01 } : {}}
                 whileTap={!loading ? { scale: 0.98 } : {}}
-                className="w-full py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors duration-150"
+                className="w-full py-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors duration-150"
               >
                 {loading ? (
                   <>
@@ -751,7 +751,7 @@ export default function InsurancePage() {
                 </svg>
               </button>
               <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full w-full bg-slate-700 rounded-full" />
+                <div className="h-full w-full bg-violet-700 rounded-full" />
               </div>
               <span className="text-xs text-slate-400 font-medium flex-shrink-0">
                 {rows.length}/{rows.length}
@@ -1284,7 +1284,7 @@ export default function InsurancePage() {
           </div>
           <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
             <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500"
+              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-blue-500"
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             />
@@ -1349,7 +1349,7 @@ export default function InsurancePage() {
                 onClick={handleNext}
                 whileHover={{ y: -1, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600  text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2"
               >
                 Continue
                 <svg
