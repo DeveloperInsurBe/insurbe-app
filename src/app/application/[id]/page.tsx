@@ -13,12 +13,7 @@ type StepKey =
   | "healthAnswers";
 
 export default function ApplicationPage() {
-  const steps: {
-    label: string;
-    key: StepKey | null;
-    icon: string;
-    desc: string;
-  }[] = [
+  const steps = [
     {
       label: "Personal Info",
       key: "personalDetails",
@@ -48,17 +43,77 @@ export default function ApplicationPage() {
   const { id } = useParams();
   const router = useRouter();
 
-  // const [application, setApplication] = useState<any>(null);
   const application = useApplicationStore((s) => s.application);
   const setApplication = useApplicationStore((s) => s.setApplication);
+
   const [loading, setLoading] = useState(true);
   const [agreed, setAgreed] = useState(false);
 
+  // 🔥 SAFE FETCH + MERGE (NO OVERWRITE)
+  useEffect(() => {
+    const fetchApplication = async () => {
+      try {
+        const res = await fetch(`/api/application/${id}`, {
+          headers: { "Cache-Control": "no-cache" },
+        });
+
+        const data = await res.json();
+
+        const journey = useJourneyStore.getState();
+        const existing = useApplicationStore.getState().application;
+
+        setApplication({
+          ...existing,
+          ...data,
+
+          personalDetails: {
+            ...existing?.personalDetails,
+            ...data.personalDetails,
+            email: data.personalDetails?.email || journey.email,
+            phone: data.personalDetails?.phone || journey.phone,
+            dob: data.personalDetails?.dob || journey.dob,
+          },
+
+          financialHistory: {
+            ...existing?.financialHistory,
+            ...data.financialHistory,
+            employmentStatus:
+              data.financialHistory?.employmentStatus ||
+              journey.employmentStatus,
+            incomeRange:
+              data.financialHistory?.incomeRange || journey.incomeRange,
+            actualIncome:
+              data.financialHistory?.actualIncome || journey.actualIncome,
+          },
+
+          insuranceHistory: {
+            ...existing?.insuranceHistory,
+            ...data.insuranceHistory,
+          },
+
+          healthAnswers: {
+            ...existing?.healthAnswers,
+            ...data.healthAnswers,
+          },
+        });
+      } catch (err) {
+        console.error("❌ Failed to fetch application", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchApplication();
+  }, [id, setApplication]);
+
+  // 🔥 STEP DETECTION
   const nextStep = steps.find((s) => {
     if (!s.key) return false;
+
     if (s.key === "personalDetails") {
       return application?.personalDetails?.isComplete !== true;
     }
+
     return !application?.[s.key];
   });
 
@@ -69,52 +124,13 @@ export default function ApplicationPage() {
     healthAnswers: "health",
   };
 
-  useEffect(() => {
-    const fetchApplication = async () => {
-      try {
-        const res = await fetch(`/api/application/${id}`);
-        const data = await res.json();
-        console.log("📄 Application:", data);
-        // inside fetchApplication
-        const journey = useJourneyStore.getState();
-        setApplication({
-          ...data,
-
-          personalDetails: {
-            ...data.personalDetails,
-            email: data.personalDetails?.email || journey.email,
-            phone: data.personalDetails?.phone || journey.phone,
-            dob: data.personalDetails?.dob || journey.dob,
-          },
-
-          financialHistory: {
-            ...data.financialHistory,
-            employmentStatus:
-              data.financialHistory?.employmentStatus ||
-              journey.employmentStatus,
-            incomeRange:
-              data.financialHistory?.incomeRange || journey.incomeRange,
-            actualIncome:
-              data.financialHistory?.actualIncome || journey.actualIncome,
-          },
-        });
-        // sessionStorage.setItem("applicationData", JSON.stringify(data));
-      } catch (err) {
-        console.error("❌ Failed to fetch application", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) fetchApplication();
-  }, [id]);
-
+  // 🔥 PROGRESS CALCULATION
   const completedCount = application
     ? steps.filter((s) => {
         if (!s.key) return true;
 
         const data = application?.[s.key];
 
-        // personalDetails → check required fields
         if (s.key === "personalDetails") {
           return !!(
             data?.firstName &&
@@ -129,10 +145,10 @@ export default function ApplicationPage() {
           );
         }
 
-        // other steps → simple existence check
-        return !!data;
+       return data && Object.keys(data).length > 0;
       }).length
     : 0;
+
   const progressPct = Math.round((completedCount / steps.length) * 100);
 
   if (loading) {
@@ -412,8 +428,10 @@ export default function ApplicationPage() {
           {/* CTA Button */}
           <motion.button
             onClick={() => {
-              if (nextStep?.key && nextStep.key !== null) {
-                router.push(`/application/${id}/${stepRouteMap[nextStep.key]}`);
+              if (nextStep?.key) {
+                const stepKey = nextStep.key as StepKey;
+
+                router.push(`/application/${id}/${stepRouteMap[stepKey]}`);
               }
             }}
             disabled={!agreed}

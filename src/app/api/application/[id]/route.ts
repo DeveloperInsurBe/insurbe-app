@@ -1,14 +1,14 @@
 import { prisma } from "@/lib/prisma";
-import { NextRequest } from "next/server";
 
 export async function GET(
-  req: NextRequest,
+  req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
+
     const application = await prisma.application.findUnique({
-      where: { id},
+      where: { id },
     });
 
     if (!application) {
@@ -18,6 +18,29 @@ export async function GET(
     return Response.json(application);
   } catch (error) {
     console.error("❌ Fetch error:", error);
+    return Response.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+// 🔥 ADD THIS (VERY IMPORTANT)
+export async function PUT(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params;
+    const body = await req.json();
+
+    const updated = await prisma.application.update({
+      where: { id },
+      data: {
+        ...body,
+      },
+    });
+
+    return Response.json(updated);
+  } catch (error) {
+    console.error("❌ Update error:", error);
     return Response.json({ error: "Server error" }, { status: 500 });
   }
 }

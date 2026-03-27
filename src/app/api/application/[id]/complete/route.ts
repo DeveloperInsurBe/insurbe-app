@@ -3,7 +3,7 @@ import { PDFDocument } from "pdf-lib";
 
 export async function POST(
   req: Request,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await context.params;
@@ -36,21 +36,17 @@ export async function POST(
     // =========================
     // SAFE FIELD SETTER (DO NOT OVERWRITE EXISTING)
     // =========================
-    const setTextSafe = (name: string, value: any) => {
-      try {
-        const field = form.getTextField(name);
+   const setTextSafe = (name: string, value: any) => {
+  try {
+    const field = form.getTextField(name);
+    const existing = field.getText()?.trim();
 
-        // 👉 get existing value from SOAP-filled PDF
-        const existing = field.getText();
-
-        // 👉 ONLY set if empty
-        if (!existing && value) {
-          field.setText(String(value));
-        }
-      } catch {
-        // ignore missing fields
-      }
-    };
+    if ((!existing || existing === "") && value) {
+      field.setText(String(value));
+    }
+  } catch {}
+};
+    
 
     // =========================
     // 3️⃣ EXTRACT DATA
@@ -68,7 +64,7 @@ export async function POST(
     setTextSafe(
       "GeburtsdatumVP1",
       personal?.dob ||
-        `${personal?.day || ""}.${personal?.month || ""}.${personal?.year || ""}`
+        `${personal?.day || ""}.${personal?.month || ""}.${personal?.year || ""}`,
     );
 
     setTextSafe("EMail-VP1", personal?.email);
@@ -76,7 +72,7 @@ export async function POST(
 
     setTextSafe(
       "StraßeVP1",
-      `${personal?.street || ""} ${personal?.houseNumber || ""}`
+      `${personal?.street || ""} ${personal?.houseNumber || ""}`,
     );
     setTextSafe("WohnortVP1", personal?.city);
     setTextSafe("PLZVP1", personal?.postcode);
@@ -88,7 +84,7 @@ export async function POST(
     setTextSafe("ArbeitgeberVP1", financial?.employerName);
     setTextSafe(
       "EinkommenVP1",
-      financial?.annualIncome ? String(financial.annualIncome) : ""
+      financial?.annualIncome ? String(financial.annualIncome) : "",
     );
 
     // =========================
@@ -102,6 +98,13 @@ export async function POST(
     setTextSafe("GesundheitsgrößeVP1", health?.height);
     setTextSafe("GesundheitsgewichtVP1", health?.weight);
     setTextSafe("GesundheitsdetailsVP1", health?.details);
+    // ✅ ADD THESE (HEALTH QUESTIONS → PDF)
+    setTextSafe("OutpatientVP1", health?.outpatient3y);
+    setTextSafe("InpatientVP1", health?.inpatient5y);
+    setTextSafe("PsychotherapyVP1", health?.psychotherapy10y);
+    setTextSafe("ChronicVP1", health?.chronicDisease);
+    setTextSafe("HIVVP1", health?.hiv);
+    setTextSafe("MedicationVP1", health?.regularMedication);
 
     // =========================
     // 8️⃣ SIGNATURE (ONLY ONCE)
@@ -110,7 +113,7 @@ export async function POST(
       const cleanSignature = signature.replace(/^data:.*;base64,/, "");
 
       const signatureImage = await pdfDoc.embedPng(
-        Buffer.from(cleanSignature, "base64")
+        Buffer.from(cleanSignature, "base64"),
       );
 
       const pages = pdfDoc.getPages();

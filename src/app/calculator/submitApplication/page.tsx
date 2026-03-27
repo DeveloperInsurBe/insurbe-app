@@ -7,6 +7,7 @@ import { useJourneyStore } from "@/app/stores/journeyStore";
 import { Shield, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useApplicationStore } from "@/app/stores/applicationStore";
 /* ---------------- Helpers ---------------- */
 
 type Plan = {
@@ -36,18 +37,36 @@ export default function SubmitApplication() {
   const [plan, setPlan] = useState<Plan | null>(null);
 
   /* ---------- Form state ---------- */
+  const { application, updateStep } = useApplicationStore();
 
-  const [salutation, setSalutation] = useState("Mr");
-  const [firstName, setFirstName] = useState(premiumForm.firstName || "");
-  const [lastName, setLastName] = useState(premiumForm.lastName || "");
-  const [dob, setDob] = useState(premiumForm.dob || "");
-  const [gender, setGender] = useState(premiumForm.gender || "Male");
+  const [firstName, setFirstName] = useState(
+    application?.personal?.firstName || premiumForm.firstName || "",
+  );
+  const [lastName, setLastName] = useState(
+    application?.personal?.lastName || premiumForm.lastName || "",
+  );
+  const [dob, setDob] = useState(
+    application?.personal?.dob || premiumForm.dob || "",
+  );
+  const [salutation, setSalutation] = useState(
+    application?.personal?.salutation || "Mr",
+  );
+
+  const [gender, setGender] = useState(
+    application?.personal?.gender || premiumForm.gender || "Male",
+  );
   const [coverageStart] = useState(calculateCoverageStartDate());
-  const [email, setEmail] = useState(journeyStore.email || "");
-  const [phone, setPhone] = useState(journeyStore.phone || "");
-  const [address, setAddress] = useState("");
+  const [email, setEmail] = useState(
+    application?.contact?.email || journeyStore.email || "",
+  );
+  const [phone, setPhone] = useState(
+    application?.contact?.phone || journeyStore.phone || "",
+  );
+  const [address, setAddress] = useState(application?.contact?.address || "");
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [seriousIllness, setSeriousIllness] = useState<string>(""); // NEW
+  const [seriousIllness, setSeriousIllness] = useState(
+    application?.health?.seriousIllness || "",
+  );
   const selectedPlan = useJourneyStore((s) => s.selectedPlan);
   const hasHydrated = useJourneyStore.persist.hasHydrated();
   const { data: session } = useSession();
@@ -57,8 +76,38 @@ export default function SubmitApplication() {
   const [error, setError] = useState<string | null>(null);
 
   const birthYear = journeyStore.dob ? journeyStore.dob.split("-")[0] : "";
-
   /* ---------- Guard ---------- */
+
+  useEffect(() => {
+    updateStep("personalDetails", {
+      firstName,
+      lastName,
+
+      day: dob?.split("-")[2],
+      month: dob?.split("-")[1],
+      year: dob?.split("-")[0],
+
+      gender,
+      salutation,
+
+      email,
+      phone,
+      street: address,
+
+      seriousIllness,
+    });
+  }, [
+    firstName,
+    lastName,
+    dob,
+    gender,
+    salutation,
+    email,
+    phone,
+    address,
+    seriousIllness,
+    updateStep,
+  ]);
 
   useEffect(() => {
     const storedPlan = sessionStorage.getItem("selectedPlan");
@@ -185,7 +234,7 @@ export default function SubmitApplication() {
 
       const responseText = await res.text();
 
-      // console.log("⬅️ RESPONSE STATUS:", res.status);
+      console.log("⬅️ RESPONSE STATUS:", res);
       // console.log("📄 RAW SOAP RESPONSE:", responseText || "(empty)");
 
       /* ✅ CHECK SOAP FAULT */
@@ -208,7 +257,10 @@ export default function SubmitApplication() {
       const allElements = xmlDoc.querySelectorAll("*");
       allElements.forEach((el) => {
         if (el.textContent?.trim() && el.children.length === 0) {
-          console.log(`🔍 ${el.tagName}:`, el.textContent.trim().substring(0, 100));
+          console.log(
+            `🔍 ${el.tagName}:`,
+            el.textContent.trim().substring(0, 100),
+          );
         }
       });
 
@@ -302,6 +354,39 @@ export default function SubmitApplication() {
         }
       }
       console.log("Selected plan:", plan);
+
+      // ✅ SAVE USER DATA TO APPLICATION DB (CRITICAL)
+      try {
+        await fetch(`/api/application/${applicationId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            personalDetails: {
+              firstName,
+              lastName,
+              email,
+              phone,
+              gender,
+              salutation,
+
+              // ✅ DOB split (important for your other page)
+              day: dob?.split("-")[2],
+              month: dob?.split("-")[1],
+              year: dob?.split("-")[0],
+
+              street: address,
+              seriousIllness,
+            },
+          }),
+        });
+
+        console.log("✅ Personal details saved to DB");
+      } catch (err) {
+        console.error("❌ Failed to save personal details", err);
+      }
+
       // router.push("/calculator/submitApplication/success");.
       if (session) {
         router.push("/dashboard");
@@ -315,7 +400,7 @@ export default function SubmitApplication() {
       setLoading(false);
     }
   };
-  
+
   const calculateAge = (date: string) => {
     if (!date) return "";
     const today = new Date();

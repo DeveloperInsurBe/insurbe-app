@@ -11,21 +11,20 @@ interface ApplicationState {
 }
 
 export const useApplicationStore = create<ApplicationState>((set) => ({
-  application: null,
+  application: {}, // ✅ null → {} (important fix)
 
   setApplication: (data) => set({ application: data }),
 
   updateStep: (step, data) =>
-  set((state) => ({
-    application: {
-      ...state.application,
-      [step]: {
-        ...state.application?.[step],
-        ...data,
+    set((state) => ({
+      application: {
+        ...state.application,
+        [step]: {
+          ...(state.application?.[step] || {}), // ✅ safety fix
+          ...data,
+        },
       },
-    },
-  })),
+    })),
 
-  clearApplication: () => set({ application: null }),
+  clearApplication: () => set({ application: {} }),
 }));
-

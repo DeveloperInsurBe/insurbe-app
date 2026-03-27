@@ -429,11 +429,15 @@ export default function MedicalPage() {
   };
   // ── Non-passive touch listeners (attached via useEffect) ─────────────────
 
-  useEffect(() => {
-    if (!application?.healthAnswers) return;
+  const hasInitialized = useRef(false);
 
-    setForm(application.healthAnswers || {});
-  }, [application]);
+useEffect(() => {
+  if (!application?.healthAnswers) return;
+  if (hasInitialized.current) return;
+
+  setForm(application.healthAnswers || {});
+  hasInitialized.current = true;
+}, [application]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -497,11 +501,11 @@ export default function MedicalPage() {
   };
 
     // ✅ Sync initial data to store
-    useEffect(() => {
-      if (!form || Object.keys(form).length === 0) return;
+  useEffect(() => {
+  if (!form || Object.keys(form).length === 0) return;
 
-      updateStep("healthAnswers", form);
-    }, []);
+  updateStep("healthAnswers", form);
+}, [form]); // ✅ FIX
 
 
   // ── File upload helper ──────────────────────────────────────────────────────
@@ -531,6 +535,28 @@ export default function MedicalPage() {
     // ✅ SAVE TO GLOBAL STORE
     updateStep("healthAnswers", updated);
   };
+
+
+
+// ✅ AUTO SAVE HEALTH (ADD HERE)
+useEffect(() => {
+  if (!id || Object.keys(form).length === 0) return;
+
+  const timeout = setTimeout(async () => {
+    try {
+      await fetch(`/api/application/${id}/health`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+    } catch (err) {
+      console.error("Auto-save failed", err);
+    }
+  }, 800);
+
+  return () => clearTimeout(timeout);
+}, [form, id]);
+
   // ── Validate medical step ───────────────────────────────────────────────────
   const validate = (): string | null => {
     const q = current;
@@ -658,6 +684,8 @@ const healthRes = await fetch(`/api/application/${id}/health`, {
     body: JSON.stringify(cleanForm),
   });
 
+    console.log("✅ Health saved");
+
   if (!retryRes.ok) {
     const errText = await retryRes.text();
     console.error("❌ Final failure:", errText);
@@ -691,7 +719,7 @@ const healthRes = await fetch(`/api/application/${id}/health`, {
     console.log("🔥 Application completed");
 
     // ✅ Redirect
-    router.push(`/application/${id}`);
+    router.push("/dashboard");
   } catch (err) {
     console.error("❌ Error:", err);
     setLoading(false);

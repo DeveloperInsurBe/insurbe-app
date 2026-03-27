@@ -127,9 +127,8 @@ function SummaryRow({
 export default function PersonalDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
-
+  const [form, setForm] = useState<Record<string, any>>({});
   const [stepIndex, setStepIndex] = useState(0);
-  const [form, setForm] = useState<Form>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [countrySearch, setCountrySearch] = useState("");
@@ -178,64 +177,22 @@ useEffect(() => {
   setStepIndex(index === -1 ? steps.length - 1 : index);
 }, [application]);
 
-// useEffect(() => {
-//   if (!application?.personalDetails) return;
 
-//   const data = application.personalDetails;
-//   if (!data.firstName) return setStepIndex(0);
-//   if (!data.email) return setStepIndex(1);
-//   if (!data.day) return setStepIndex(2);
-//   if (!data.gender) return setStepIndex(3);
-//   if (!data.street) return setStepIndex(4);
-//   if (!data.marital) return setStepIndex(5);
-//   if (!data.countries) return setStepIndex(6);
-//   if (!data.relocationDay) return setStepIndex(7);
-//   if (!data.residence) return setStepIndex(8);
-
-//   setStepIndex(9);
-// }, [application]);
-
-// useEffect(() => {
-//   if (!application?.personalDetails) return;
-
-//   const data = application.personalDetails;
-
-//   // ✅ AUTO FILL FORM
-//   setForm({
-//     firstName: data.firstName || "",
-//     lastName: data.lastName || "",
-//     email: data.email || "",
-//     day: data.day || "",
-//     month: data.month || "",
-//     year: data.year || "",
-//     gender: data.gender || "",
-//     street: data.street || "",
-//     houseNumber: data.houseNumber || "",
-//     additionalInfo: data.additionalInfo || "",
-//     postcode: data.postcode || "",
-//     city: data.city || "",
-//     marital: data.marital || "",
-//     countries: data.countries || [],
-//     relocationDay: data.relocationDay || "",
-//     relocationMonth: data.relocationMonth || "",
-//     relocationYear: data.relocationYear || "",
-//     residence: data.residence || "",
-//     passportNumber: data.passportNumber || "",
-//   });
-// }, [application]);
+const hasInitializedForm = useRef(false);
 
 useEffect(() => {
   if (!application) return;
+  if (hasInitializedForm.current) return;
 
   const journey = useJourneyStore.getState();
-
-  const personal = application.personalDetails || {}; // ✅ FIX
+  const personal = application.personalDetails || {};
 
   setForm({
     ...personal,
 
     email: personal.email || journey.email,
     phone: personal.phone || journey.phone,
+
     day:
       personal.day ||
       (journey.dob ? journey.dob.split("-")[2] : ""),
@@ -246,29 +203,8 @@ useEffect(() => {
       personal.year ||
       (journey.dob ? journey.dob.split("-")[0] : ""),
   });
-}, [application]);
 
-useEffect(() => {
-  if (!application) return;
-
-  const journey = useJourneyStore.getState();
-
-  setForm({
-    ...application.personalDetails,
-
-    // ✅ fallback from journey
-    email: application.personalDetails?.email || journey.email,
-    phone: application.personalDetails?.phone || journey.phone,
-    day:
-      application.personalDetails?.day ||
-      (journey.dob ? journey.dob.split("-")[2] : ""),
-    month:
-      application.personalDetails?.month ||
-      (journey.dob ? journey.dob.split("-")[1] : ""),
-    year:
-      application.personalDetails?.year ||
-      (journey.dob ? journey.dob.split("-")[0] : ""),
-  });
+  hasInitializedForm.current = true;
 }, [application]);
 
 
@@ -329,24 +265,26 @@ const handleChange = (name: string, value: any) => {
     }
   };
 
- useEffect(() => {
-  if (!id || !form) return;
+useEffect(() => {
+  if (!id || !form || Object.keys(form).length === 0) return;
 
   const timeout = setTimeout(async () => {
     try {
-      await fetch(`/api/application/${id}/personal`, {
-        method: "PUT", // or PUT depending on your API
+      await fetch(`/api/application/${id}`, { // ✅ FIX URL
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          personalDetails: form, // ✅ CRITICAL FIX
+        }),
       });
 
-      console.log("✅ Auto-saved to backend");
+      console.log("✅ Auto-saved");
     } catch (err) {
       console.error("❌ Auto-save failed", err);
     }
-  }, 800); // debounce
+  }, 800);
 
   return () => clearTimeout(timeout);
 }, [form, id]);
@@ -355,21 +293,28 @@ useEffect(() => {
   if (!form || Object.keys(form).length === 0) return;
 
   updateStep("personalDetails", form);
-}, []);
 
+}, [form]); // ✅ add dependency
+ console.log("FORM:", form);
 const handleSubmit = async () => {
   setLoading(true);
+
   try {
-    const res = await fetch(`/api/application/${id}/personal`, {
+    const res = await fetch(`/api/application/${id}`, { // ✅ FIX URL
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+
+      body: JSON.stringify({
+        personalDetails: form, // ✅ CRITICAL FIX
+      }),
     });
 
     const updated = await res.json();
 
     // ✅ sync Zustand with latest data
     setApplication(updated);
+
+    console.log("✅ SAVED APPLICATION:", updated);
 
     router.push(`/application/${id}/financial`);
   } catch (err) {
