@@ -180,7 +180,7 @@ const handleChange = (name: string, value: any) => {
 };
 
 useEffect(() => {
-  if (!id || !form) return;
+if (!id || Object.keys(form).length === 0) return;
 
   const timeout = setTimeout(async () => {
     try {
@@ -195,7 +195,7 @@ useEffect(() => {
   }, 800);
 
   return () => clearTimeout(timeout);
-}, [form]);
+}, [form, id]);
 
 
   const handleFileChange = async (files: FileList | null) => {

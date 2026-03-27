@@ -8,17 +8,32 @@ export async function PUT(
     const { id } = await context.params;
     const body = await req.json();
 
+    // ✅ Fetch existing data first
+    const existing = await prisma.application.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return Response.json({ error: "Application not found" }, { status: 404 });
+    }
+
+    // ✅ Merge old + new financial data
     const updated = await prisma.application.update({
       where: { id },
       data: {
-        financialHistory: body,
+        financialHistory: {
+          ...(existing.financialHistory as any || {}), // keep old data
+          ...(body || {}), // merge new data
+        },
         status: "incomplete",
       },
     });
 
-    return Response.json(updated); // ✅ IMPORTANT
+    console.log("✅ Financial saved:", updated.financialHistory);
+
+    return Response.json(updated);
   } catch (error) {
     console.error("❌ financialdetails API error:", error);
-    return Response.json({ error: "Failed" }, { status: 500 });
+    return Response.json({ error: "Failed to update financial details" }, { status: 500 });
   }
 }
