@@ -334,8 +334,8 @@ const handleChange = (name: string, value: any) => {
 
   const timeout = setTimeout(async () => {
     try {
-      await fetch(`/api/application/${id}/personalDetails`, {
-        method: "PATCH", // or PUT depending on your API
+      await fetch(`/api/application/${id}/personal`, {
+        method: "PUT", // or PUT depending on your API
         headers: {
           "Content-Type": "application/json",
         },

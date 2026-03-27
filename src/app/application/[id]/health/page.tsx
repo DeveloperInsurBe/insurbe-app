@@ -496,12 +496,13 @@ export default function MedicalPage() {
     handleChange("signature", canvas.toDataURL("image/png"));
   };
 
-  // ✅ Sync initial data to store
-  useEffect(() => {
-    if (!form || Object.keys(form).length === 0) return;
+    // ✅ Sync initial data to store
+    useEffect(() => {
+      if (!form || Object.keys(form).length === 0) return;
 
-    updateStep("healthAnswers", form);
-  }, []);
+      updateStep("healthAnswers", form);
+    }, []);
+
 
   // ── File upload helper ──────────────────────────────────────────────────────
   const handleFileChange = async (files: FileList | null) => {
@@ -616,51 +617,86 @@ export default function MedicalPage() {
     }
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
+const handleSubmit = async () => {
+  setLoading(true);
 
-    try {
-      // ✅ STEP 1: Save health data
-      const cleanForm = JSON.parse(JSON.stringify(form));
+  try {
+    // ✅ STEP 1: Save health data
+   const cleanForm = JSON.parse(JSON.stringify(form));
 
-      const healthRes = await fetch(`/api/application/${id}/health`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(cleanForm), // ✅ CLEAN DATA
-      });
+const healthRes = await fetch(`/api/application/${id}/health`, {
+  method: "PUT",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(cleanForm), // ✅ CLEAN DATA
+});
 
-      if (!healthRes.ok) {
-        throw new Error("Health save failed");
-      }
+  if (!healthRes.ok) {
+  let errText = "";
 
-      console.log("✅ Health saved");
+  try {
+    errText = await healthRes.text();
+  } catch (e) {
+    errText = "Could not read error response";
+  }
 
-      // ✅ STEP 2: Call COMPLETE API
-      const completeRes = await fetch(`/api/application/${id}/complete`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          signature: form.signature || null, // 🔥 IMPORTANT
-        }),
-      });
+  console.error("❌ Health API failed:");
+  console.error("Status:", healthRes.status);
+  console.error("Response:", errText);
 
-      if (!completeRes.ok) {
-        throw new Error("Complete API failed");
-      }
+  alert("Health save failed. Check console."); // 👈 helps you debug quickly
 
-      console.log("🔥 Application completed");
+  if (!healthRes.ok) {
+  console.warn("⚠️ Health save failed, retrying once...");
 
-      // ✅ Redirect
-      router.push(`/application/${id}`);
-    } catch (err) {
-      console.error("❌ Error:", err);
-      setLoading(false);
-    }
-  };
+  await new Promise((r) => setTimeout(r, 3000));
+
+  const retryRes = await fetch(`/api/application/${id}/health`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(cleanForm),
+  });
+
+  if (!retryRes.ok) {
+    const errText = await retryRes.text();
+    console.error("❌ Final failure:", errText);
+
+    alert("Database is waking up. Please try again.");
+    return;
+  }
+}
+}
+
+    console.log("✅ Health saved");
+
+    // ✅ STEP 2: Call COMPLETE API
+    const completeRes = await fetch(`/api/application/${id}/complete`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        signature: form.signature || null, // 🔥 IMPORTANT
+      }),
+    });
+
+    if (!completeRes.ok) {
+  const errText = await completeRes.text();
+  console.error("❌ COMPLETE API ERROR:", errText);
+
+  throw new Error(errText || "Complete API failed");
+}
+
+    console.log("🔥 Application completed");
+
+    // ✅ Redirect
+    router.push(`/application/${id}`);
+  } catch (err) {
+    console.error("❌ Error:", err);
+    setLoading(false);
+  }
+};
 
   // ════════════════════════════════════════════════════════════════════════════
   // ── BOOK APPOINTMENT ───────────────────────────────────────────────────────

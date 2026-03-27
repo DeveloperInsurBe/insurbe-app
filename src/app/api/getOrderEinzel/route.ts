@@ -1,4 +1,4 @@
-// app/api/getOrderEinzel/route.ts
+
 import { NextRequest } from "next/server";
 import { XMLParser } from "fast-xml-parser";
 import http from "node:http";
