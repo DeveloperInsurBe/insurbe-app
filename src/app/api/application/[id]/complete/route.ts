@@ -1,17 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { PDFDocument } from "pdf-lib";
 
-// =========================
-// TYPES (UPDATED)
-// =========================
-type PersonalDetails = any;
-type FinancialHistory = any;
-type InsuranceHistory = any;
-type HealthAnswers = any;
-
 export async function POST(
   req: Request,
-  context: { params: Promise<{ id: string }> },
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
@@ -31,171 +23,111 @@ export async function POST(
     }
 
     // =========================
-    // 2️⃣ LOAD PDF
+    // 2️⃣ LOAD EXISTING PDF (VERY IMPORTANT)
     // =========================
     const cleanBase64 = app.pdfBase64.replace(/^data:.*;base64,/, "");
     const pdfBytes = Buffer.from(cleanBase64, "base64");
 
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const form = pdfDoc.getForm();
-    // 🔥 DEBUG: Print all PDF fields
-    const fields = form.getFields();
 
-    console.log("📄 ===== PDF FIELD NAMES =====");
-
-    fields.forEach((field) => {
-      console.log("➡️", field.getName());
-    });
-
-    console.log("📄 ===== END PDF FIELDS =====");
-
-    console.log("📄 PDF LOADED SUCCESS");
+    console.log("📄 PDF loaded");
 
     // =========================
-    // SAFE FIELD SETTER
+    // SAFE FIELD SETTER (DO NOT OVERWRITE EXISTING)
     // =========================
-    const setText = (name: string, value: any) => {
+    const setTextSafe = (name: string, value: any) => {
       try {
         const field = form.getTextField(name);
-        field.setText(value ? String(value) : "");
-      } catch {
-        console.log("⚠️ Missing field:", name);
-      }
-    };
 
-    const setCheck = (name: string, checked: boolean) => {
-      try {
-        const field = form.getCheckBox(name);
-        if (checked) field.check();
+        // 👉 get existing value from SOAP-filled PDF
+        const existing = field.getText();
+
+        // 👉 ONLY set if empty
+        if (!existing && value) {
+          field.setText(String(value));
+        }
       } catch {
-        console.log("⚠️ Missing checkbox:", name);
+        // ignore missing fields
       }
     };
 
     // =========================
     // 3️⃣ EXTRACT DATA
     // =========================
-    const personal = app.personalDetails as PersonalDetails;
-    const financial = app.financialHistory as FinancialHistory;
-    const insurance = app.insuranceHistory as InsuranceHistory;
-    const health = app.healthAnswers as HealthAnswers;
+    const personal = app.personalDetails as any;
+    const financial = app.financialHistory as any;
+    const insurance = app.insuranceHistory as any;
+    const health = app.healthAnswers as any;
 
     // =========================
-    // 4️⃣ PERSONAL MAPPING
+    // 4️⃣ PERSONAL (USE SAME SOAP FIELDS)
     // =========================
-
-    setText("VornameVN", personal?.firstName);
-    setText("ZunameVN", personal?.lastName);
-    setText("EMail-VN", personal?.email);
-    setText("Telefon-VN", personal?.phone || "");
-
-    setText("StraßeVN", `${personal?.street} ${personal?.houseNumber}`);
-    setText("WohnortVN", personal?.city);
-    setText("NKZPLZ", personal?.postcode);
-
-    setText(
-      "GeburtsdatumVN",
-      `${personal?.day}.${personal?.month}.${personal?.year}`,
+    setTextSafe("VornameVP1", personal?.firstName);
+    setTextSafe("ZunameVP1", personal?.lastName);
+    setTextSafe(
+      "GeburtsdatumVP1",
+      personal?.dob ||
+        `${personal?.day || ""}.${personal?.month || ""}.${personal?.year || ""}`
     );
 
-    setText("Familienstand-VP1", personal?.marital);
-    setText("Staatsangehörigkeit-VP1", personal?.countries?.join(", "));
-    // =========================
-    // 5️⃣ FINANCIAL MAPPING
-    // =========================
-    setText("Berufsstatus", financial?.employmentStatus);
-    setText("Beruf", financial?.jobTitle);
-    setText("Arbeitgeber", financial?.employerName);
+    setTextSafe("EMail-VP1", personal?.email);
+    setTextSafe("Telefon-VP1", personal?.phone);
 
-    setText(
-      "Arbeitsbeginn",
-      `${financial?.startDay}-${financial?.startMonth}-${financial?.startYear}`,
+    setTextSafe(
+      "StraßeVP1",
+      `${personal?.street || ""} ${personal?.houseNumber || ""}`
     );
-    setText("Berufsstellung-VP1", financial?.employmentStatus);
-    setText("AusgeübteTätigkeit-VP1", financial?.jobTitle);
-    setText("KT-Nettoeinkünfte-VP1", financial?.annualIncome);
-    setText("Einkommen", financial?.annualIncome);
-    setText("AußerhalbDeutschland", financial?.employedOutsideGermany);
-    setText("SteuerIDVorhanden", financial?.hasGermanTaxId);
+    setTextSafe("WohnortVP1", personal?.city);
+    setTextSafe("PLZVP1", personal?.postcode);
 
     // =========================
-    // 6️⃣ INSURANCE MAPPING
+    // 5️⃣ FINANCIAL
     // =========================
-    setText(
-      "Vorversicherung-KrankenkasseVersicherer1-VP1",
-      insurance?.providerName,
+    setTextSafe("BerufVP1", financial?.jobTitle);
+    setTextSafe("ArbeitgeberVP1", financial?.employerName);
+    setTextSafe(
+      "EinkommenVP1",
+      financial?.annualIncome ? String(financial.annualIncome) : ""
     );
 
-    setText("Vorversicherung-Ende1-VP1", insurance?.insuranceEndDate);
-
-    setText("Vorversicherung-Bestehtseit1-VP1", insurance?.coverageStart);
-    setText("ImmerVersichert", insurance?.alwaysInsured);
-    setText("DeutschlandWohnsitz", insurance?.livingInGermany);
-    setText("Versicherungsnummer", insurance?.policyNumber);
+    // =========================
+    // 6️⃣ INSURANCE
+    // =========================
+    setTextSafe("VorversicherungVP1", insurance?.provider);
 
     // =========================
-    // 7️⃣ HEALTH MAPPING
+    // 7️⃣ HEALTH
     // =========================
-    setText("Gesundheitsangaben-Größe-VP1", health?.height);
-    setText("Gesundheitsangaben-Gewicht-VP1", health?.weight);
-
-    // YES/NO → Ja / Nein
-    const yn = (val: string) => (val === "Yes" ? "Ja" : "Nein");
-
-    setText("Frage1-VP1", yn(health?.hiv));
-    setText("Frage2-VP1", yn(health?.outpatient3y));
-    setText("Frage3-VP1", yn(health?.inpatient5y));
-    setText("Frage4-VP1", yn(health?.psychotherapy10y));
-    setText("Frage5-VP1", yn(health?.sterility3y));
-    setText("Frage6-VP1", yn(health?.plannedTreatment));
-    setText("Frage7-VP1", yn(health?.untreatedDisease));
-    setText("Frage8-VP1", yn(health?.chronicDisease));
-    setText("Frage9-VP1", yn(health?.handicap));
-    setText("Frage10-VP1", yn(health?.regularMedication));
-    setText("Frage11-VP1", yn(health?.spectacles));
-    setText("Frage12-VP1", yn(health?.dentalExam3y));
-    setText("Frage13-VP1", yn(health?.dentalOngoing));
-    setText("Frage14-VP1", yn(health?.gumDisease));
-    setText("Frage15-VP1", yn(health?.missingTeeth));
-    setText("Frage16-VP1", yn(health?.dentures));
-    if (health?.diseases?.length) {
-      setText("Erkrankungen", health.diseases.join(", "));
-    }
-    if (health?.signature) {
-      const image = await pdfDoc.embedPng(health.signature);
-      const page = pdfDoc.getPages()[0];
-
-      page.drawImage(image, {
-        x: 400,
-        y: 100,
-        width: 120,
-        height: 50,
-      });
-    }
-    setText("GesundheitsDetails", health?.details);
+    setTextSafe("GesundheitsgrößeVP1", health?.height);
+    setTextSafe("GesundheitsgewichtVP1", health?.weight);
+    setTextSafe("GesundheitsdetailsVP1", health?.details);
 
     // =========================
-    // 8️⃣ SIGNATURE
+    // 8️⃣ SIGNATURE (ONLY ONCE)
     // =========================
     if (signature) {
       const cleanSignature = signature.replace(/^data:.*;base64,/, "");
+
       const signatureImage = await pdfDoc.embedPng(
-        Buffer.from(cleanSignature, "base64"),
+        Buffer.from(cleanSignature, "base64")
       );
 
       const pages = pdfDoc.getPages();
       const lastPage = pages[pages.length - 1];
 
+      const { width } = lastPage.getSize();
+
       lastPage.drawImage(signatureImage, {
-        x: 200,
-        y: 100,
-        width: 150,
-        height: 50,
+        x: width / 2 - 100,
+        y: 60,
+        width: 200,
+        height: 80,
       });
     }
 
     // =========================
-    // 9️⃣ FLATTEN
+    // 9️⃣ FLATTEN (AFTER SETTING VALUES)
     // =========================
     form.flatten();
 
@@ -206,55 +138,19 @@ export async function POST(
     const finalBase64 = Buffer.from(finalPdf).toString("base64");
 
     // =========================
-    // 11️⃣ GET USER
-    // =========================
-    const user = await prisma.user.findUnique({
-      where: { id: app.userId || "" },
-    });
-
-    // =========================
-    // 12️⃣ SAVE DB
+    // 11️⃣ SAVE TO DB
     // =========================
     await prisma.application.update({
       where: { id },
       data: {
         pdfBase64: finalBase64,
-        signature,
+        signature: signature || null,
         status: "completed",
       },
     });
 
-    console.log("✅ FINAL PDF GENERATED");
+    console.log("✅ PDF FINALIZED");
 
-    // =========================
-    // 📧 EMAIL
-    // =========================
-    try {
-      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-
-      if (user?.email) {
-        await fetch(`${baseUrl}/api/sendAcknowledgement`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: user.email,
-            name: user.email.split("@")[0],
-            orderId: app.orderId,
-            formType: "private",
-            pdfBase64: finalBase64,
-            filename: "Final_Application.pdf",
-          }),
-        });
-      }
-    } catch (err) {
-      console.error("⚠️ Email failed:", err);
-    }
-    console.log("🧠 PERSONAL:", personal);
-    console.log("🧠 FINANCIAL:", financial);
-    console.log("🧠 INSURANCE:", insurance);
-    console.log("🧠 HEALTH:", health);
     return Response.json({ success: true });
   } catch (err) {
     console.error("❌ COMPLETE ERROR:", err);

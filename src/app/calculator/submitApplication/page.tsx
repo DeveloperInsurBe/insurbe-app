@@ -281,23 +281,6 @@ export default function SubmitApplication() {
         }),
       );
 
-      /* ✅ SEND EMAIL with real order ID */
-      // try {
-      //   await fetch("/api/sendAcknowledgement", {
-      //     method: "POST",
-      //     headers: { "Content-Type": "application/json" },
-      //     body: JSON.stringify({
-      //       email,
-      //       name: `${firstName} ${lastName}`,
-      //       orderId: finalOrderId,
-      //       formType: "private",
-      //     }),
-      //   });
-
-      //   console.log("📧 Acknowledgement email sent");
-      // } catch (emailError) {
-      //   console.error("⚠️ Email sending failed:", emailError);
-      // }
       // 🔥 Attach immediately if user already logged in
       if (session && applicationId) {
         try {
@@ -332,6 +315,7 @@ export default function SubmitApplication() {
       setLoading(false);
     }
   };
+  
   const calculateAge = (date: string) => {
     if (!date) return "";
     const today = new Date();
