@@ -39,7 +39,7 @@ export function buildGetOrderXML(data: any) {
               <a:tarifIDField>${id}</a:tarifIDField>
               <a:wartezeiterlassField i:nil="true"/>
               <a:wartezeiterlassFieldSpecified>false</a:wartezeiterlassFieldSpecified>
-            </a:CT_Elementarprodukt>`
+            </a:CT_Elementarprodukt>`,
     )
     .join("");
 
@@ -65,7 +65,7 @@ export function buildGetOrderXML(data: any) {
             <a:CT_Dokumentanforderung>
               <a:erweiterungField i:nil="true"/>
               <a:artIDField>
-                <a:ST_DokumentartID>Antrag</a:ST_DokumentartID>
+<a:ST_DokumentartID>BesondereBedingungen</a:ST_DokumentartID>
               </a:artIDField>
               <a:dateiIDField i:nil="true"/>
               <a:empfaengerField i:nil="true"/>
