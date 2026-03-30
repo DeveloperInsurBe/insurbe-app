@@ -23,6 +23,8 @@ model Application {
   pdfBase64   String    @db.Text
   status      String    // pending_login | incomplete | completed
   createdAt   DateTime  @default(now())
+   tariffIds       Json?     // ✅ ADD THIS
+  startDate       String?
   personalDetails Json?   
   healthAnswers   Json?   
   uploadedDocs    Json?   

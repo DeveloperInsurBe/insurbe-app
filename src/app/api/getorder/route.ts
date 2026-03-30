@@ -20,6 +20,8 @@ export async function POST(req: Request) {
   );
 
   const text = await soapRes.text();
+  console.log("SOAP RESPONSE (SHORT):", text.slice(0, 2000));
+  // console.log("SOAP RESPONSE:", text);
 
   return new Response(text, {
     headers: { "Content-Type": "application/xml" },
