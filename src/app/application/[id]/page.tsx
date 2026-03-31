@@ -145,7 +145,12 @@ export default function ApplicationPage() {
           );
         }
 
-       return data && Object.keys(data).length > 0;
+        return (
+          data &&
+          Object.values(data).some(
+            (v) => v !== null && v !== undefined && v !== "",
+          )
+        );
       }).length
     : 0;
 
@@ -251,7 +256,10 @@ export default function ApplicationPage() {
                 ? true
                 : step.key === "personalDetails"
                   ? application?.personalDetails?.isComplete === true
-                  : !!application?.[step.key];
+                  : application?.[step.key] &&
+                    Object.values(application?.[step.key] || {}).some(
+                      (v) => v !== null && v !== undefined && v !== "",
+                    );
 
             const isNext = nextStep?.key === step.key;
 

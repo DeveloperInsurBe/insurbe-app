@@ -192,6 +192,7 @@ useEffect(() => {
 
     email: personal.email || journey.email,
     phone: personal.phone || journey.phone,
+    
 
     day:
       personal.day ||
