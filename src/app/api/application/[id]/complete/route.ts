@@ -305,6 +305,42 @@ export async function POST(
       },
     });
 
+    // =========================
+// 📧 SEND EMAIL WITH PDF
+// =========================
+try {
+  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+
+  // 🔥 FIX: get email properly from DB
+const userEmail = personal?.email || "";
+
+  if (userEmail) {
+    console.log("📧 Sending email to:", userEmail);
+
+    await fetch(`${baseUrl}/api/sendAcknowledgement`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userEmail,
+        name: personal?.firstName || userEmail.split("@")[0], // ✅ better name
+        orderId: app?.orderId || id,
+        formType: "private",
+        pdfBase64: base64, // ✅ THIS IS YOUR FINAL PDF
+        filename: "Final_Application.pdf",
+      }),
+    });
+
+    console.log("📧 Email with PDF sent");
+  } else {
+    console.log("⚠️ No user email found");
+  }
+} catch (emailError) {
+  console.error("⚠️ Email sending failed:", emailError);
+}
+
+
     console.log("✅ FINAL PDF DONE");
   
     return Response.json({ success: true });
