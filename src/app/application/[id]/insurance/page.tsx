@@ -262,16 +262,16 @@ export default function InsurancePage() {
   }, [application]);
 
   const handleChange = (name: string, value: any) => {
-  const updated = { ...form, [name]: value };
+    const updated = { ...form, [name]: value };
 
-  setForm(updated);
+    setForm(updated);
 
-  setTimeout(() => {
-    updateStep("insuranceHistory", updated);
-  }, 0);
+    setTimeout(() => {
+      updateStep("insuranceHistory", updated);
+    }, 0);
 
-  setError(null);
-};
+    setError(null);
+  };
 
   useEffect(() => {
     if (!id || !form) return;
@@ -1301,6 +1301,15 @@ export default function InsurancePage() {
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-2xl shadow-xl shadow-black/[0.06] p-7"
           >
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={() => setScreen("summary")}
+                className="text-xs font-semibold cursor-pointer text-violet-600 hover:text-violet-700 transition"
+              >
+                Review →
+              </button>
+            </div>
+
             <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 py-1 mb-4">
               <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
               <span className="text-violet-700 text-[10px] font-semibold tracking-[0.12em] uppercase">

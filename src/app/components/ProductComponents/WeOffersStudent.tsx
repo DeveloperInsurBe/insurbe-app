@@ -31,7 +31,7 @@ const plans = [
       "Premium care with faster access and flexible coverage options.",
     icon: HeartPulse,
     key: "private",
-    href: "/ottonovaSignupform",
+    href: "/mawistaBooking",
     gradient: "from-purple-500 to-pink-500",
     bgGradient: "from-purple-50 to-pink-50",
     badge: "Students Choice",
