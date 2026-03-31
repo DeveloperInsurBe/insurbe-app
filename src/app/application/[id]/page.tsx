@@ -114,7 +114,20 @@ export default function ApplicationPage() {
       return application?.personalDetails?.isComplete !== true;
     }
 
-    return !application?.[s.key];
+  if (s.key === "financialHistory") {
+  const data = application?.financialHistory;
+
+  return !(
+    data?.employmentStatus &&
+    data?.jobTitle &&
+    data?.employerName &&
+    data?.annualIncome &&
+    data?.employedOutsideGermany &&
+    data?.hasGermanTaxId
+  );
+}
+
+return !application?.[s.key];
   });
 
   const stepRouteMap: Record<StepKey, string> = {
@@ -145,8 +158,22 @@ export default function ApplicationPage() {
           );
         }
 
+
+        if (s.key === "financialHistory") {
+          return !!(
+            data?.employmentStatus &&
+            data?.jobTitle &&
+            data?.employerName &&
+            data?.annualIncome &&
+            data?.employedOutsideGermany &&
+            data?.hasGermanTaxId
+          );
+        }
+
+        // fallback (keep existing behavior for others)
         return (
           data &&
+          Object.keys(data).length > 0 && // 🔥 IMPORTANT FIX
           Object.values(data).some(
             (v) => v !== null && v !== undefined && v !== "",
           )
@@ -251,15 +278,25 @@ export default function ApplicationPage() {
           }}
         >
           {steps.map((step, i) => {
-            const done =
-              step.key === null
-                ? true
-                : step.key === "personalDetails"
-                  ? application?.personalDetails?.isComplete === true
-                  : application?.[step.key] &&
-                    Object.values(application?.[step.key] || {}).some(
-                      (v) => v !== null && v !== undefined && v !== "",
-                    );
+           const done =
+  step.key === null
+    ? true
+    : step.key === "personalDetails"
+      ? application?.personalDetails?.isComplete === true
+      : step.key === "financialHistory"
+        ? !!(
+            application?.financialHistory?.employmentStatus &&
+            application?.financialHistory?.jobTitle &&
+            application?.financialHistory?.employerName &&
+            application?.financialHistory?.annualIncome &&
+            application?.financialHistory?.employedOutsideGermany &&
+            application?.financialHistory?.hasGermanTaxId
+          )
+        : application?.[step.key] &&
+          Object.keys(application?.[step.key] || {}).length > 0 &&
+          Object.values(application?.[step.key] || {}).some(
+            (v) => v !== null && v !== undefined && v !== ""
+          );
 
             const isNext = nextStep?.key === step.key;
 

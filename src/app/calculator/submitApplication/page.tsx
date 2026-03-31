@@ -55,7 +55,9 @@ export default function SubmitApplication() {
   const [gender, setGender] = useState(
     application?.personal?.gender || premiumForm.gender || "Male",
   );
-  const [coverageStart] = useState(calculateCoverageStartDate());
+  const [coverageStart, setCoverageStart] = useState(
+    application?.coverageStart || calculateCoverageStartDate(),
+  );
   const [email, setEmail] = useState(
     application?.contact?.email || journeyStore.email || "",
   );
@@ -71,12 +73,23 @@ export default function SubmitApplication() {
   const hasHydrated = useJourneyStore.persist.hasHydrated();
   const { data: session } = useSession();
   /* ---------- UI state ---------- */
-
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const birthYear = journeyStore.dob ? journeyStore.dob.split("-")[0] : "";
   /* ---------- Guard ---------- */
+
+  function formatToInputDate(dateStr: string) {
+    if (!dateStr) return "";
+
+    // already yyyy-mm-dd
+    if (dateStr.includes("-")) return dateStr;
+
+    // convert dd.mm.yyyy → yyyy-mm-dd
+    const [day, month, year] = dateStr.split(".");
+    return `${year}-${month}-${day}`;
+  }
 
   useEffect(() => {
     updateStep("personalDetails", {
@@ -182,8 +195,12 @@ export default function SubmitApplication() {
       setError("Tariff ID missing. Please select a plan again.");
       return;
     }
-
     setLoading(true);
+    setLoadingStep(1);
+
+    setTimeout(() => setLoadingStep(2), 1500);
+    setTimeout(() => setLoadingStep(3), 3500);
+    setTimeout(() => setLoadingStep(4), 6000);
     setError(null);
 
     const genderMap: Record<string, string> = {
@@ -206,7 +223,7 @@ export default function SubmitApplication() {
       geburtsdatum: dob,
       anrede: salutationMap[salutation],
       geschlecht: genderMap[gender],
-      beginn: coverageStart,
+      beginn: formatToGermanDate(coverageStart),
       email,
       telefon: normalizePhone(phone),
       strasse: address,
@@ -398,6 +415,7 @@ export default function SubmitApplication() {
       setError("Failed to submit application");
     } finally {
       setLoading(false);
+      setLoadingStep(0);
     }
   };
 
@@ -454,6 +472,11 @@ export default function SubmitApplication() {
   //   formattedCategory =
   //     parts.length > 1 ? `${parts[1]} - ${parts[0]}` : plan.category;
   // }
+  function formatToGermanDate(dateStr: string) {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
+    return `${day}.${month}.${year}`;
+  }
 
   /* ---------- UI ---------- */
 
@@ -632,13 +655,14 @@ export default function SubmitApplication() {
                     Coverage Start Date
                   </label>
                   <motion.input
-                    type="text"
-                    value={coverageStart}
-                    readOnly
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 bg-gray-100 cursor-not-allowed"
+                    type="date"
+                    value={formatToInputDate(coverageStart)}
+                    onChange={(e) => setCoverageStart(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Based on your cancellation month or default 2-day rule.
+                    Default is auto-calculated. You can change it if needed.
                   </p>
                 </div>
               </motion.div>
@@ -932,6 +956,26 @@ export default function SubmitApplication() {
           </motion.button>
         </motion.form>
       </motion.div>
+
+      {/* 🔥 ADD OVERLAY HERE */}
+      {loading && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md text-center shadow-2xl">
+            <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-6"></div>
+
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Processing your application
+            </h2>
+
+            <div className="text-sm text-purple-600 font-medium min-h-[24px] transition-all">
+              {loadingStep === 1 && "🔍 Analyzing your details..."}
+              {loadingStep === 2 && "📄 Generating your application..."}
+              {loadingStep === 3 && "📧 Preparing your documents..."}
+              {loadingStep === 4 && "🚀 Redirecting you..."}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
