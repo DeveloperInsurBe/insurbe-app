@@ -54,7 +54,9 @@ export async function POST(
 
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const form = pdfDoc.getForm();
-
+form.getFields().forEach((f) => {
+  console.log("🧾 FIELD:", f.getName());
+});
     console.log("🔥 TOTAL FIELDS:", form.getFields().length);
 
     const safe = (v: any) => (v ? String(v) : "");
@@ -74,7 +76,12 @@ export async function POST(
     // ✅ KEEP YOUR LOGIC (IMPROVED INPUT ONLY)
     const setField = (name: string, value: any) => {
       try {
-        const field = form.getField(name);
+        const field = form.getFieldMaybe(name);
+
+        if (!field) {
+          console.log("⚠️ FIELD NOT FOUND:", name);
+          return;
+        }
 
         if (field instanceof PDFTextField) {
           field.setText(safe(value));
@@ -215,14 +222,15 @@ export async function POST(
     setField("Frage14-VP1", toPdfYesNo(health?.gumDisease));
     setField("Frage15-VP1", toPdfYesNo(health?.missingTeeth));
     setField("Frage16-VP1", toPdfYesNo(health?.dentures));
-    setField(
-      "Gesundheitsangaben-Sehhilfe-DioptrieLinks-VP1",
-      health?.dioptreLeft,
-    );
-    setField(
-      "Gesundheitsangaben-Sehhilfe-DioptrieRechts-VP1",
-      health?.dioptreRight,
-    );
+setField(
+  "Gesundheitsangaben-Frage11-Dioptrien-rechts-VP1",
+  String(health?.dioptreRight || "")
+);
+
+setField(
+  "Gesundheitsangaben-Frage11-Dioptrien-links-VP1",
+  String(health?.dioptreLeft || "")
+);
     setField(
       "Gesundheitsangaben-Frage15-AnzahlZähne-VP1",
       health?.missingTeethCount,
@@ -250,40 +258,51 @@ export async function POST(
     // =========================
     // SIGNATURE (UNCHANGED ✅)
     // =========================
-    const drawSignature = async (fieldName: string, base64: string) => {
-      try {
-        const clean = base64.replace(/^data:.*;base64,/, "");
-        const imgBytes = Buffer.from(clean, "base64");
+   const drawSignature = async (fieldName: string, base64: string) => {
+  try {
+    const clean = base64.replace(/^data:.*;base64,/, "");
+    const imgBytes = Buffer.from(clean, "base64");
 
-        let image;
-        try {
-          image = await pdfDoc.embedPng(imgBytes);
-        } catch {
-          image = await pdfDoc.embedJpg(imgBytes);
-        }
+    let image;
+    try {
+      image = await pdfDoc.embedPng(imgBytes);
+    } catch {
+      image = await pdfDoc.embedJpg(imgBytes);
+    }
 
-        const field: any = form.getField(fieldName);
-        const widgets = field.acroField.getWidgets();
-        console.log("✍️ SIGNATURE FIELD TYPE:", field.constructor.name);
-        // ✅ REMOVE SIGNATURE FIELD (VERY IMPORTANT)
-        form.removeField(field);
+    const field: any = form.getField(fieldName);
+    const widgets = field.acroField.getWidgets();
 
-        for (const widget of widgets) {
-          const rect = widget.getRectangle();
-          const pageIndex = widget.getPage().getIndex();
-          const page = pdfDoc.getPages()[pageIndex];
+    console.log("✍️ SIGNATURE FIELD:", fieldName);
 
-          page.drawImage(image, {
-            x: rect.x,
-            y: rect.y,
-            width: rect.width,
-            height: rect.height,
-          });
-        }
-      } catch (e) {
-        console.log("❌ Signature error:", fieldName);
-      }
-    };
+    const pages = pdfDoc.getPages();
+
+    for (const widget of widgets) {
+      const rect = widget.getRectangle();
+
+      // 🔥 FIX: CORRECT PAGE DETECTION
+      const pageRef = widget.P(); // ✅ THIS IS KEY
+      const pageIndex = pdfDoc.getPageIndices().findIndex(
+        (i) => pages[i].ref === pageRef
+      );
+
+      const page =
+        pageIndex !== -1 ? pages[pageIndex] : pages[0]; // fallback
+
+      page.drawImage(image, {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+      });
+    }
+
+    form.removeField(field); // keep this AFTER drawing
+
+  } catch (e) {
+    console.log("❌ Signature error:", fieldName, e);
+  }
+};
 
     if (signature) {
       await drawSignature("Unterschrift-Antrag-Antragsteller", signature);
@@ -306,43 +325,42 @@ export async function POST(
     });
 
     // =========================
-// 📧 SEND EMAIL WITH PDF
-// =========================
-try {
-  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    // 📧 SEND EMAIL WITH PDF
+    // =========================
+    try {
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
-  // 🔥 FIX: get email properly from DB
-const userEmail = personal?.email || "";
+      // 🔥 FIX: get email properly from DB
+      const userEmail = personal?.email || "";
 
-  if (userEmail) {
-    console.log("📧 Sending email to:", userEmail);
+      if (userEmail) {
+        console.log("📧 Sending email to:", userEmail);
 
-    await fetch(`${baseUrl}/api/sendAcknowledgement`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: userEmail,
-        name: personal?.firstName || userEmail.split("@")[0], // ✅ better name
-        orderId: app?.orderId || id,
-        formType: "private",
-        pdfBase64: base64, // ✅ THIS IS YOUR FINAL PDF
-        filename: "Final_Application.pdf",
-      }),
-    });
+        await fetch(`${baseUrl}/api/sendAcknowledgement`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: userEmail,
+            name: personal?.firstName || userEmail.split("@")[0], // ✅ better name
+            orderId: app?.orderId || id,
+            formType: "private",
+            pdfBase64: base64, // ✅ THIS IS YOUR FINAL PDF
+            filename: "Final_Application.pdf",
+          }),
+        });
 
-    console.log("📧 Email with PDF sent");
-  } else {
-    console.log("⚠️ No user email found");
-  }
-} catch (emailError) {
-  console.error("⚠️ Email sending failed:", emailError);
-}
-
+        console.log("📧 Email with PDF sent");
+      } else {
+        console.log("⚠️ No user email found");
+      }
+    } catch (emailError) {
+      console.error("⚠️ Email sending failed:", emailError);
+    }
 
     console.log("✅ FINAL PDF DONE");
-  
+
     return Response.json({ success: true });
   } catch (err) {
     console.error("❌ ERROR:", err);

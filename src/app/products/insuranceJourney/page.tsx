@@ -857,11 +857,11 @@ export default function InsuranceJourney() {
                       className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                         hasChildren === true
                           ? "bg-gradient-to-br from-green-500 to-emerald-500"
-                          : "bg-gray-100"
+                          : "bg-purple-200"
                       }`}
                     >
                       <CheckCircle2
-                        className={`w-6 h-6 ${hasChildren === true ? "text-white" : "text-gray-400"}`}
+                        className={`w-6 h-6 ${hasChildren === true ? "text-white" : "text-purple-600"}`}
                       />
                     </motion.div>
                     <span className="font-semibold text-gray-800 flex-1">
@@ -890,11 +890,11 @@ export default function InsuranceJourney() {
                       className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                         hasChildren === false
                           ? "bg-gradient-to-br from-blue-500 to-cyan-500"
-                          : "bg-gray-100"
+                          : "bg-purple-200"
                       }`}
                     >
                       <XCircle
-                        className={`w-6 h-6 ${hasChildren === false ? "text-white" : "text-gray-400"}`}
+                        className={`w-6 h-6 ${hasChildren === false ? "text-gray-500" : "text-purple-600"}`}
                       />
                     </motion.div>
                     <span className="font-semibold text-gray-800 flex-1">

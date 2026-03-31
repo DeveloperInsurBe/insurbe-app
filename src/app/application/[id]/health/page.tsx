@@ -907,7 +907,7 @@ export default function MedicalPage() {
       : ["#6d28d9", "#7c3aed", "#8b5cf6", "#a78bfa"];
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f5f4f0] px-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 px-6">
         {/* Icon */}
         <div className="w-24 h-24 rounded-2xl bg-white border border-purple/[0.08] flex items-center justify-center mb-8 shadow-sm">
           {needsHealthCheck ? (
