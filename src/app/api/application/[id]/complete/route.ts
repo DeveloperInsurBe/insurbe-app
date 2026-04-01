@@ -24,8 +24,8 @@ export async function POST(
     const health = app.healthAnswers as any;
 
     console.log("🧠 HEALTH DATA:", health);
-
-    const soapRes = await fetch("http://localhost:3000/api/getorder", {
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const soapRes = await fetch(`${baseUrl}/api/getorder`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -54,9 +54,9 @@ export async function POST(
 
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const form = pdfDoc.getForm();
-form.getFields().forEach((f) => {
-  console.log("🧾 FIELD:", f.getName());
-});
+    form.getFields().forEach((f) => {
+      console.log("🧾 FIELD:", f.getName());
+    });
     console.log("🔥 TOTAL FIELDS:", form.getFields().length);
 
     const safe = (v: any) => (v ? String(v) : "");
@@ -222,15 +222,15 @@ form.getFields().forEach((f) => {
     setField("Frage14-VP1", toPdfYesNo(health?.gumDisease));
     setField("Frage15-VP1", toPdfYesNo(health?.missingTeeth));
     setField("Frage16-VP1", toPdfYesNo(health?.dentures));
-setField(
-  "Gesundheitsangaben-Frage11-Dioptrien-rechts-VP1",
-  String(health?.dioptreRight || "")
-);
+    setField(
+      "Gesundheitsangaben-Frage11-Dioptrien-rechts-VP1",
+      String(health?.dioptreRight || ""),
+    );
 
-setField(
-  "Gesundheitsangaben-Frage11-Dioptrien-links-VP1",
-  String(health?.dioptreLeft || "")
-);
+    setField(
+      "Gesundheitsangaben-Frage11-Dioptrien-links-VP1",
+      String(health?.dioptreLeft || ""),
+    );
     setField(
       "Gesundheitsangaben-Frage15-AnzahlZähne-VP1",
       health?.missingTeethCount,
@@ -258,51 +258,53 @@ setField(
     // =========================
     // SIGNATURE (UNCHANGED ✅)
     // =========================
-   const drawSignature = async (fieldName: string, base64: string) => {
-  try {
-    const clean = base64.replace(/^data:.*;base64,/, "");
-    const imgBytes = Buffer.from(clean, "base64");
+    const drawSignature = async (fieldName: string, base64: string) => {
+      try {
+        const clean = base64.replace(/^data:.*;base64,/, "");
+        const imgBytes = Buffer.from(clean, "base64");
 
-    let image;
-    try {
-      image = await pdfDoc.embedPng(imgBytes);
-    } catch {
-      image = await pdfDoc.embedJpg(imgBytes);
-    }
+        let image;
+        try {
+          image = await pdfDoc.embedPng(imgBytes);
+        } catch {
+          image = await pdfDoc.embedJpg(imgBytes);
+        }
 
-    const field: any = form.getField(fieldName);
-    const widgets = field.acroField.getWidgets();
+        const field: any = form.getFieldMaybe(fieldName);
+        if (!field) {
+          console.log("⚠️ Signature field not found:", fieldName);
+          return;
+        }
+        const widgets = field.acroField.getWidgets();
 
-    console.log("✍️ SIGNATURE FIELD:", fieldName);
+        console.log("✍️ SIGNATURE FIELD:", fieldName);
 
-    const pages = pdfDoc.getPages();
+        const pages = pdfDoc.getPages();
 
-    for (const widget of widgets) {
-      const rect = widget.getRectangle();
+        for (const widget of widgets) {
+          const rect = widget.getRectangle();
 
-      // 🔥 FIX: CORRECT PAGE DETECTION
-      const pageRef = widget.P(); // ✅ THIS IS KEY
-      const pageIndex = pdfDoc.getPageIndices().findIndex(
-        (i) => pages[i].ref === pageRef
-      );
+          // 🔥 FIX: CORRECT PAGE DETECTION
+          const pageRef = widget.P(); // ✅ THIS IS KEY
+          const pageIndex = pdfDoc
+            .getPageIndices()
+            .findIndex((i) => pages[i].ref === pageRef);
 
-      const page =
-        pageIndex !== -1 ? pages[pageIndex] : pages[0]; // fallback
+          const page = pageIndex !== -1 ? pages[pageIndex] : pages[0]; // fallback
 
-      page.drawImage(image, {
-        x: rect.x,
-        y: rect.y,
-        width: rect.width,
-        height: rect.height,
-      });
-    }
+          page.drawImage(image, {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+          });
+        }
 
-    form.removeField(field); // keep this AFTER drawing
-
-  } catch (e) {
-    console.log("❌ Signature error:", fieldName, e);
-  }
-};
+        form.removeField(field); // keep this AFTER drawing
+      } catch (e) {
+        console.log("❌ Signature error:", fieldName, e);
+      }
+    };
 
     if (signature) {
       await drawSignature("Unterschrift-Antrag-Antragsteller", signature);
