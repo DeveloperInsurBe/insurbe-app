@@ -906,6 +906,7 @@ export default function MedicalPage() {
       ? ["#6d28d9", "#7c3aed", "#f59e0b", "#a78bfa"]
       : ["#6d28d9", "#7c3aed", "#8b5cf6", "#a78bfa"];
 
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 px-6">
         {/* Icon */}
@@ -1101,6 +1102,17 @@ export default function MedicalPage() {
         step: 10,
       },
     ];
+
+    
+    const handleDownloadPDF = () => {
+      const link = document.createElement("a");
+      link.href = "/pdfs/vvg-info.pdf"; // 👈 your PDF path
+      link.download = "VVG_Section_19_Info.pdf"; // file name
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 relative overflow-hidden">
         <motion.div
@@ -1145,7 +1157,10 @@ export default function MedicalPage() {
               insurer to cancel the contract—either retroactively or from the
               date the omission is discovered—or change the contract in
               accordance with{" "}
-              <span className="text-violet-600 underline underline-offset-2 cursor-pointer hover:text-violet-700">
+              <span
+                onClick={handleDownloadPDF}
+                className="text-violet-600 underline underline-offset-2 cursor-pointer hover:text-violet-700"
+              >
                 § 19 Abs. 5 VVG (Information on the consequences of the
                 violation of the disclosure obligation)
               </span>
@@ -1652,7 +1667,7 @@ export default function MedicalPage() {
               <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 py-1 mb-4">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
                 <span className="text-violet-700 text-[10px] font-semibold tracking-[0.12em] uppercase">
-                   {" "}
+                  {" "}
                   {postStepIndex === 0
                     ? "Documents"
                     : postStepIndex === 1

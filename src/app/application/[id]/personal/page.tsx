@@ -457,6 +457,15 @@ export default function PersonalDetailsPage() {
       },
     ];
 
+    const handleDownloadPDF = () => {
+      const link = document.createElement("a");
+      link.href = "/pdfs/vvg-info.pdf"; // 👈 your PDF path
+      link.download = "VVG_Section_19_Info.pdf"; // file name
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 relative overflow-hidden">
         <motion.div
@@ -517,7 +526,10 @@ export default function PersonalDetailsPage() {
               insurer to cancel the contract—either retroactively or from the
               date the omission is discovered—or change the contract in
               accordance with{" "}
-              <span className="text-violet-600 underline underline-offset-2 cursor-pointer hover:text-violet-700">
+              <span
+                onClick={handleDownloadPDF}
+                className="text-violet-600 underline underline-offset-2 cursor-pointer hover:text-violet-700"
+              >
                 § 19 Abs. 5 VVG (Information on the consequences of the
                 violation of the disclosure obligation)
               </span>

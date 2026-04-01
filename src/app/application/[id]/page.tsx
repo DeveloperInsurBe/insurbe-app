@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApplicationStore } from "@/app/stores/applicationStore";
 import { useJourneyStore } from "@/app/stores/journeyStore";
+import Link from "next/link";
 
 type StepKey =
   | "personalDetails"
@@ -114,20 +115,20 @@ export default function ApplicationPage() {
       return application?.personalDetails?.isComplete !== true;
     }
 
-  if (s.key === "financialHistory") {
-  const data = application?.financialHistory;
+    if (s.key === "financialHistory") {
+      const data = application?.financialHistory;
 
-  return !(
-    data?.employmentStatus &&
-    data?.jobTitle &&
-    data?.employerName &&
-    data?.annualIncome &&
-    data?.employedOutsideGermany &&
-    data?.hasGermanTaxId
-  );
-}
+      return !(
+        data?.employmentStatus &&
+        data?.jobTitle &&
+        data?.employerName &&
+        data?.annualIncome &&
+        data?.employedOutsideGermany &&
+        data?.hasGermanTaxId
+      );
+    }
 
-return !application?.[s.key];
+    return !application?.[s.key];
   });
 
   const stepRouteMap: Record<StepKey, string> = {
@@ -157,7 +158,6 @@ return !application?.[s.key];
             data?.residence
           );
         }
-
 
         if (s.key === "financialHistory") {
           return !!(
@@ -278,25 +278,25 @@ return !application?.[s.key];
           }}
         >
           {steps.map((step, i) => {
-           const done =
-  step.key === null
-    ? true
-    : step.key === "personalDetails"
-      ? application?.personalDetails?.isComplete === true
-      : step.key === "financialHistory"
-        ? !!(
-            application?.financialHistory?.employmentStatus &&
-            application?.financialHistory?.jobTitle &&
-            application?.financialHistory?.employerName &&
-            application?.financialHistory?.annualIncome &&
-            application?.financialHistory?.employedOutsideGermany &&
-            application?.financialHistory?.hasGermanTaxId
-          )
-        : application?.[step.key] &&
-          Object.keys(application?.[step.key] || {}).length > 0 &&
-          Object.values(application?.[step.key] || {}).some(
-            (v) => v !== null && v !== undefined && v !== ""
-          );
+            const done =
+              step.key === null
+                ? true
+                : step.key === "personalDetails"
+                  ? application?.personalDetails?.isComplete === true
+                  : step.key === "financialHistory"
+                    ? !!(
+                        application?.financialHistory?.employmentStatus &&
+                        application?.financialHistory?.jobTitle &&
+                        application?.financialHistory?.employerName &&
+                        application?.financialHistory?.annualIncome &&
+                        application?.financialHistory?.employedOutsideGermany &&
+                        application?.financialHistory?.hasGermanTaxId
+                      )
+                    : application?.[step.key] &&
+                      Object.keys(application?.[step.key] || {}).length > 0 &&
+                      Object.values(application?.[step.key] || {}).some(
+                        (v) => v !== null && v !== undefined && v !== "",
+                      );
 
             const isNext = nextStep?.key === step.key;
 
@@ -459,13 +459,19 @@ return !application?.[s.key];
             </div>
             <span className="text-sm text-slate-500 font-light leading-snug">
               I have read and agree to the{" "}
-              <span className="text-violet-600 underline underline-offset-2 cursor-pointer hover:text-violet-700">
+              <Link
+                href="/privacypolicy"
+                className="text-violet-600 underline underline-offset-2 cursor-pointer hover:text-violet-700"
+              >
                 privacy policy
-              </span>{" "}
+              </Link>{" "}
               and{" "}
-              <span className="text-violet-600 underline underline-offset-2 cursor-pointer hover:text-violet-700">
+              <Link
+                href="/termscondition"
+                className="text-violet-600 underline underline-offset-2 cursor-pointer hover:text-violet-700"
+              >
                 T&Cs
-              </span>
+              </Link>
               .
             </span>
           </label>

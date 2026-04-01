@@ -310,6 +310,16 @@ useEffect(() => {
       { label: "Has German tax ID?",      value: form.hasGermanTaxId === "Yes" ? "Yes" : form.hasGermanTaxId === "No" ? "No" : "",                                            step: 7 },
     ];
 
+    const handleDownloadPDF = () => {
+  const link = document.createElement("a");
+  link.href = "/pdfs/vvg-info.pdf"; // 👈 your PDF path
+  link.download = "VVG_Section_19_Info.pdf"; // file name
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 relative overflow-hidden">
         <motion.div className="absolute top-[-120px] left-[-120px] w-[400px] h-[400px] rounded-full bg-violet-400/10 blur-[100px] pointer-events-none" animate={{ scale: [1,1.1,1] }} transition={{ duration: 10, repeat: Infinity }} />
@@ -331,8 +341,13 @@ useEffect(() => {
 
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="text-xs text-slate-400 font-light leading-relaxed mb-6 px-0.5">
               By selecting "Continue", I confirm to have answered all questions truthfully. Knowingly omitting any relevant details entitles the insurer to cancel the contract—either retroactively or from the date the omission is discovered—or change the contract in accordance with{" "}
-              <span className="text-violet-600 underline underline-offset-2 cursor-pointer hover:text-violet-700">§ 19 Abs. 5 VVG (Information on the consequences of the violation of the disclosure obligation)</span>.
-            </motion.p>
+<span
+  onClick={handleDownloadPDF}
+  className="text-violet-600 underline underline-offset-2 cursor-pointer hover:text-violet-700"
+>
+  § 19 Abs. 5 VVG (Information on the consequences of the
+  violation of the disclosure obligation)
+</span>            </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
               <motion.button
@@ -399,7 +414,7 @@ useEffect(() => {
                 Review →
               </button>
             </div>
-            
+
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 py-1 mb-4">
               <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
