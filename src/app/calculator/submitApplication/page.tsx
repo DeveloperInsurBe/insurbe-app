@@ -959,7 +959,7 @@ export default function SubmitApplication() {
 
       {/* 🔥 ADD OVERLAY HERE */}
       {loading && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md text-center shadow-2xl">
             <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-6"></div>
 
