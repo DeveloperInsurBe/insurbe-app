@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Shield,
   FileText,
@@ -93,6 +93,7 @@ export default function DashboardPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const hasFetchedRef = useRef(false);
 
   const userEmail = session?.user?.email || "";
   const userName = userEmail.split("@")[0] || "User";
@@ -104,11 +105,19 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!session?.user?.email) return;
 
+    const shouldRefresh = sessionStorage.getItem("refreshDashboard");
+    if (hasFetchedRef.current && !shouldRefresh) return;
+
+    let isMounted = true;
+    const controller = new AbortController();
+
     const fetchData = async () => {
       try {
-        const shouldRefresh = sessionStorage.getItem("refreshDashboard");
-        if (!hasLoadedOnce || shouldRefresh) setLoading(true);
-        if (shouldRefresh) sessionStorage.removeItem("refreshDashboard");
+        setLoading(true);
+
+        if (shouldRefresh) {
+          sessionStorage.removeItem("refreshDashboard");
+        }
 
         const applicationId = sessionStorage.getItem("applicationId");
         if (applicationId) {
@@ -116,41 +125,57 @@ export default function DashboardPage() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ applicationId }),
+            signal: controller.signal,
           });
           sessionStorage.removeItem("applicationId");
         }
 
         const userRes = await fetch("/api/application/user", {
           headers: { "Cache-Control": "no-cache" },
+          signal: controller.signal,
         });
+
         if (!userRes.ok) throw new Error("Failed to fetch user applications");
 
         const data = await userRes.json();
         const apps = Array.isArray(data) ? data : data.applications || [];
 
-        setPolicies(apps.map((app: any) => ({
-          id: app.id,
-          name: "Hallesche Private Insurance",
-          status: app.status || "pending",
-          startDate: new Date(app.createdAt).toDateString(),
-        })));
+        if (!isMounted) return;
 
-        setDocuments(apps.map((app: any) => ({
-          id: app.id,
-          title: "Application PDF",
-          uploadedAt: new Date(app.updatedAt ?? app.createdAt).toDateString(),
-        })));
+        setPolicies(
+          apps.map((app: any) => ({
+            id: app.id,
+            name: "Hallesche Private Insurance",
+            status: app.status || "pending",
+            startDate: new Date(app.createdAt).toDateString(),
+          })),
+        );
 
-        setHasLoadedOnce(true);
-      } catch (err) {
-        console.error("❌ Dashboard error:", err);
+        setDocuments(
+          apps.map((app: any) => ({
+            id: app.id,
+            title: "Application PDF",
+            uploadedAt: new Date(app.updatedAt ?? app.createdAt).toDateString(),
+          })),
+        );
+
+        hasFetchedRef.current = true;
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.error("❌ Dashboard error:", err);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchData();
-  }, [session, hasLoadedOnce]);
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [session?.user?.email]);
 
   // ── PDF download logic preserved exactly ─────────────────────────────────
   const fetchAndDownloadPDF = async (id: string) => {
@@ -159,16 +184,27 @@ export default function DashboardPage() {
         headers: { "Cache-Control": "no-cache" },
       });
       const data = await res.json();
-      if (!data.pdfBase64) { alert("PDF not available yet."); return; }
+      if (!data.pdfBase64) {
+        alert("PDF not available yet.");
+        return;
+      }
 
       const base64 = data.pdfBase64.replace(/^data:.*;base64,/, "");
       const byteCharacters = atob(base64);
       const byteNumbers = new Uint8Array(byteCharacters.length);
+
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
+
       const blob = new Blob([byteNumbers], { type: "application/pdf" });
-      window.open(URL.createObjectURL(blob));
+      const url = URL.createObjectURL(blob);
+
+      window.open(url, "_blank", "noopener,noreferrer");
+
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 60_000);
     } catch (err) {
       console.error("❌ PDF download error:", err);
       alert("Could not load PDF.");

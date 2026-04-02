@@ -164,6 +164,15 @@ export default function SubmitApplication() {
     },
   };
 
+  const sectionHeaderClass =
+    "bg-linear-to-r from-violet-600 via-indigo-600 to-blue-600 rounded-xl p-4 shadow-md";
+  const inputClass =
+    "w-full border border-violet-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-violet-400 focus:border-violet-500 transition-all bg-white";
+  const panelClass =
+    "bg-white rounded-xl p-6 border border-violet-200 shadow-sm";
+  const mutedButtonClass =
+    "w-full py-3 px-6 rounded-lg font-medium text-sm text-violet-700 bg-violet-50 border border-violet-200 hover:border-violet-300 hover:bg-violet-100 transition-all";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -287,9 +296,6 @@ export default function SubmitApplication() {
       const pdfBase64 = valueField?.textContent || null;
       const pdfName = dateinameField?.textContent || "application.pdf";
 
-      // console.log("📄 PDF found:", !!pdfBase64);
-      // console.log("📄 PDF name:", pdfName);
-
       // Extract real order ID from SOAP response
       const realOrderId =
         xmlDoc.querySelector("antragsnummerField")?.textContent ||
@@ -332,11 +338,6 @@ export default function SubmitApplication() {
 
       /* ✅ SAVE TO SESSION STORAGE — only once, correctly */
       sessionStorage.setItem("applicationOrderId", finalOrderId);
-
-      // if (pdfBase64) {
-      //   sessionStorage.setItem("applicationPdfBase64", pdfBase64);
-      //   sessionStorage.setItem("applicationPdfFilename", pdfName);
-      // }
 
       sessionStorage.setItem(
         "applicationDetails",
@@ -387,12 +388,9 @@ export default function SubmitApplication() {
               phone,
               gender,
               salutation,
-
-              // ✅ DOB split (important for your other page)
               day: dob?.split("-")[2],
               month: dob?.split("-")[1],
               year: dob?.split("-")[0],
-
               street: address,
               seriousIllness,
             },
@@ -404,7 +402,6 @@ export default function SubmitApplication() {
         console.error("❌ Failed to save personal details", err);
       }
 
-      // router.push("/calculator/submitApplication/success");.
       if (session) {
         router.push("/dashboard");
       } else {
@@ -459,19 +456,12 @@ export default function SubmitApplication() {
     return fallbackDate.toISOString().split("T")[0];
   }
 
-  // let formattedCategory = "Private Health";
-
   const formattedCategory = plan?.category
     ? plan.category.split(" ").length > 1
       ? `${plan.category.split(" ")[1]} - ${plan.category.split(" ")[0]}`
       : plan.category
     : "Private Health";
 
-  // if (plan?.category) {
-  //   const parts = plan.category.split(" ");
-  //   formattedCategory =
-  //     parts.length > 1 ? `${parts[1]} - ${parts[0]}` : plan.category;
-  // }
   function formatToGermanDate(dateStr: string) {
     if (!dateStr) return "";
     const [year, month, day] = dateStr.split("-");
@@ -481,50 +471,38 @@ export default function SubmitApplication() {
   /* ---------- UI ---------- */
 
   return (
-    <div className="min-h-screen pb-12">
-      {/* ========== HEADER - Like the image ========== */}
-      <div className="w-full bg-gradient-to-br from-gray-50 to-purple-50/20 py-16 px-4">
+    <div className="min-h-screen pb-12 bg-slate-50">
+      {/* Header */}
+      <div className="w-full bg-linear-to-br from-violet-50 via-indigo-50 to-blue-50 py-16 px-4 border-b border-violet-100">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-purple-100 border border-purple-200 mb-6"
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-violet-100 border border-violet-200 mb-6"
           >
-            <Shield className="w-5 h-5 text-purple-600" />
-            <span className="text-purple-700 font-bold text-sm tracking-wide ">
+            <Shield className="w-5 h-5 text-violet-600" />
+            <span className="text-violet-700 font-bold text-sm tracking-wide">
               InsurBe
             </span>
           </motion.div>
 
-          {/* Main Heading */}
           <motion.h1
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-3xl md:text-5xl md:px-12 font-extrabold bg-gradient-to-r from-primary to-purple-800 bg-clip-text text-transparent leading-snug"
+            className="text-3xl md:text-5xl md:px-12 font-extrabold bg-linear-to-r from-violet-700 to-blue-700 bg-clip-text text-transparent leading-snug"
           >
             <span className="text-gray-700">
               <span className="text-gray-700">{formattedCategory}</span>
             </span>{" "}
-            Health insurance application{" "}
+             insurance application
           </motion.h1>
-
-          {/* Subheading */}
-          {/* <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="text-md md:text-lg text-gray-600 max-w-2xl mx-auto"
-          >
-            You can only apply for this insurance, if you provide an address in Germany.
-          </motion.p> */}
         </div>
       </div>
 
       {/* FORM */}
-      <motion.div className="max-w-4xl mx-auto bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/40">
+      <motion.div className="max-w-4xl mx-auto mt-6 bg-white rounded-2xl shadow-lg p-8 border border-violet-100">
         <motion.form
           variants={containerVariants}
           initial="hidden"
@@ -538,15 +516,12 @@ export default function SubmitApplication() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="space-y-8"
           >
-            {/* ========== SECTION 1: PERSONAL DETAILS - Orange to Pink ========== */}
+            {/* SECTION 1 */}
             <div className="space-y-6">
-              <div className="bg-gradient-to-r from-orange-400 to-pink-600 rounded-xl p-5 shadow-lg border-2 border-orange-200">
-                <h2 className="text-2xl font-bold text-white">
-                  Personal Details
-                </h2>
+              <div className={sectionHeaderClass}>
+                <h2 className="text-xl font-bold text-white">Personal Details</h2>
               </div>
 
-              {/* Salutation */}
               <motion.div variants={itemVariants} className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Salutation *
@@ -555,7 +530,7 @@ export default function SubmitApplication() {
                   whileFocus={{ scale: 1.01 }}
                   value={salutation}
                   onChange={(e) => setSalutation(e.target.value)}
-                  className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  className={inputClass}
                   required
                 >
                   <option value="Mr">Mr</option>
@@ -565,7 +540,6 @@ export default function SubmitApplication() {
                 </motion.select>
               </motion.div>
 
-              {/* Name Fields */}
               <motion.div
                 variants={itemVariants}
                 className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -579,7 +553,7 @@ export default function SubmitApplication() {
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                    className={inputClass}
                     placeholder="Max"
                     required
                   />
@@ -594,14 +568,13 @@ export default function SubmitApplication() {
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                    className={inputClass}
                     placeholder="Mustermann"
                     required
                   />
                 </div>
               </motion.div>
 
-              {/* DOB, Gender & Coverage Start */}
               <motion.div
                 variants={itemVariants}
                 className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -616,7 +589,7 @@ export default function SubmitApplication() {
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
                     max={new Date().toISOString().split("T")[0]}
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                    className={inputClass}
                     required
                   />
                   <AnimatePresence>
@@ -641,7 +614,7 @@ export default function SubmitApplication() {
                     whileFocus={{ scale: 1.01 }}
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                    className={inputClass}
                     required
                   >
                     <option value="Male">Male</option>
@@ -659,7 +632,7 @@ export default function SubmitApplication() {
                     value={formatToInputDate(coverageStart)}
                     onChange={(e) => setCoverageStart(e.target.value)}
                     min={new Date().toISOString().split("T")[0]}
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                    className={inputClass}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Default is auto-calculated. You can change it if needed.
@@ -668,9 +641,9 @@ export default function SubmitApplication() {
               </motion.div>
             </div>
 
-            {/* ========== SECTION 2: Contact Information & Address - Blue to Indigo ========== */}
+            {/* SECTION 2 */}
             <div className="space-y-4">
-              <div className="bg-gradient-to-r from-primary via-indigo-600 to-purple-700 rounded-xl p-4 shadow-lg">
+              <div className={sectionHeaderClass}>
                 <h2 className="text-xl font-bold text-white">
                   Contact Information & Address
                 </h2>
@@ -686,7 +659,7 @@ export default function SubmitApplication() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    className={inputClass}
                     placeholder="max.mustermann@example.com"
                     required
                   />
@@ -704,7 +677,7 @@ export default function SubmitApplication() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    className={inputClass}
                     placeholder="+49 123 456 7890"
                     required
                   />
@@ -722,7 +695,7 @@ export default function SubmitApplication() {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     rows={3}
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    className={inputClass}
                     placeholder="Enter your full address"
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -732,19 +705,16 @@ export default function SubmitApplication() {
               </motion.div>
             </div>
 
-            {/* ========== SECTION 3: Selected Plan Details - Purple to Indigo ========== */}
+            {/* SECTION 3 */}
             {plan && (
               <div className="space-y-4">
-                <div className="bg-gradient-to-r from-primary via-indigo-600 to-purple-700 rounded-xl p-4 shadow-lg">
+                <div className={sectionHeaderClass}>
                   <h2 className="text-xl font-bold text-white">
                     Selected Plan Details
                   </h2>
                 </div>
 
-                <motion.div
-                  variants={itemVariants}
-                  className="space-y-6 bg-white rounded-xl p-6 border-2 border-gray-200 shadow-sm"
-                >
+                <motion.div variants={itemVariants} className={panelClass}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                     <div>
                       <p className="text-[12px] font-medium text-gray-500 uppercase tracking-wide mb-1">
@@ -759,18 +729,18 @@ export default function SubmitApplication() {
                       <p className="text-[12px] font-medium text-gray-500 uppercase tracking-wide mb-2">
                         Monthly Premium
                       </p>
-                      <p className="text-xl font-extrabold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                      <p className="text-xl font-extrabold bg-linear-to-r from-violet-700 to-blue-700 bg-clip-text text-transparent">
                         {plan.price}
                       </p>
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t-2 border-gray-100">
+                  <div className="pt-4 border-t border-violet-100">
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => router.back()}
-                      className="w-full py-3 px-6 rounded-lg font-medium text-sm  text-primary bg-gradient-to-r from-primary/10 to-purple-100 border-2 border-primary/20 hover:border-primary hover:bg-primary/20 transition-all"
+                      className={mutedButtonClass}
                     >
                       ← Change Plan
                     </motion.button>
@@ -779,12 +749,10 @@ export default function SubmitApplication() {
               </div>
             )}
 
-            {/* ========== SECTION 4: Health Information - Green to Cyan ========== */}
+            {/* SECTION 4 */}
             <div className="space-y-4">
-              <div className="bg-gradient-to-r from-green-500 via-teal-500 to-cyan-600 rounded-xl p-4 shadow-lg">
-                <h2 className="text-xl font-bold text-white">
-                  Health Information
-                </h2>
+              <div className={sectionHeaderClass}>
+                <h2 className="text-xl font-bold text-white">Health Information</h2>
               </div>
 
               <motion.div variants={itemVariants} className="space-y-3">
@@ -793,17 +761,17 @@ export default function SubmitApplication() {
                 </label>
                 <p className="text-xs text-gray-600 mb-4">
                   This includes, among other things, cancer, severe addictions,
-                  cardiovascular diseases, or serious illnesses affecting
-                  organs, other parts of the body, or the psyche.
+                  cardiovascular diseases, or serious illnesses affecting organs,
+                  other parts of the body, or the psyche.
                 </p>
 
                 <div className="space-y-3">
                   <motion.label
                     whileHover={{ scale: 1.02 }}
-                    className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
                       seriousIllness === "yes"
-                        ? "border-red-500 bg-red-50"
-                        : "border-gray-300 bg-white hover:border-red-300"
+                        ? "border-violet-500 bg-violet-50"
+                        : "border-violet-200 bg-white hover:border-violet-300"
                     }`}
                   >
                     <input
@@ -812,20 +780,18 @@ export default function SubmitApplication() {
                       value="yes"
                       checked={seriousIllness === "yes"}
                       onChange={(e) => setSeriousIllness(e.target.value)}
-                      className="h-5 w-5 text-red-600 focus:ring-red-500"
+                      className="h-5 w-5 text-violet-600 focus:ring-violet-500"
                       required
                     />
-                    <span className="ml-3 text-sm font-medium text-gray-900">
-                      Yes
-                    </span>
+                    <span className="ml-3 text-sm font-medium text-gray-900">Yes</span>
                   </motion.label>
 
                   <motion.label
                     whileHover={{ scale: 1.02 }}
-                    className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
                       seriousIllness === "no"
-                        ? "border-green-500 bg-green-50"
-                        : "border-gray-300 bg-white hover:border-green-300"
+                        ? "border-violet-500 bg-violet-50"
+                        : "border-violet-200 bg-white hover:border-violet-300"
                     }`}
                   >
                     <input
@@ -834,30 +800,27 @@ export default function SubmitApplication() {
                       value="no"
                       checked={seriousIllness === "no"}
                       onChange={(e) => setSeriousIllness(e.target.value)}
-                      className="h-5 w-5 text-green-600 focus:ring-green-500"
+                      className="h-5 w-5 text-violet-600 focus:ring-violet-500"
                       required
                     />
-                    <span className="ml-3 text-sm font-medium text-gray-900">
-                      No
-                    </span>
+                    <span className="ml-3 text-sm font-medium text-gray-900">No</span>
                   </motion.label>
                 </div>
               </motion.div>
             </div>
 
-            {/* ========== SECTION 5: Important Notice & Agreement - Pink to Amber ========== */}
+            {/* SECTION 5 */}
             <div className="space-y-4">
-              <div className="bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 rounded-xl p-4 shadow-lg">
+              <div className={sectionHeaderClass}>
                 <h2 className="text-xl font-bold text-white">
                   Important Notice & Agreement
                 </h2>
               </div>
 
-              {/* Important Info Box */}
               <motion.div
                 variants={itemVariants}
                 whileHover={{ scale: 1.01 }}
-                className="bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-200 rounded-xl p-6 shadow-sm"
+                className="bg-violet-50 border border-violet-200 rounded-xl p-6 shadow-sm"
               >
                 <h3 className="font-semibold text-gray-900 mb-3">
                   Important Information
@@ -876,48 +839,46 @@ export default function SubmitApplication() {
                       transition={{ delay: 0.8 + index * 0.1 }}
                       className="flex items-start"
                     >
-                      <span className="mr-2 text-pink-600 font-bold">•</span>
+                      <span className="mr-2 text-violet-600 font-bold">•</span>
                       <span>{item}</span>
                     </motion.li>
                   ))}
                 </ul>
 
-                <div className="mt-4 pt-4 border-t border-pink-300">
+                <div className="mt-4 pt-4 border-t border-violet-200">
                   <p className="text-sm text-gray-600 italic">
-                    <strong>Note:</strong> Some documents may not be
-                    automatically generated because multiple tariff IDs are
-                    being processed. Our team is working on this, and we'll
-                    share any missing documents with you as soon as they're
-                    available.
+                    <strong>Note:</strong> Some documents may not be automatically
+                    generated because multiple tariff IDs are being processed. Our
+                    team is working on this, and we'll share any missing documents
+                    with you as soon as they're available.
                   </p>
                 </div>
               </motion.div>
 
-              {/* Terms Checkbox */}
               <motion.div
                 variants={itemVariants}
-                className="flex items-start bg-amber-50 border-2 border-amber-200 rounded-xl p-4"
+                className="flex items-start bg-violet-50 border border-violet-200 rounded-xl p-4"
               >
                 <input
                   type="checkbox"
                   id="terms"
                   checked={agreeTerms}
                   onChange={(e) => setAgreeTerms(e.target.checked)}
-                  className="mt-1 h-5 w-5 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
+                  className="mt-1 h-5 w-5 text-violet-600 focus:ring-violet-500 border-violet-300 rounded"
                   required
                 />
                 <label htmlFor="terms" className="ml-3 text-sm text-gray-700">
                   I agree to the{" "}
                   <a
                     href="/termscondition"
-                    className="text-amber-600 font-semibold hover:underline"
+                    className="text-violet-700 font-semibold hover:underline"
                   >
                     Terms and Conditions
                   </a>{" "}
                   and{" "}
                   <a
                     href="/privacypolicy"
-                    className="text-amber-600 font-semibold hover:underline"
+                    className="text-violet-700 font-semibold hover:underline"
                   >
                     Privacy Policy
                   </a>
@@ -932,7 +893,7 @@ export default function SubmitApplication() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="bg-red-50 border-2 border-red-300 text-red-700 px-4 py-3 rounded-lg font-medium"
+                  className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg font-medium"
                 >
                   ⚠️ {error}
                 </motion.div>
@@ -946,10 +907,10 @@ export default function SubmitApplication() {
             disabled={loading}
             whileHover={!loading ? { scale: 1.02, y: -2 } : {}}
             whileTap={!loading ? { scale: 0.98 } : {}}
-            className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all shadow-xl ${
+            className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all shadow-lg ${
               loading
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 hover:from-purple-700 hover:via-pink-700 hover:to-red-700 shadow-purple-500/50"
+                : "bg-linear-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-700 hover:via-indigo-700 hover:to-blue-700 shadow-violet-300/50"
             }`}
           >
             {loading ? "Submitting..." : "Submit Application "}
@@ -957,17 +918,17 @@ export default function SubmitApplication() {
         </motion.form>
       </motion.div>
 
-      {/* 🔥 ADD OVERLAY HERE */}
+      {/* Overlay */}
       {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md text-center shadow-2xl">
-            <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-6"></div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 backdrop-blur-[2px]">
+          <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md text-center shadow-2xl border border-violet-100">
+            <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin mx-auto mb-6"></div>
 
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
               Processing your application
             </h2>
 
-            <div className="text-sm text-purple-600 font-medium min-h-[24px] transition-all">
+            <div className="text-sm text-violet-700 font-medium min-h-[24px] transition-all">
               {loadingStep === 1 && "🔍 Analyzing your details..."}
               {loadingStep === 2 && "📄 Generating your application..."}
               {loadingStep === 3 && "📧 Preparing your documents..."}
