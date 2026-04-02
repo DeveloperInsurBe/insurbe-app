@@ -163,7 +163,7 @@ export default function ComparePlans() {
           setHalleschePremiumDocs(data.documents || []);
           return {
             ...product,
-            premium: data.premium,
+            premium: Number(data.premium),
             documentCount: data.documents?.length || 0,
             loading: false,
           };
@@ -172,11 +172,10 @@ export default function ComparePlans() {
         if (product.id === "hallesche-expat" && expatProduct) {
           const data = results[resultIndex++];
 
-          // ✅ STORE DOCUMENTS HERE
           setHallescheExpatDocs(data.documents || []);
           return {
             ...product,
-            premium: data.premium,
+            premium: Number(data.premium),
             documentCount: data.documents?.length || 0,
             loading: false,
           };
@@ -226,15 +225,32 @@ export default function ComparePlans() {
         available = true;
       }
 
+      const isEmployed = employmentStatus?.trim().toLowerCase().includes("employed")
+        && !employmentStatus?.toLowerCase().includes("self");
+      const isHallesche =
+        product.id === "hallesche-premium" || product.id === "hallesche-expat";
+
+      const premiumNumber =
+        typeof product.premium === "number"
+          ? product.premium
+          : Number(product.premium);
+
+      let displayPremium: string;
+      if (product.loading || product.premium == null) {
+        displayPremium = "...";
+      } else if (!Number.isNaN(premiumNumber)) {
+        const adjusted = isEmployed && isHallesche
+          ? premiumNumber / 2
+          : premiumNumber;
+        displayPremium = adjusted.toFixed(2);
+      } else {
+        displayPremium = "N/A";
+      }
+
       return {
         id: product.id,
         name: product.name,
-        price:
-          product.loading || product.premium === null
-            ? "..."
-            : typeof product.premium === "number"
-              ? Math.round(product.premium).toFixed(2)
-              : product.premium?.toString() || "N/A",
+        price: displayPremium,
         period: "/ Month",
         logo,
         description: product.description,
@@ -250,7 +266,7 @@ export default function ComparePlans() {
         loading: product.loading || false,
       };
     });
-  }, [availableProducts]);
+  }, [availableProducts, employmentStatus]);
 
   // Determine which card should be highlighted initially
   const getRecommendedPlanId = () => {

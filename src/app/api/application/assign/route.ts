@@ -33,4 +33,4 @@ const session = await getServerSession(authOptions);
   });
 
   return NextResponse.json({ success: true });
-}
+} 
