@@ -21,8 +21,6 @@ interface HealthAnswer {
   missingTeeth: string | null;
 }
 
-
-
 export default function ComparePlans() {
   const router = useRouter();
   // const { setPremium, setTKPremium } = usePremiumStore();
@@ -57,14 +55,12 @@ export default function ComparePlans() {
 
   // ✅ Fetch premiums on mount for products with loading=true
   const fetchedRef = useRef(false);
- 
-   
+
   useEffect(() => {
     if (fetchedRef.current) return;
 
     fetchedRef.current = true;
 
-  
     const fetchPremiums = async () => {
       if (!availableProducts || availableProducts.length === 0) return;
 
@@ -225,8 +221,9 @@ export default function ComparePlans() {
         available = true;
       }
 
-      const isEmployed = employmentStatus?.trim().toLowerCase().includes("employed")
-        && !employmentStatus?.toLowerCase().includes("self");
+      const isEmployed =
+        employmentStatus?.trim().toLowerCase().includes("employed") &&
+        !employmentStatus?.toLowerCase().includes("self");
       const isHallesche =
         product.id === "hallesche-premium" || product.id === "hallesche-expat";
 
@@ -239,9 +236,8 @@ export default function ComparePlans() {
       if (product.loading || product.premium == null) {
         displayPremium = "...";
       } else if (!Number.isNaN(premiumNumber)) {
-        const adjusted = isEmployed && isHallesche
-          ? premiumNumber / 2
-          : premiumNumber;
+        const adjusted =
+          isEmployed && isHallesche ? premiumNumber / 2 : premiumNumber;
         displayPremium = adjusted.toFixed(2);
       } else {
         displayPremium = "N/A";
