@@ -11,7 +11,6 @@ import {
   EyeOff,
   LogIn,
   Shield,
-  Sparkles,
   AlertCircle,
   LogInIcon,
 } from "lucide-react";
@@ -24,278 +23,280 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
-  setLoading(true);
 
-  const res = await signIn("credentials", {
-    email,
-    password,
-    // redirect: false,
-    callbackUrl: "/dashboard",
-  });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  setLoading(false);
-
-  if (!res || res.error) {
-    setError("Invalid email or password");
-    return;
-  }
-
-  // 🔥 Attach application (if exists)
-  const applicationId = sessionStorage.getItem("applicationId");
-  console.log("🆔 applicationId:", applicationId);
-
-  if (applicationId) {
     try {
-      await fetch("/api/application/assign", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ applicationId }),
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false, // important: prevent auto refresh/redirect
       });
 
-      console.log("✅ Application linked");
+      if (!res || res.error) {
+        setError("Invalid email or password");
+        setLoading(false);
+        return;
+      }
 
-      sessionStorage.removeItem("applicationId");
+      // 🔥 Attach application (if exists)
+      const applicationId = sessionStorage.getItem("applicationId");
+      console.log("🆔 applicationId:", applicationId);
+
+      if (applicationId) {
+        try {
+          await fetch("/api/application/assign", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ applicationId }),
+          });
+
+          console.log("✅ Application linked");
+          sessionStorage.removeItem("applicationId");
+        } catch (err) {
+          console.error("❌ Failed to link application:", err);
+        }
+      }
+
+      // ✅ Redirect manually only after successful login
+      router.push("/dashboard");
     } catch (err) {
-      console.error("❌ Failed to link application:", err);
+      console.error("❌ Login error:", err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  }
-
-  // ✅ Redirect manually
-  router.push("/dashboard");
-};
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 px-4 py-8 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="relative min-h-[calc(100dvh-72px)] overflow-hidden bg-linear-to-br from-slate-100 via-neutral-100 to-violet-100 px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
+      {/* Atmosphere */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          className="absolute top-20 right-10 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+          animate={{ x: [0, 40, 0], y: [0, -20, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-cyan-200/40 blur-3xl"
         />
         <motion.div
-          animate={{
-            scale: [1.2, 1, 1.2],
-            rotate: [360, 180, 0],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          className="absolute bottom-20 left-10 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+          animate={{ x: [0, -50, 0], y: [0, 20, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -bottom-24 -right-24 h-[28rem] w-[28rem] rounded-full bg-fuchsia-200/35 blur-3xl"
         />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 relative z-10 border border-white/50"
-      >
-        {/* Decorative Elements */}
-        <div className="absolute -top-4 -right-4 w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full blur-2xl opacity-40"></div>
-        <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full blur-2xl opacity-40"></div>
+      <div className="relative z-10 mx-auto grid h-full w-full max-w-6xl items-center gap-6 sm:gap-8 lg:grid-cols-2">
+        {/* Left Brand Panel */}
+        <motion.section
+          initial={{ opacity: 0, x: -24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="hidden rounded-3xl border border-white/60 bg-white/55 p-10 shadow-xl backdrop-blur-xl lg:block"
+        >
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-700">
+            <Shield className="h-4 w-4" />
+            Secure access for your insurance journey
+          </div>
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          <h2 className="max-w-md text-4xl font-extrabold leading-tight text-slate-900">
+            Welcome back to
+            <span className="block bg-linear-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+              your InsurBe dashboard
+            </span>
+          </h2>
+
+          <p className="mt-4 max-w-md text-slate-600">
+            Sign in to view policy documents, continue unfinished applications,
+            and manage everything in one place.
+          </p>
+
+          <div className="mt-10 grid gap-3 text-sm text-slate-700">
+            <div className="flex items-center gap-2 rounded-xl bg-white/70 p-3">
+              <Shield className="h-4 w-4 text-violet-600" />
+              End-to-end protected login flow
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-white/70 p-3">
+              <LogInIcon className="h-4 w-4 text-violet-600" />
+              Instant access to saved applications
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-white/70 p-3">
+              <Mail className="h-4 w-4 text-violet-600" />
+              Policy updates delivered to your inbox
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Right Form Card */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-center mb-8"
+          transition={{ duration: 0.45 }}
+          className="mx-auto w-full max-w-[640px] lg:max-w-md rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 md:p-7 shadow-lg"
         >
           <motion.div
-            whileHover={{ rotate: 360, scale: 1.1 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-primary mb-4 shadow-lg"
-          >
-            <LogIn className="w-10 h-10 text-white" />
-          </motion.div>
-
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
-            Let's continue with a{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-primary">
-              Insurbe account
-            </span>
-          </h1>
-          <p className="text-gray-600">Access your policies and documents</p>
-        </motion.div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Error Message */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700"
-            >
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              <p className="text-sm font-medium">{error}</p>
-            </motion.div>
-          )}
-
-          {/* Email Input */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Email address
-            </label>
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                <Mail className="w-5 h-5" />
-              </div>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                required
-                className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 focus:outline-none transition-all"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </motion.div>
-
-          {/* Password Input */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                <Lock className="w-5 h-5" />
-              </div>
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                required
-                className="w-full pl-12 pr-12 py-4 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 focus:outline-none transition-all"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-          </motion.div>
-
-          {/* Forgot Password */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-right"
-          >
-            <Link
-              href="/forgot-password"
-              className="text-sm text-purple-600 hover:text-purple-700 font-semibold hover:underline transition"
-            >
-              Forgot password?
-            </Link>
-          </motion.div>
-
-          {/* Submit Button */}
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
-            disabled={loading}
-            className="relative w-full py-4 cursor-pointer rounded-full bg-gradient-to-r from-purple-600 via-primary to-purple-700 text-white font-bold shadow-lg hover:shadow-xl hover:shadow-purple-500/50 transition-all duration-300 overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
+            transition={{ delay: 0.1 }}
+            className="mb-6 text-center"
           >
-            {!loading && (
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                animate={{ x: ["-100%", "100%"] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              />
-            )}
-            <span className="relative z-10 flex items-center justify-center gap-2">
-              {loading ? (
-                <>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                  />
-                  Logging in...
-                </>
-              ) : (
-                <>
-                  Login
-                  <LogInIcon className="w-5 h-5" />
-                </>
-              )}
-            </span>
-          </motion.button>
+            <div className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-violet-600">
+              <LogIn className="h-6 w-6 text-white" />
+            </div>
+            <p className="text-sm text-slate-600">Access your policies and documents</p>
+          </motion.div>
 
-          {/* Footer Link */}
-          <motion.p
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
+              >
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <p className="text-sm font-medium">{error}</p>
+              </motion.div>
+            )}
+
+            <motion.div
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Email address
+              </label>
+              <div className="relative">
+                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  required
+                  className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 py-3 text-slate-800 placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-100"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Password
+              </label>
+              <div className="relative">
+                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <Lock className="h-5 w-5" />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  required
+                  className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-10 py-3 text-slate-800 placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-100"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-right"
+            >
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-violet-600 hover:text-violet-700 hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </motion.div>
+
+            <motion.button
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              whileTap={{ scale: 0.99 }}
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-violet-600 py-3.5 font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span className="flex items-center justify-center gap-2">
+                {loading ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="h-4 w-4 rounded-full border-2 border-white border-t-transparent"
+                    />
+                    Logging in...
+                  </>
+                ) : (
+                  <>
+                    Login
+                    <LogInIcon className="h-5 w-5" />
+                  </>
+                )}
+              </span>
+            </motion.button>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-center text-sm text-slate-600"
+            >
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/signup"
+                className="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+              >
+                Sign up
+              </Link>
+            </motion.p>
+          </form>
+
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="text-sm text-center text-gray-600"
+            className="mt-6 text-center"
           >
-            Don't have an account?{" "}
-            <Link
-              href="/signup"
-              className="font-semibold text-purple-600 hover:text-purple-700 hover:underline transition"
-            >
-              Sign up
-            </Link>
-          </motion.p>
-        </form>
-
-        {/* Security Footer */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-8 text-center"
-        >
-          <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-            <div className="flex items-center gap-1">
-              <Shield className="w-3 h-3" />
-              <span>Secure</span>
+            <div className="flex items-center justify-center gap-3 text-xs text-slate-500">
+              <div className="flex items-center gap-1">
+                <Shield className="h-3 w-3" />
+                <span>Secure</span>
+              </div>
+              <div className="h-1 w-1 rounded-full bg-slate-300" />
+              <span>GDPR compliant</span>
             </div>
-            <div className="w-1 h-1 rounded-full bg-gray-300"></div>
-            <span>GDPR compliant</span>
-          </div>
-        </motion.div>
-      </motion.div>
+          </motion.div>
+        </motion.section>
+      </div>
     </div>
   );
 }

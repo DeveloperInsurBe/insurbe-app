@@ -45,62 +45,153 @@ const COUNTRIES = [
 type Form = Record<string, any>;
 
 // ── Validation helpers ───────────────────────────────────────────────────────
+function isRealDate(day: number, month: number, year: number) {
+  const d = new Date(year, month - 1, day);
+  return (
+    d.getFullYear() === year &&
+    d.getMonth() === month - 1 &&
+    d.getDate() === day
+  );
+}
+
 function validateStep(stepIndex: number, form: Form): string | null {
+  const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,50}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const streetRegex = /^[A-Za-z0-9À-ÿ\s.,'-]{2,100}$/;
+  const houseNumberRegex = /^[A-Za-z0-9\s/-]{1,12}$/;
+  const cityRegex = /^[A-Za-zÀ-ÿ\s.'-]{2,60}$/;
+  const postcodeRegex = /^\d{4,6}$/; // Germany format
+  const allowedMarital = ["Single", "Married", "Widowed", "Divorced"];
+  const allowedGender = ["Male", "Female", "Other"];
+  const allowedResidence = ["Limited", "Unlimited"];
+  const allowedCountryCodes = new Set(COUNTRIES.map((c) => c.code));
+
   switch (stepIndex) {
-    case 0:
-      if (!form.firstName?.trim()) return "First name is required.";
-      if (!form.lastName?.trim()) return "Last name is required.";
+    case 0: {
+      const first = (form.firstName || "").trim();
+      const last = (form.lastName || "").trim();
+
+      if (!first) return "First name is required.";
+      if (!nameRegex.test(first)) return "Enter a valid first name (2-50 letters).";
+
+      if (!last) return "Last name is required.";
+      if (!nameRegex.test(last)) return "Enter a valid last name (2-50 letters).";
+
       return null;
-    case 1:
-      if (!form.email?.trim()) return "Email is required.";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-        return "Enter a valid email address.";
+    }
+
+    case 1: {
+      const email = (form.email || "").trim().toLowerCase();
+      if (!email) return "Email is required.";
+      if (!emailRegex.test(email)) return "Enter a valid email address.";
+      if (email.length > 120) return "Email is too long.";
       return null;
-    case 2:
-      if (!form.day || !form.month || !form.year)
+    }
+
+    case 2: {
+      const day = Number(form.day);
+      const month = Number(form.month);
+      const year = Number(form.year);
+      const currentYear = new Date().getFullYear();
+
+      if (!form.day || !form.month || !form.year) {
         return "Please enter your full date of birth.";
-      if (
-        isNaN(Number(form.day)) ||
-        Number(form.day) < 1 ||
-        Number(form.day) > 31
-      )
-        return "Invalid day.";
-      if (
-        isNaN(Number(form.month)) ||
-        Number(form.month) < 1 ||
-        Number(form.month) > 12
-      )
-        return "Invalid month.";
-      if (
-        isNaN(Number(form.year)) ||
-        Number(form.year) < 1900 ||
-        Number(form.year) > new Date().getFullYear()
-      )
-        return "Invalid year.";
+      }
+
+      if (!Number.isInteger(day) || day < 1 || day > 31) return "Invalid day.";
+      if (!Number.isInteger(month) || month < 1 || month > 12) return "Invalid month.";
+      if (!Number.isInteger(year) || year < 1900 || year > currentYear) return "Invalid year.";
+      if (!isRealDate(day, month, year)) return "Please enter a valid date.";
+
+      // Age validation: must be between 18 and 75
+      const dob = new Date(year, month - 1, day);
+      const today = new Date();
+
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+
+      if (age < 18) return "You must be at least 18 years old.";
+      if (age > 75) return "Maximum allowed age is 75 years.";
+
       return null;
-    case 3:
+    }
+
+    case 3: {
       if (!form.gender) return "Please select your gender.";
+      if (!allowedGender.includes(form.gender)) return "Invalid gender selected.";
       return null;
-    case 4:
-      if (!form.street?.trim()) return "Street is required.";
-      if (!form.houseNumber?.trim()) return "House number is required.";
-      if (!form.postcode?.trim()) return "Postcode is required.";
-      if (!form.city?.trim()) return "City is required.";
+    }
+
+    case 4: {
+      const street = (form.street || "").trim();
+      const houseNumber = (form.houseNumber || "").trim();
+      const postcode = (form.postcode || "").trim();
+      const city = (form.city || "").trim();
+      const additional = (form.additionalInfo || "").trim();
+
+      if (!street) return "Street is required.";
+      if (!streetRegex.test(street)) return "Enter a valid street name.";
+
+      if (!houseNumber) return "House number is required.";
+      if (!houseNumberRegex.test(houseNumber)) return "Enter a valid house number.";
+
+      if (!postcode) return "Postcode is required.";
+      if (!postcodeRegex.test(postcode)) return "Enter a valid 4- or 5-digit postcode.";
+
+      if (!city) return "City is required.";
+      if (!cityRegex.test(city)) return "Enter a valid city name.";
+
+      if (additional && additional.length > 80) {
+        return "Additional address info is too long (max 80 characters).";
+      }
+
       return null;
-    case 5:
+    }
+
+    case 5: {
       if (!form.marital) return "Please select your marital status.";
+      if (!allowedMarital.includes(form.marital)) return "Invalid marital status selected.";
       return null;
-    case 6:
-      if (!form.countries || form.countries.length === 0)
-        return "Select at least one country.";
+    }
+
+    case 6: {
+      const countries: string[] = form.countries || [];
+      if (!countries.length) return "Select at least one country.";
+
+      const invalid = countries.find((code) => !allowedCountryCodes.has(code));
+      if (invalid) return "Invalid country selection detected.";
       return null;
-    case 7:
-      if (!form.relocationDay || !form.relocationMonth || !form.relocationYear)
+    }
+
+    case 7: {
+      const day = Number(form.relocationDay);
+      const month = Number(form.relocationMonth);
+      const year = Number(form.relocationYear);
+
+      if (!form.relocationDay || !form.relocationMonth || !form.relocationYear) {
         return "Please enter your relocation date.";
+      }
+
+      if (!Number.isInteger(day) || day < 1 || day > 31) return "Invalid relocation day.";
+      if (!Number.isInteger(month) || month < 1 || month > 12) return "Invalid relocation month.";
+      if (!Number.isInteger(year) || year < 1900 || year > 2100) return "Invalid relocation year.";
+      if (!isRealDate(day, month, year)) return "Please enter a valid relocation date.";
+
       return null;
-    case 8:
+    }
+
+    case 8: {
       if (!form.residence) return "Please select your residence permit type.";
+      if (!allowedResidence.includes(form.residence)) {
+        return "Invalid residence permit type selected.";
+      }
       return null;
+    }
+
     default:
       return null;
   }
@@ -299,12 +390,14 @@ export default function PersonalDetailsPage() {
   const progress = Math.round((stepIndex / questions.length) * 100);
 
   const handleChange = (name: string, value: any) => {
-    const updatedForm = { ...form, [name]: value };
+    const normalizedValue =
+      name === "email" && typeof value === "string"
+        ? value.trim().toLowerCase()
+        : value;
 
+    const updatedForm = { ...form, [name]: normalizedValue };
     setForm(updatedForm);
     setError(null);
-
-    // ✅ save to global store
     updateStep("personalDetails", updatedForm);
   };
 
