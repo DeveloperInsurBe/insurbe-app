@@ -10,6 +10,17 @@ import { useApplicationStore } from "@/app/stores/applicationStore";
 type Form = Record<string, any>;
 type Screen = "steps" | "employer-warning" | "summary";
 
+function normalizeYesNo(value: any): "Yes" | "No" | undefined {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+
+  const normalized = String(value).trim().toLowerCase();
+  if (["yes", "y", "true", "ja"].includes(normalized)) return "Yes";
+  if (["no", "n", "false", "nein"].includes(normalized)) return "No";
+
+  return undefined;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function getNextMonths(count: number): { label: string; value: string }[] {
   const months = [
@@ -207,13 +218,20 @@ export default function InsurancePage() {
   const updateStep = useApplicationStore((s) => s.updateStep);
 
   const buildSteps = (f: Form): string[] => {
+    const germanInsurance12m = normalizeYesNo(f.germanInsurance12m);
+    const permanentContract = normalizeYesNo(f.permanentContract);
+
     const s: string[] = ["germanInsurance12m"];
 
-    if (f.germanInsurance12m === "No") {
+    if (germanInsurance12m === "Yes") {
+      s.push("initialProviderName");
+    }
+
+    if (germanInsurance12m === "No") {
       s.push("permanentContract");
-      if (f.permanentContract === "No") {
+      if (permanentContract === "No") {
+        s.push("proofOfInsurance");
         s.push("otherInsurance12m");
-        s.push("proofOfInsurance"); // soft capture only — never blocks
       }
     }
 
@@ -253,16 +271,65 @@ export default function InsurancePage() {
   const [stepKey, setStepKey] = useState("germanInsurance12m");
   const stepIndex = steps.indexOf(stepKey);
   const totalSteps = steps.length;
-  const progress = Math.round((stepIndex / Math.max(totalSteps, 1)) * 100);
+  const progress = Math.round(
+    ((Math.max(stepIndex, 0) + 1) / Math.max(totalSteps, 1)) * 100,
+  );
 
   useEffect(() => {
     if (!application?.insuranceHistory) return;
 
-    setForm(application.insuranceHistory);
+    const insuranceHistory = application.insuranceHistory as Form;
+    setForm({
+      ...insuranceHistory,
+      germanInsurance12m:
+        normalizeYesNo(insuranceHistory.germanInsurance12m) ||
+        insuranceHistory.germanInsurance12m,
+      permanentContract:
+        normalizeYesNo(insuranceHistory.permanentContract) ||
+        insuranceHistory.permanentContract,
+      proofOfInsurance:
+        normalizeYesNo(insuranceHistory.proofOfInsurance) ||
+        insuranceHistory.proofOfInsurance,
+    });
   }, [application]);
 
   const handleChange = (name: string, value: any) => {
-    const updated = { ...form, [name]: value };
+    const normalizedValue =
+      name === "germanInsurance12m" ||
+      name === "permanentContract" ||
+      name === "proofOfInsurance"
+        ? normalizeYesNo(value) || value
+        : value;
+
+    const updated = { ...form, [name]: normalizedValue };
+
+    if (name === "germanInsurance12m") {
+      const normalized = normalizeYesNo(value);
+      delete updated.initialProviderName;
+      delete updated.permanentContract;
+      delete updated.proofOfInsurance;
+      delete updated.otherInsurance12m;
+      delete updated.jobContractRequired;
+      delete updated.proofDocumentRequired;
+      delete updated.appointmentRequired;
+
+      if (normalized === "No") {
+        delete updated.providerName;
+      }
+    }
+
+    if (name === "permanentContract") {
+      const normalized = normalizeYesNo(value);
+      if (normalized === "Yes") {
+        delete updated.proofOfInsurance;
+        delete updated.otherInsurance12m;
+        delete updated.proofDocumentRequired;
+        delete updated.appointmentRequired;
+      }
+      if (normalized === "No") {
+        delete updated.jobContractRequired;
+      }
+    }
 
     setForm(updated);
 
@@ -314,7 +381,7 @@ export default function InsurancePage() {
 
     // ── New questions ──────────────────────────────────────────────────────
     if (stepKey === "germanInsurance12m") {
-      if (!form.germanInsurance12m) {
+      if (!normalizeYesNo(form.germanInsurance12m)) {
         setError("Please select an option.");
         return;
       }
@@ -322,11 +389,26 @@ export default function InsurancePage() {
       return;
     }
 
+    if (stepKey === "initialProviderName") {
+      if (!form.initialProviderName?.trim()) {
+        setError("Please enter your provider name.");
+        return;
+      }
+      goNext();
+      return;
+    }
+
     if (stepKey === "permanentContract") {
-      if (!form.permanentContract) {
+      const permanentContract = normalizeYesNo(form.permanentContract);
+      if (!permanentContract) {
         setError("Please select an option.");
         return;
       }
+
+      if (permanentContract === "Yes") {
+        handleChange("jobContractRequired", true); // ask upload later
+      }
+
       goNext();
       return;
     }
@@ -341,11 +423,20 @@ export default function InsurancePage() {
     }
 
     if (stepKey === "proofOfInsurance") {
-      // Soft capture — always allow continue regardless of answer
-      // Mark proofRequired for document collection stage
-      if (form.proofOfInsurance === "No" || !form.proofOfInsurance) {
-        handleChange("proofDocumentRequired", true);
+      const proofOfInsurance = normalizeYesNo(form.proofOfInsurance);
+      if (!proofOfInsurance) {
+        setError("Please select an option.");
+        return;
       }
+
+      if (proofOfInsurance === "Yes") {
+        handleChange("appointmentRequired", false);
+        handleChange("proofDocumentRequired", true); // ask upload later
+      } else {
+        handleChange("proofDocumentRequired", false);
+        handleChange("appointmentRequired", true); // appointment at the end
+      }
+
       goNext();
       return;
     }
@@ -455,6 +546,11 @@ export default function InsurancePage() {
         setApplication(updated);
       }
 
+      if (form.appointmentRequired) {
+        router.push("/book-appointment");
+        return;
+      }
+
       router.push(`/application/${id}/health`);
     } catch (err) {
       console.error("❌ Error saving", err);
@@ -501,6 +597,15 @@ export default function InsurancePage() {
         value: form.germanInsurance12m || "",
         key: "germanInsurance12m",
       },
+      ...(form.initialProviderName
+        ? [
+            {
+              label: "Provider (past 12 months)",
+              value: form.initialProviderName || "",
+              key: "initialProviderName",
+            },
+          ]
+        : []),
       ...(form.permanentContract !== undefined
         ? [
             {
@@ -782,17 +887,14 @@ export default function InsurancePage() {
       return (
         <>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-2">
-            Have you had German health insurance in the past 12 months?
+            Have you had health insurance in the past 12 months?
           </h1>
           <InfoNote>
-            Do not include <strong>Mawista</strong>, <strong>Dr. Walter</strong>
-            , or <strong>Care Concept</strong> — these are expat/travel-style
-            insurers and do not count as German health insurance for this
-            question.
+            Please do not include Mawista, Dr. Walter, or Care Concept.
           </InfoNote>
           <div className="space-y-2">
             {["Yes", "No"].map((opt) => {
-              const sel = form.germanInsurance12m === opt;
+              const sel = normalizeYesNo(form.germanInsurance12m) === opt;
               return (
                 <motion.button
                   key={opt}
@@ -821,6 +923,24 @@ export default function InsurancePage() {
       );
     }
 
+    // ── NEW: Q2 (if Q1 = Yes) — Provider ──
+    if (stepKey === "initialProviderName") {
+      return (
+        <>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-5">
+            Which provider?
+          </h1>
+          <input
+            type="text"
+            placeholder="Provider name"
+            value={form.initialProviderName || ""}
+            onChange={(e) => handleChange("initialProviderName", e.target.value)}
+            className="w-full bg-slate-50 border border-black/[0.08] rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all"
+          />
+        </>
+      );
+    }
+
     // ── NEW: Q2 — Permanent job contract ──
     if (stepKey === "permanentContract") {
       return (
@@ -830,7 +950,7 @@ export default function InsurancePage() {
           </h1>
           <div className="space-y-2">
             {["Yes", "No"].map((opt) => {
-              const sel = form.permanentContract === opt;
+              const sel = normalizeYesNo(form.permanentContract) === opt;
               return (
                 <motion.button
                   key={opt}
@@ -885,7 +1005,7 @@ export default function InsurancePage() {
       return (
         <>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-2">
-            Do you have proof of that insurance?
+            Do you have proof of previous insurance?
           </h1>
           <p className="text-sm text-slate-400 font-light mb-4">
             This could be a membership certificate, confirmation letter, or any
@@ -893,7 +1013,7 @@ export default function InsurancePage() {
           </p>
           <div className="space-y-2">
             {["Yes", "No"].map((opt) => {
-              const sel = form.proofOfInsurance === opt;
+              const sel = normalizeYesNo(form.proofOfInsurance) === opt;
               return (
                 <motion.button
                   key={opt}
@@ -919,7 +1039,7 @@ export default function InsurancePage() {
             })}
           </div>
           <SoftCaptureNote>
-            {form.proofOfInsurance === "Yes"
+            {normalizeYesNo(form.proofOfInsurance) === "Yes"
               ? "You'll be asked to upload this document in the document collection stage."
               : "Don't worry — you can still continue. If proof is available later, you'll be able to upload it in the document collection stage."}
           </SoftCaptureNote>
