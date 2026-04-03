@@ -220,7 +220,6 @@ export default function InsurancePage() {
   const buildSteps = (f: Form): string[] => {
     const germanInsurance12m = normalizeYesNo(f.germanInsurance12m);
     const permanentContract = normalizeYesNo(f.permanentContract);
-
     const s: string[] = ["germanInsurance12m"];
 
     if (germanInsurance12m === "Yes") {
@@ -261,7 +260,7 @@ export default function InsurancePage() {
         }
       }
     }
-
+    
     s.push("alwaysInsured");
     s.push("livingInGermany");
     return s;

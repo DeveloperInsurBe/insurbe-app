@@ -134,10 +134,12 @@ export async function POST(
 
     setField("EMail-VN", personal?.email);
     setField("Telefon-VN", personal?.phone);
-    setField("StraßeVN", personal?.street);
-    setField("WohnortVN", personal?.city);
-    setField("NKZPLZ", personal?.postcode);
-
+    setField(
+      "StraßeVN",
+      [personal?.street, personal?.houseNumber].filter(Boolean).join(" "),
+    );
+    setField("WohnortVN", String(personal?.city || ""));
+    setField("NKZPLZ", String(personal?.postcode || ""));
     // ✅ FIXED EMPLOYMENT (SOURCE FIX)
     setField(
       "Berufsstellung-VP1",
@@ -149,6 +151,27 @@ export async function POST(
             ? "free-lance"
             : "not working",
     );
+
+    const residenceMap: Record<string, string> = {
+      Limited: "befristet",
+      Unlimited: "unbefristet",
+    };
+
+    setField(
+      "Aufenthaltstitel-VP1",
+      residenceMap[personal?.residence] || personal?.residence,
+    );
+
+    const relocationDate =
+      personal?.relocationDay &&
+      personal?.relocationMonth &&
+      personal?.relocationYear
+        ? `${String(personal.relocationDay).padStart(2, "0")}.${String(
+            personal.relocationMonth,
+          ).padStart(2, "0")}.${personal.relocationYear}`
+        : "";
+
+    setField("Aufenthaltstitel-Datum-VP1", relocationDate);
 
     // 🔥 ADD THIS (TOP SECTION)
     setField(
@@ -168,6 +191,22 @@ export async function POST(
     setField("AusgeübteTätigkeit-VP1", financial?.jobTitle);
     setField("Betrieb-Arbeitgeber-VN", financial?.employerName);
     setField("KT-Nettoeinkünfte-VP1", financial?.annualIncome);
+    // =========================
+    // ✅ BUSINESS / FREELANCE START DATE (FIX)
+    // =========================
+
+    const employmentStartDate =
+      financial?.startDay && financial?.startMonth && financial?.startYear
+        ? `${String(financial.startDay).padStart(2, "0")}.${String(
+            financial.startMonth,
+          ).padStart(2, "0")}.${financial.startYear}`
+        : "";
+
+    // ✅ MAIN FIELD
+    setField("Selbstständigkeit-Beginn-VP1", employmentStartDate);
+
+    // ✅ ALSO FILL THIS (some PDFs use this instead)
+    setField("Selbstständigkeit-Beginn-lfdTätigkeit-VP1", employmentStartDate);
 
     // =========================
     // INSURANCE (UNCHANGED ✅)
@@ -255,6 +294,80 @@ export async function POST(
     setField("BICKreditinstitut", health?.sepaBic);
     setField("OrtDatumIN4", new Date().toLocaleDateString());
 
+    const payment = String(health?.sepaPaymentFrequency || "").toLowerCase();
+
+    console.log("💳 PAYMENT:", payment);
+
+    // Map to German values (IMPORTANT)
+    let zahlart = "";
+
+    if (payment === "monthly") zahlart = "monatlich";
+    if (payment === "quarterly") zahlart = "vierteljährlich";
+    if (payment === "half-yearly") zahlart = "halbjährlich";
+    if (payment === "yearly") zahlart = "jährlich";
+
+    // ✅ SET SINGLE FIELD
+    setField("Zahlart", zahlart);
+    // ✅ GERMAN TAX ID
+    const taxId = financial?.germanTaxIdNumber || "";
+
+    // ✅ BOTH FIELDS (VERY IMPORTANT)
+    setField("Datenübermittlung-SteuerID-VP1", taxId);
+    setField("Datenübermittlung-SteuerID-VN", taxId);
+    // optional (safe)
+    setField("Datenübermittlung-SteuerID-VN", financial?.germanTaxIdNumber);
+    const countryNameMap: Record<string, string> = {
+      DE: "Deutschland",
+      GB: "Großbritannien",
+      US: "USA",
+      FR: "Frankreich",
+      IN: "Indien",
+      CN: "China",
+      IT: "Italien",
+      ES: "Spanien",
+      TR: "Türkei",
+      PL: "Polen",
+      RO: "Rumänien",
+      NL: "Niederlande",
+      BR: "Brasilien",
+      PK: "Pakistan",
+      NG: "Nigeria",
+      UA: "Ukraine",
+      AF: "Afghanistan",
+      SA: "Saudi-Arabien",
+      AU: "Australien",
+      CA: "Kanada",
+      JP: "Japan",
+      KR: "Südkorea",
+      MX: "Mexiko",
+      PT: "Portugal",
+      GR: "Griechenland",
+      RS: "Serbien",
+      HR: "Kroatien",
+      IR: "Iran",
+      IQ: "Irak",
+      SY: "Syrien",
+    };
+    const nationalityValue = (personal?.countries || [])
+      .map((code: string) => countryNameMap[code] || code)
+      .join(", ");
+    setField("Staatsangehörigkeit-VP1", nationalityValue);
+
+    const maritalMap: Record<string, string> = {
+      Single: "ledig",
+      Married: "verheiratet",
+      Widowed: "verwitwet",
+      Divorced: "geschieden",
+    };
+    setField(
+      "Familienstand-VP1",
+      maritalMap[personal?.marital] || personal?.marital,
+    );
+    setField(
+      "GeburtsdatumVP1",
+      `${personal?.day}.${personal?.month}.${personal?.year}`,
+    );
+
     // =========================
     // SIGNATURE (UNCHANGED ✅)
     // =========================
@@ -305,6 +418,16 @@ export async function POST(
         console.log("❌ Signature error:", fieldName, e);
       }
     };
+
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("de-DE"); // DD.MM.YYYY
+
+    const placeDate = `${personal?.city || ""}, ${formattedDate}`;
+
+    // ✅ APPLY EVERYWHERE
+    setField("Unterschrift-Antrag-OrtDatum", placeDate);
+    setField("Unterschrift-Datenschutz-OrtDatum", placeDate);
+    setField("OrtDatumIN4", placeDate);
 
     if (signature) {
       await drawSignature("Unterschrift-Antrag-Antragsteller", signature);

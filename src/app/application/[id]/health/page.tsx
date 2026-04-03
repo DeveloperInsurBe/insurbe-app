@@ -418,6 +418,19 @@ const POST_STEPS = [
   { key: "sepa", title: "Set up your SEPA direct debit mandate", type: "sepa" },
 ] as const;
 
+// ── Validate IBAN/BIC ──────────────────────────────────────────────────────────
+const validateIBAN = (iban: string): boolean => {
+  const cleanIBAN = iban.replace(/\s/g, "").toUpperCase();
+  if (!/^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/.test(cleanIBAN)) return false;
+  if (cleanIBAN.startsWith("DE") && cleanIBAN.length !== 22) return false;
+  return true;
+};
+
+const validateBIC = (bic: string): boolean => {
+  const cleanBIC = bic.replace(/\s/g, "").toUpperCase();
+  return /^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(cleanBIC);
+};
+
 // ════════════════════════════════════════════════════════════════════════════
 export default function MedicalPage() {
   const { id } = useParams();
@@ -671,7 +684,14 @@ export default function MedicalPage() {
     if (s.type === "sepa") {
       if (!form.sepaName?.trim())
         return "Please enter your account holder name.";
-      if (!form.sepaIban?.trim()) return "Please enter your IBAN.";
+      if (!form.sepaIban?.trim()) 
+        return "Please enter your IBAN.";
+      if (!validateIBAN(form.sepaIban)) 
+        return "Please enter a valid IBAN (e.g., DE89 3704 0044 0532 0130 00).";
+      if (form.sepaBic?.trim() && !validateBIC(form.sepaBic))
+        return "Please enter a valid BIC/SWIFT code (e.g., DEUTDEFF).";
+      if (!form.sepaPaymentFrequency)
+        return "Please select a payment frequency.";
       if (!form.sepaMandateAccepted)
         return "Please accept the SEPA mandate to continue.";
     }
@@ -1013,6 +1033,11 @@ export default function MedicalPage() {
       animate={{ scale: [1, 1.1, 1] }}
       transition={{ duration: 10, repeat: Infinity }}
     />
+    <motion.div
+      className="absolute bottom-[-100px] right-[-80px] w-[350px] h-[350px] rounded-full bg-pink-400/10 blur-[100px] pointer-events-none"
+      animate={{ scale: [1, 1.08, 1] }}
+      transition={{ duration: 12, repeat: Infinity, delay: 3 }}
+    />
     <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
     <div className="max-w-xl mx-auto relative z-10">
       <ApplicationStepper currentStep="healthAnswers" />
@@ -1117,8 +1142,13 @@ export default function MedicalPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 relative overflow-hidden">
         <motion.div
           className="absolute top-[-120px] left-[-120px] w-[400px] h-[400px] rounded-full bg-violet-400/10 blur-[100px] pointer-events-none"
-          animate={{ scale: [1, 1.1, 1] }}
+          animate={{ scale: [1, 1.1, 1], x: [0, 20, 0], y: [0, -15, 0] }}
           transition={{ duration: 10, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-[-100px] right-[-80px] w-[350px] h-[350px] rounded-full bg-pink-400/10 blur-[100px] pointer-events-none"
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 12, repeat: Infinity, delay: 3 }}
         />
         <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
         <div className="max-w-xl mx-auto px-4 py-8 relative z-10">
@@ -1213,8 +1243,13 @@ export default function MedicalPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 relative overflow-hidden">
         <motion.div
           className="absolute top-[-120px] left-[-120px] w-[400px] h-[400px] rounded-full bg-violet-400/10 blur-[100px] pointer-events-none"
-          animate={{ scale: [1, 1.1, 1] }}
+          animate={{ scale: [1, 1.1, 1], x: [0, 20, 0], y: [0, -15, 0] }}
           transition={{ duration: 10, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-[-100px] right-[-80px] w-[350px] h-[350px] rounded-full bg-pink-400/10 blur-[100px] pointer-events-none"
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 12, repeat: Infinity, delay: 3 }}
         />
         <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
         <div className="max-w-3xl mx-auto px-4 py-10 relative z-10">
@@ -1539,7 +1574,7 @@ export default function MedicalPage() {
           <>
             <p className="text-sm text-slate-400 font-light leading-relaxed mb-5">
               Authorize Hallesche Krankenversicherung a.G. to collect your
-              monthly premium via direct debit from your bank account.
+              premium via direct debit from your bank account.
             </p>
             <div className="space-y-3 mb-4">
               {[
@@ -1548,18 +1583,21 @@ export default function MedicalPage() {
                   label: "Account holder name",
                   placeholder: "Full name as on bank account",
                   mono: false,
+                  validate: undefined as ((v: string) => boolean) | undefined,
                 },
                 {
                   key: "sepaIban",
                   label: "IBAN",
                   placeholder: "DE00 0000 0000 0000 0000 00",
                   mono: true,
+                  validate: validateIBAN as ((v: string) => boolean) | undefined,
                 },
                 {
                   key: "sepaBic",
                   label: "BIC / SWIFT (optional)",
-                  placeholder: "e.g. DEUTDEDB",
+                  placeholder: "e.g. DEUTDEFF",
                   mono: true,
+                  validate: validateBIC as ((v: string) => boolean) | undefined,
                 },
               ].map((f) => (
                 <div key={f.key}>
@@ -1570,17 +1608,116 @@ export default function MedicalPage() {
                     type="text"
                     placeholder={f.placeholder}
                     value={form[f.key] || ""}
-                    onChange={(e) =>
-                      handleChange(
-                        f.key,
-                        f.mono ? e.target.value.toUpperCase() : e.target.value,
-                      )
-                    }
-                    className={`w-full bg-slate-50 border border-black/[0.08] rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all ${f.mono ? "font-mono" : ""}`}
+                    onChange={(e) => {
+                      const value = f.mono
+                        ? e.target.value.toUpperCase()
+                        : e.target.value;
+                      handleChange(f.key, value);
+                    }}
+                    onBlur={() => {
+                      if (f.validate && form[f.key]?.trim()) {
+                        const isValid = f.validate(form[f.key]);
+                        if (!isValid) {
+                          setError(
+                            f.key === "sepaIban"
+                              ? "Invalid IBAN format"
+                              : "Invalid BIC format",
+                          );
+                        }
+                      }
+                    }}
+                    className={`w-full bg-slate-50 border ${
+                      f.validate &&
+                      form[f.key]?.trim() &&
+                      !f.validate(form[f.key])
+                        ? "border-red-300"
+                        : "border-black/[0.08]"
+                    } rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all ${f.mono ? "font-mono" : ""}`}
                   />
+                  {f.validate &&
+                    form[f.key]?.trim() &&
+                    !f.validate(form[f.key]) && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                        <svg
+                          className="w-3 h-3"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        Invalid format
+                      </p>
+                    )}
                 </div>
               ))}
+
+              {/* Payment Frequency */}
+              <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">
+                  Payment Frequency *
+                </label>
+                <div className="space-y-2">
+                  {[
+                    { value: "monthly", label: "Monthly" },
+                    { value: "quarterly", label: "Quarterly" },
+                    { value: "half-yearly", label: "Half-yearly" },
+                    { value: "yearly", label: "Yearly (3% discount)" },
+                  ].map((option) => {
+                    const isSelected =
+                      form.sepaPaymentFrequency === option.value;
+                    return (
+                      <motion.button
+                        key={option.value}
+                        onClick={() =>
+                          handleChange(
+                            "sepaPaymentFrequency",
+                            option.value,
+                          )
+                        }
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className={`w-full px-4 py-3 rounded-xl border flex items-center gap-3 transition-all duration-150 ${
+                          isSelected
+                            ? "border-violet-400/60 bg-violet-50"
+                            : "border-black/[0.07] bg-white hover:border-black/20"
+                        }`}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                            isSelected
+                              ? "border-violet-600 bg-violet-600"
+                              : "border-slate-300"
+                          }`}
+                        >
+                          {isSelected && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                          )}
+                        </div>
+                        <span
+                          className={`text-sm font-medium ${
+                            isSelected
+                              ? "text-violet-800"
+                              : "text-slate-600"
+                          }`}
+                        >
+                          {option.label}
+                        </span>
+                        {option.value === "yearly" && (
+                          <span className="ml-auto text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                            Save 3%
+                          </span>
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
+
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
               <p className="text-xs text-slate-500 font-light leading-relaxed mb-3">
                 By accepting, I authorize Hallesche Krankenversicherung a.G.
@@ -1591,14 +1728,25 @@ export default function MedicalPage() {
               </p>
               <motion.button
                 onClick={() =>
-                  handleChange("sepaMandateAccepted", !form.sepaMandateAccepted)
+                  handleChange(
+                    "sepaMandateAccepted",
+                    !form.sepaMandateAccepted,
+                  )
                 }
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className={`w-full px-4 py-3 rounded-xl border flex items-center gap-3 transition-all duration-150 ${form.sepaMandateAccepted ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-white hover:border-black/20"}`}
+                className={`w-full px-4 py-3 rounded-xl border flex items-center gap-3 transition-all duration-150 ${
+                  form.sepaMandateAccepted
+                    ? "border-violet-400/60 bg-violet-50"
+                    : "border-black/[0.07] bg-white hover:border-black/20"
+                }`}
               >
                 <div
-                  className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${form.sepaMandateAccepted ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}
+                  className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                    form.sepaMandateAccepted
+                      ? "border-violet-600 bg-violet-600"
+                      : "border-slate-300"
+                  }`}
                 >
                   {form.sepaMandateAccepted && (
                     <svg
@@ -1615,7 +1763,11 @@ export default function MedicalPage() {
                   )}
                 </div>
                 <span
-                  className={`text-sm font-medium ${form.sepaMandateAccepted ? "text-violet-800" : "text-slate-600"}`}
+                  className={`text-sm font-medium ${
+                    form.sepaMandateAccepted
+                      ? "text-violet-800"
+                      : "text-slate-600"
+                  }`}
                 >
                   I accept the SEPA direct debit mandate
                 </span>
@@ -1664,6 +1816,14 @@ export default function MedicalPage() {
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-2xl shadow-xl shadow-black/[0.06] p-7"
             >
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={() => setScreen("summary")}
+                  className="text-xs font-semibold cursor-pointer text-violet-600 hover:text-violet-700 transition"
+                >
+                  Review →
+                </button>
+              </div>
               <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 py-1 mb-4">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
                 <span className="text-violet-700 text-[10px] font-semibold tracking-[0.12em] uppercase">
