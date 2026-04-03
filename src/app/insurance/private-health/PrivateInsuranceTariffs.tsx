@@ -12,12 +12,63 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { NEW_CARD_BG } from "@/app/constants/styles";
+import { useJourneyStore } from "@/app/stores/journeyStore";
 
 /* ------------------------------------------------------------------ */
 /* DATA */
 /* ------------------------------------------------------------------ */
 
 type ComparisonKey = "standard" | "plus" | "premium";
+
+type PlanConfig = {
+  id: string;
+  name: string;
+  provider: string;
+  description: string;
+  features: string[];
+  tariffIds: string[];
+};
+
+const PLAN_CONFIG: Record<ComparisonKey, PlanConfig> = {
+  standard: {
+    id: "hallesche-standard",
+    name: "Hallesche Standard",
+    provider: "Hallesche",
+    description: "Private standard coverage bundle",
+    features: [
+      "Comprehensive outpatient care",
+      "Strong dental benefits",
+      "Flexible hospital options",
+    ],
+    tariffIds: ["35653", "24449", "24332", "1803"],
+  },
+  plus: {
+    id: "hallesche-plus",
+    name: "Hallesche Plus",
+    provider: "Hallesche",
+    description: "Private plus coverage bundle",
+    features: [
+      "Comprehensive outpatient care",
+      "Strong dental benefits",
+      "Flexible hospital options",
+    ],
+    tariffIds: ["35659", "36129", "24332", "1803"],
+  },
+  premium: {
+    id: "hallesche-premium",
+    name: "Hallesche Premium",
+    provider: "Hallesche",
+    description: "NK.select XL Bonus + NK.select Flex",
+    features: [
+      "Comprehensive private coverage",
+      "Private hospital room",
+      "Full dental coverage",
+      "Daily hospital benefit",
+      "Care insurance included",
+    ],
+    tariffIds: ["35659", "36129", "24332", "1803"],
+  },
+};
 
 const comparisonData: Array<{ label: string } & Record<ComparisonKey, string>> =
   [
@@ -84,14 +135,31 @@ const comparisonData: Array<{ label: string } & Record<ComparisonKey, string>> =
 export default function PrivateInsuranceTariffs() {
   const router = useRouter();
   const [showCompare, setShowCompare] = useState(false);
+  const journeyStore = useJourneyStore();
+  const setSelectedPlan = useJourneyStore((s) => s.setSelectedPlan);
 
-  const handlePlanSelect = (title: string, price: string) => {
+  const handlePlanSelect = (key: ComparisonKey, title: string, price: string) => {
+    const cfg = PLAN_CONFIG[key];
+
     const planData = {
+      id: cfg.id,
+      name: cfg.name || title,
+      provider: cfg.provider,
+      description: cfg.description,
+      features: cfg.features,
+      tariffIds: cfg.tariffIds,
+      documentCount: 0,
+      loading: false,
+      available: true,
+      recommended: true,
       title,
       price,
+      period: "/ Month",
       category: "Private",
     };
+
     sessionStorage.setItem("selectedPlan", JSON.stringify(planData));
+    setSelectedPlan(planData as any);
     router.push("/calculator/submitApplication");
   };
 
@@ -149,7 +217,7 @@ export default function PrivateInsuranceTariffs() {
                       : "Essential"
                 }
                 highlighted={key === "plus"}
-                onSelect={() => handlePlanSelect(title, price)}
+                onSelect={() => handlePlanSelect(key, title, price)}
               />
             );
           })}
