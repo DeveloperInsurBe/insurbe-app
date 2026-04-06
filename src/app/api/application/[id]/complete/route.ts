@@ -211,9 +211,68 @@ export async function POST(
     // =========================
     // INSURANCE (UNCHANGED ✅)
     // =========================
+    // =========================
+    // ✅ PREVIOUS INSURANCE FULL FIX
+    // =========================
+
+    // Name
     setField(
       "Vorversicherung-KrankenkasseVersicherer1-VP1",
-      insurance?.provider,
+      insurance?.initialProviderName || "",
+    );
+
+    // Type
+    setField(
+      "Vorversicherung-ArtUmfang1-VP1",
+      insurance?.recentInsurance || "",
+    );
+
+    // Daily benefits (optional)
+    setField(
+      "Vorversicherung-Tagegeldhöhe1-VP1",
+      insurance?.dailyBenefits || "",
+    );
+
+    // Exists since (START DATE)
+    const prevStart =
+      insurance?.startDay && insurance?.startMonth && insurance?.startYear
+        ? `${String(insurance.startDay).padStart(2, "0")}.${String(
+            insurance.startMonth,
+          ).padStart(2, "0")}.${insurance.startYear}`
+        : "";
+
+    setField("Vorversicherung-Bestehtseit1-VP1", prevStart);
+
+    // Ends
+    const prevEnd =
+      insurance?.endDay && insurance?.endMonth && insurance?.endYear
+        ? `${String(insurance.endDay).padStart(2, "0")}.${String(
+            insurance.endMonth,
+          ).padStart(2, "0")}.${insurance.endYear}`
+        : "";
+
+    setField("Vorversicherung-Ende1-VP1", prevEnd);
+
+    // Voluntary / compulsory / family
+    setField(
+      "Vorversicherung-beiGKV-VP1",
+      insurance?.insuranceType === "voluntary"
+        ? "freiwillig"
+        : insurance?.insuranceType === "compulsory"
+          ? "pflicht"
+          : insurance?.insuranceType === "family"
+            ? "familie"
+            : "",
+    );
+
+    // Terminated by
+    setField(
+      "Vorversicherung-beendetdurch-VP1",
+      insurance?.terminatedBy === "policy-holder"
+        ? "Versicherungsnehmer"
+        : insurance?.terminatedBy === "insurer"
+          ? "Versicherer"
+          : "",
     );
 
     // =========================
@@ -294,20 +353,26 @@ export async function POST(
     setField("BICKreditinstitut", health?.sepaBic);
     setField("OrtDatumIN4", new Date().toLocaleDateString());
 
-    const payment = String(health?.sepaPaymentFrequency || "").toLowerCase();
+  const payment = String(health?.sepaPaymentFrequency || "").toLowerCase();
 
-    console.log("💳 PAYMENT:", payment);
+const paymentField = form.getFieldMaybe("Zahlart");
 
-    // Map to German values (IMPORTANT)
-    let zahlart = "";
+if (paymentField instanceof PDFRadioGroup) {
+  const options = paymentField.getOptions();
 
-    if (payment === "monthly") zahlart = "monatlich";
-    if (payment === "quarterly") zahlart = "vierteljährlich";
-    if (payment === "half-yearly") zahlart = "halbjährlich";
-    if (payment === "yearly") zahlart = "jährlich";
+  const map: any = {
+    monthly: 0,
+    quarterly: 1,
+    "half-yearly": 2,
+    yearly: 3,
+  };
 
-    // ✅ SET SINGLE FIELD
-    setField("Zahlart", zahlart);
+  const index = map[payment] ?? 0;
+
+  console.log("💳 PAYMENT:", payment, "→ INDEX:", index);
+
+  paymentField.select(options[index]);
+}
     // ✅ GERMAN TAX ID
     const taxId = financial?.germanTaxIdNumber || "";
 
@@ -472,7 +537,7 @@ export async function POST(
             orderId: app?.orderId || id,
             formType: "private",
             pdfBase64: base64, // ✅ THIS IS YOUR FINAL PDF
-            filename: "Final_Application.pdf",
+            filename: "Hallesche_Application.pdf",
           }),
         });
 
