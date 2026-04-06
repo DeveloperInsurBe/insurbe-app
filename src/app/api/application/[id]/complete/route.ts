@@ -515,39 +515,45 @@ if (paymentField instanceof PDFRadioGroup) {
     });
 
     // =========================
-    // 📧 SEND EMAIL WITH PDF
-    // =========================
-    try {
-      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+   // =========================
+// 📧 SEND EMAIL WITH PDF (FIXED)
+// =========================
+try {
+  // 🔥 Always use relative URL (IMPORTANT for production)
+  const userEmail = personal?.email || "";
 
-      // 🔥 FIX: get email properly from DB
-      const userEmail = personal?.email || "";
+  if (!userEmail) {
+    console.log("⚠️ No user email found");
+  } else {
+    console.log("📧 Sending email to:", userEmail);
 
-      if (userEmail) {
-        console.log("📧 Sending email to:", userEmail);
+    const emailRes = await fetch(`/api/sendAcknowledgement`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userEmail,
+        name: personal?.firstName || userEmail.split("@")[0],
+        orderId: app?.orderId || id,
+        formType: "private",
+        pdfBase64: base64, // ✅ FINAL PDF
+        filename: "Hallesche_Application.pdf",
+      }),
+    });
 
-        await fetch(`${baseUrl}/api/sendAcknowledgement`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: userEmail,
-            name: personal?.firstName || userEmail.split("@")[0], // ✅ better name
-            orderId: app?.orderId || id,
-            formType: "private",
-            pdfBase64: base64, // ✅ THIS IS YOUR FINAL PDF
-            filename: "Hallesche_Application.pdf",
-          }),
-        });
+    // ✅ IMPORTANT: check response
+    const emailData = await emailRes.json().catch(() => ({}));
 
-        console.log("📧 Email with PDF sent");
-      } else {
-        console.log("⚠️ No user email found");
-      }
-    } catch (emailError) {
-      console.error("⚠️ Email sending failed:", emailError);
+    if (!emailRes.ok) {
+      console.error("❌ EMAIL API FAILED:", emailData);
+    } else {
+      console.log("✅ Email sent successfully:", emailData);
     }
+  }
+} catch (emailError) {
+  console.error("❌ Email sending error:", emailError);
+}
 
     console.log("✅ FINAL PDF DONE");
 
