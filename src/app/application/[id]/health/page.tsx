@@ -684,9 +684,8 @@ export default function MedicalPage() {
     if (s.type === "sepa") {
       if (!form.sepaName?.trim())
         return "Please enter your account holder name.";
-      if (!form.sepaIban?.trim()) 
-        return "Please enter your IBAN.";
-      if (!validateIBAN(form.sepaIban)) 
+      if (!form.sepaIban?.trim()) return "Please enter your IBAN.";
+      if (!validateIBAN(form.sepaIban))
         return "Please enter a valid IBAN (e.g., DE89 3704 0044 0532 0130 00).";
       if (form.sepaBic?.trim() && !validateBIC(form.sepaBic))
         return "Please enter a valid BIC/SWIFT code (e.g., DEUTDEFF).";
@@ -926,7 +925,6 @@ export default function MedicalPage() {
       ? ["#6d28d9", "#7c3aed", "#f59e0b", "#a78bfa"]
       : ["#6d28d9", "#7c3aed", "#8b5cf6", "#a78bfa"];
 
-
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 px-6">
         {/* Icon */}
@@ -1128,16 +1126,27 @@ export default function MedicalPage() {
       },
     ];
 
-    
-    const handleDownloadPDF = () => {
-      const link = document.createElement("a");
-      link.href = "/pdfs/vvg-info.pdf"; // 👈 your PDF path
-      link.download = "VVG_Section_19_Info.pdf"; // file name
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    const handleDownloadPDF = async () => {
+      try {
+        const res = await fetch(`/api/application/${id}`);
+        const data = await res.json();
+
+        if (!data?.pdfBase64) {
+          alert("PDF not ready yet");
+          return;
+        }
+
+        const link = document.createElement("a");
+        link.href = `data:application/pdf;base64,${data.pdfBase64}`;
+        link.download = "Hallesche_Application.pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        console.error("Download failed", err);
+      }
     };
-    
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 relative overflow-hidden">
         <motion.div
@@ -1590,7 +1599,9 @@ export default function MedicalPage() {
                   label: "IBAN",
                   placeholder: "DE00 0000 0000 0000 0000 00",
                   mono: true,
-                  validate: validateIBAN as ((v: string) => boolean) | undefined,
+                  validate: validateIBAN as
+                    | ((v: string) => boolean)
+                    | undefined,
                 },
                 {
                   key: "sepaBic",
@@ -1673,10 +1684,7 @@ export default function MedicalPage() {
                       <motion.button
                         key={option.value}
                         onClick={() =>
-                          handleChange(
-                            "sepaPaymentFrequency",
-                            option.value,
-                          )
+                          handleChange("sepaPaymentFrequency", option.value)
                         }
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
@@ -1699,9 +1707,7 @@ export default function MedicalPage() {
                         </div>
                         <span
                           className={`text-sm font-medium ${
-                            isSelected
-                              ? "text-violet-800"
-                              : "text-slate-600"
+                            isSelected ? "text-violet-800" : "text-slate-600"
                           }`}
                         >
                           {option.label}
@@ -1728,10 +1734,7 @@ export default function MedicalPage() {
               </p>
               <motion.button
                 onClick={() =>
-                  handleChange(
-                    "sepaMandateAccepted",
-                    !form.sepaMandateAccepted,
-                  )
+                  handleChange("sepaMandateAccepted", !form.sepaMandateAccepted)
                 }
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
