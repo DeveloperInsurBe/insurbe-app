@@ -990,7 +990,15 @@ export default function FinancialPage() {
                   <p className="text-xs text-slate-500 font-light leading-relaxed mb-3">
                     By selecting "I accept", I consent to the exchange of data
                     with Schufa in accordance with the{" "}
-                    <span className="text-violet-600 underline underline-offset-2 cursor-pointer">
+                    <span
+                      onClick={() => {
+                        const link = document.createElement("a");
+                        link.href = "/pdfs/schufa.pdf";
+                        link.download = "Schufa-information.pdf";
+                        link.click();
+                      }}
+                      className="text-violet-600 underline underline-offset-2 cursor-pointer"
+                    >
                       Schufa information
                     </span>
                     .
