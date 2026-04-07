@@ -47,13 +47,13 @@ const STATUS_META: Record<string, {
   ctaColor: string;
 }> = {
   completed: {
-    label: "Active",
+    label: "Submitted",
     color: "text-emerald-700",
     bg: "bg-emerald-50",
     border: "border-emerald-200",
     icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />,
     progress: 100,
-    nextStep: "Your policy is active",
+    nextStep: "Your policy is submitted",
     nextDetail: "Download your completed application PDF below.",
     ctaLabel: "Download PDF",
     ctaColor: "bg-emerald-600 hover:bg-emerald-700 text-white",
@@ -154,7 +154,7 @@ export default function DashboardPage() {
         setDocuments(
           apps.map((app: any) => ({
             id: app.id,
-            title: "Application PDF",
+            title: "Health Insurance Application",
             uploadedAt: new Date(app.updatedAt ?? app.createdAt).toDateString(),
           })),
         );
@@ -217,7 +217,7 @@ export default function DashboardPage() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-white to-violet-50">
         <div className="relative mb-6">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-xl">D</span>
+            <span className="text-white font-bold text-xl">{displayName.charAt(0)}</span>
           </div>
           <div className="absolute inset-0 rounded-2xl border-2 border-violet-400 animate-ping opacity-40" />
         </div>

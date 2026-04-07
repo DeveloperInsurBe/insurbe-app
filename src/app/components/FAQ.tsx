@@ -34,46 +34,52 @@ export default function FAQ() {
     },
   ];
 
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
   const router = useRouter();
+
   return (
-    <>
-      <section className="py-16 px-4 sm:px-8 overflow-hidden">
-        <div className="max-w-4xl mx-auto px-10">
-          <motion.div className="text-center pb-2">
-            <button className="rounded-2xl bg-[rgba(130,36,227,0.10)] text-primary px-4 py-1 font-semibold">
-              FAQs
-            </button>
-          </motion.div>
+    <section className="py-20 px-6 lg:px-20 ">
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12">
+        {/* LEFT SIDE */}
+        <div className="max-h-[600px] overflow-y-auto pr-4 custom-scroll">
+          {/* Heading */}
+          <div className="mb-10">
+            <p className="text-sm text-purple-500 font-semibold mb-3 tracking-wider">
+              — FAQS
+            </p>
 
-          <motion.h2 className="text-3xl sm:text-4xl font-bold text-center mt-4">
-            Frequently{" "}
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-purple-600">
-              asked questions
-            </span>
-          </motion.h2>
+            <h2 className="text-4xl lg:text-5xl font-bold leading-tight text-gray-900">
+              <span className="  px-2">
+                Got questions?
+              </span>
+              <br />
+              <span className=" text-primary  px-2">
+                We've got answers.
+              </span>
+            </h2>
 
-          <div className="space-y-4 mt-10">
+            <p className="text-gray-500 mt-4">
+              Everything you need to know about InsurBe and our insurance
+              products.
+            </p>
+          </div>
+
+          {/* FAQ LIST */}
+          <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <motion.div
+              <div
                 key={index}
-                className="py-4 cursor-pointer"
+                className="border-b border-gray-200 pb-4 cursor-pointer"
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
               >
                 <div className="flex justify-between items-center">
-                  <h3 className="text-sm md:text-[17px] font-semibold">
+                  <h3 className="text-base font-medium text-gray-800">
                     {faq.question}
                   </h3>
-                  <Image
-                    src={
-                      openIndex === index
-                        ? "/icons/Minus.svg"
-                        : "/icons/Plus.svg"
-                    }
-                    alt="toggle"
-                    width={24}
-                    height={24}
-                  />
+
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-100 text-purple-600 font-bold">
+                    {openIndex === index ? "−" : "+"}
+                  </div>
                 </div>
 
                 <AnimatePresence>
@@ -82,27 +88,69 @@ export default function FAQ() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="text-sm text-gray-700 mt-2"
+                      transition={{ duration: 0.3 }}
+                      className="text-sm text-gray-600 mt-3 pr-6"
                     >
                       {faq.answer}
                     </motion.p>
                   )}
                 </AnimatePresence>
-              </motion.div>
+              </div>
             ))}
           </div>
+        </div>
 
-          <motion.div className="text-center pt-14">
-            <button
-              onClick={() => router.push("/book-appointment")}
-              className="border-2 border-primary px-6 py-3 rounded-full
-                font-bold text-primary hover:bg-primary hover:text-white transition"
-            >
-              Book a Free call now
-            </button>
+        {/* RIGHT SIDE (STICKY CARD) */}
+        <div className="sticky top-24 h-fit">
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="rounded-3xl overflow-hidden shadow-xl "
+          >
+            {/* Top Gradient */}
+            <div className="bg-gradient-to-br from-purple-600 to-blue-500 p-8 text-white">
+              <h3 className="text-2xl font-bold mb-3">
+                Still have questions? Let's talk.
+              </h3>
+
+              <p className="text-sm opacity-90">
+                Our insurance experts are ready to help you find the right plan
+                — completely free of charge and with zero obligation.
+              </p>
+            </div>
+
+            {/* Bottom */}
+            <div className="p-6 flex flex-col items-center gap-4">
+              <button
+                onClick={() => router.push("/book-appointment")}
+                className="w-full py-3 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 text-white font-semibold shadow-md hover:scale-105 transition"
+              >
+                📅 Book a Free Call
+              </button>
+
+              <p className="text-sm text-gray-500 text-center">
+                Or chat with us at{" "}
+                <span className="text-purple-600 font-medium">
+                  support@insurbe.com
+                </span>
+              </p>
+            </div>
           </motion.div>
         </div>
-      </section>
-    </>
+      </div>
+
+      {/* Custom Scrollbar */}
+      <style jsx>{`
+        .custom-scroll {
+          -ms-overflow-style: none; /* IE & Edge */
+          scrollbar-width: none; /* Firefox */
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+          display: none; /* Chrome, Safari */
+        }
+      `}</style>
+    </section>
   );
 }
