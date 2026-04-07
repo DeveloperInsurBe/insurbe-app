@@ -784,7 +784,7 @@ export default function MedicalPage() {
               orderId: appData?.orderId,
               formType: "private",
               pdfBase64: appData?.pdfBase64,
-              filename: "Final_Application.pdf",
+              filename: "Hallesche.pdf",
             }),
           });
           console.log("📧 Acknowledgement email sent to:", userEmail);

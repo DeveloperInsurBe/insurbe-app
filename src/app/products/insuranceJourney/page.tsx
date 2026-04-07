@@ -247,7 +247,7 @@ const ProgressBar = memo(
     const progress = (currentStep / totalSteps) * 100;
 
     return (
-      <div className="w-full max-w-3xl mx-auto mb-8">
+      <div className="w-full max-w-6xl mx-auto mb-8">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-700">
             Question {currentStep} of {totalSteps}
@@ -658,9 +658,26 @@ export default function InsuranceJourney() {
     [dob, currentYear],
   );
 
+  const StaticSideImage = () => (
+  <div className="flex flex-col justify-center items-center ">
+    <Image
+      src="/hero_assets/userJourney.jpg" 
+      alt="Journey"
+      width={400}
+      height={300}
+      className="w-full max-w-md rounded-2xl object-cover"
+      priority
+    />
+    <div className="flex flex-col items-start py-4 md:pl-10">
+    <h2 className="text-primary">Why this question ?</h2>
+    <p className="text-gray-500 text-sm">To better assist you, we need to get to know you better. This information allows us to offer you a more personalized response.</p>
+  </div>
+  </div>
+);
+
   // ================= UI ===================
   return (
-    <section className="relative min-h-screen py-20 px-4 md:px-10">
+    <section className="relative min-h-screen py-20 px-4 md:px-10 ">
       {/* Header */}
       <motion.div
         initial={{ y: -30, opacity: 0 }}
@@ -696,10 +713,10 @@ export default function InsuranceJourney() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
+            className="w-full max-w-6xl mx-auto bg-white/70  backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-8"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <StepImage step={1} />
+             <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 flex items-center gap-3">
@@ -730,7 +747,8 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <StepImage step={99} />
+               <StaticSideImage />
+               
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">
@@ -792,7 +810,7 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <StepImage step={2} />
+              <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 flex items-center gap-3">
@@ -823,7 +841,7 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <StepImage step={3} />
+             <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2
@@ -921,7 +939,7 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <StepImage step={98} />
+            <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2
@@ -979,7 +997,7 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <StepImage step={4} />
+    <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2
@@ -1050,7 +1068,7 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <StepImage step={5} />
+             <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2
@@ -1172,6 +1190,7 @@ export default function InsuranceJourney() {
             </div>
           </motion.div>
         )}
+        
       </AnimatePresence>
     </section>
   );
