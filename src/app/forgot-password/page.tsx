@@ -31,15 +31,16 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-white flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl p-8 border border-gray-200">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-100 via-purple-100 to-indigo-200 px-4">
+      
+      <div className="w-full max-w-md bg-white/80 backdrop-blur-xl shadow-2xl rounded-2xl p-8 border border-white/30">
         
         {/* Heading */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-semibold text-gray-800">
             Forgot Password
           </h1>
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="text-gray-500 text-sm mt-1">
             Enter your registered email to receive reset instructions
           </p>
         </div>
@@ -47,6 +48,7 @@ export default function ForgotPasswordPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           
+          {/* Input */}
           <div className="relative">
             <Mail className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
             <input
@@ -55,14 +57,15 @@ export default function ForgotPasswordPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+              className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
             />
           </div>
 
+          {/* Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 transition shadow-lg disabled:opacity-60"
+            className="w-full py-3 rounded-lg font-medium text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:opacity-90 transition shadow-md disabled:opacity-60"
           >
             {loading ? "Sending..." : "Send Reset Link"}
           </button>
@@ -70,16 +73,16 @@ export default function ForgotPasswordPage() {
 
         {/* Message */}
         {message && (
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-sm text-center text-gray-700">
             {message}
-          </div>
+          </p>
         )}
 
         {/* Back to Login */}
         <div className="mt-6 text-center text-sm">
           <a
             href="/login"
-            className="text-primary hover:underline font-medium"
+            className="text-violet-600 hover:underline font-medium"
           >
             Back to Login
           </a>

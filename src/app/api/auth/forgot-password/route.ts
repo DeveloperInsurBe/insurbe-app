@@ -44,11 +44,11 @@ export async function POST(req: Request) {
     const resetLink = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
 
     // ✅ SEND EMAIL
-   const result = await resend.emails.send({
-  from: "no-reply@insurbe.com",
-  to: email,
-  subject: "Reset your password",
-html: `
+    const result = await resend.emails.send({
+      from: "no-reply@insurbe.com",
+      to: email,
+      subject: "Reset your password",
+      html: `
   <div style="font-family: Arial, sans-serif; background-color: #f4f6fb; padding: 40px 20px;">
     <div style="max-width: 520px; margin: auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
 
@@ -68,18 +68,24 @@ html: `
         </p>
 
         <!-- Button -->
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetLink}" 
-             style="background: linear-gradient(90deg, #6D28D9, #9333EA); 
-                    color: #ffffff; 
-                    padding: 14px 28px; 
-                    text-decoration: none; 
-                    border-radius: 10px; 
-                    font-weight: 600; 
-                    display: inline-block;">
-            Reset Password
-          </a>
-        </div>
+       <div style="text-align: center; margin: 30px 0;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+    <tr>
+      <td align="center" bgcolor="#6D28D9" style="border-radius: 8px;">
+        <a href="${resetLink}" 
+           style="font-size: 16px; 
+                  font-family: Arial, sans-serif; 
+                  color: #ffffff; 
+                  text-decoration: none; 
+                  padding: 14px 28px; 
+                  display: inline-block; 
+                  font-weight: 600;">
+          Reset Password
+        </a>
+      </td>
+    </tr>
+  </table>
+</div>
 
         <p style="font-size: 14px; color: #666;">
           This link will expire in <strong>15 minutes</strong> for security reasons.
@@ -98,10 +104,10 @@ html: `
 
     </div>
   </div>
-`
-});
+`,
+    });
 
-console.log("RESEND RESULT:", result);
+    console.log("RESEND RESULT:", result);
 
     return NextResponse.json(
       { message: "Reset link sent if email exists" },

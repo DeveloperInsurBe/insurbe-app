@@ -105,7 +105,7 @@ export default function LoginPage() {
           <h2 className="max-w-md text-4xl font-extrabold leading-tight text-slate-900">
             Welcome back to
             <span className="block bg-linear-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-              your InsurBe dashboard
+              your InsurBe Account
             </span>
           </h2>
 

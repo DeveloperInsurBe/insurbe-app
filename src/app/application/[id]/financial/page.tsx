@@ -215,7 +215,7 @@ export default function FinancialPage() {
   const [showTaxInfo, setShowTaxInfo] = useState(false);
   const [showSchufaInfo, setShowSchufaInfo] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const INELIGIBLE = ["University student", "Civil servant"];
   const application = useApplicationStore((s) => s.application);
   const setApplication = useApplicationStore((s) => s.setApplication);
@@ -303,18 +303,20 @@ export default function FinancialPage() {
     setForm(application.financialHistory || {});
   }, [application]);
 
-  //   const handleChange = (name: string, value: any) => {
-  //     setForm((prev) => ({ ...prev, [name]: value }));
-  //     setError(null);
-  //   };
-
   const handleChange = (name: string, value: any) => {
     const updated = { ...form, [name]: value };
 
     setForm(updated);
     setError(null);
 
-    // ✅ safe (after render)
+    // mark field as touched
+    setTouched((prev) => ({ ...prev, [name]: true }));
+
+    // run validation live
+    const err = validateStep(stepIndex, updated);
+    setError(err);
+
+    // Zustand sync
     updateStep("financialHistory", updated);
   };
 
@@ -652,6 +654,15 @@ export default function FinancialPage() {
     );
   }
 
+  const getInputClasses = (field: string) => {
+    const hasError = error && touched[field];
+
+    return `w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm outline-none transition-all duration-200 ${
+      hasError
+        ? "border-red-400 focus:ring-2 focus:ring-red-400/20"
+        : "border-black/[0.08] focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10"
+    }`;
+  };
   // ── Step view ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 p-6 relative overflow-hidden">
@@ -765,7 +776,7 @@ export default function FinancialPage() {
                 placeholder={current.placeholder}
                 value={form[current.key] || ""}
                 onChange={(e) => handleChange(current.key, e.target.value)}
-                className="w-full bg-slate-50 border border-black/[0.08] rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all duration-200"
+                className={getInputClasses(current.key)}
               />
             )}
 
@@ -776,11 +787,13 @@ export default function FinancialPage() {
                   €
                 </span>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder={current.placeholder}
                   value={form[current.key] || ""}
                   onChange={(e) => handleChange(current.key, e.target.value)}
-                  className="w-full bg-slate-50 border border-black/[0.08] rounded-xl pl-8 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all duration-200"
+                  className={getInputClasses(current.key) + " pl-8"}
                 />
               </div>
             )}
@@ -802,7 +815,7 @@ export default function FinancialPage() {
                       placeholder={placeholder}
                       value={form[field] || ""}
                       onChange={(e) => handleChange(field, e.target.value)}
-                      className="w-full bg-slate-50 border border-black/[0.08] rounded-xl px-3 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all duration-200 text-center"
+                      className={getInputClasses(field) + " text-center"}
                     />
                   </div>
                 ))}
@@ -899,7 +912,13 @@ export default function FinancialPage() {
                   return (
                     <motion.button
                       key={opt}
-                      onClick={() => handleChange(current.key, opt)}
+                      onClick={() => {
+                        handleChange(current.key, opt);
+                        setTouched((prev) => ({
+                          ...prev,
+                          [current.key]: true,
+                        }));
+                      }}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
                       className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${selected ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20 hover:bg-slate-50"}`}
@@ -1085,10 +1104,10 @@ export default function FinancialPage() {
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
-                  className="mt-4 flex items-center gap-2 text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5"
+                  className="mt-4 flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3"
                 >
                   <svg
-                    className="w-4 h-4 flex-shrink-0"
+                    className="w-4 h-4 mt-[2px]"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
