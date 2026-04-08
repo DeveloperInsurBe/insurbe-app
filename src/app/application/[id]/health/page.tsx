@@ -136,7 +136,9 @@ function YesNoQuestion({
           return (
             <motion.button
               key={opt}
-              onClick={() => onChange(questionKey, opt)}
+              onClick={() => {
+                onChange(questionKey, opt);
+              }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={`flex-1 py-2.5 rounded-xl border flex items-center justify-center gap-2 transition-all duration-150 text-sm font-semibold ${sel ? "border-violet-400/60 bg-violet-50 text-slate-900" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20 text-slate-500"}`}
@@ -445,6 +447,7 @@ export default function MedicalPage() {
   const [form, setForm] = useState<Form>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [screen, setScreen] = useState<Screen>("steps");
   const [dragOver, setDragOver] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
@@ -538,6 +541,8 @@ export default function MedicalPage() {
     if (!canvas) return;
     const onTS = (e: TouchEvent) => {
       e.preventDefault();
+      if (!canvasRef.current) return;
+      canvasRef.current.focus?.();
       isDrawing.current = true;
       const t = e.touches[0];
       const r = canvas.getBoundingClientRect();
@@ -596,6 +601,32 @@ export default function MedicalPage() {
   const captureSignature = () =>
     handleChange("signature", canvasRef.current!.toDataURL("image/png"));
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resizeCanvas = () => {
+      const rect = canvas.getBoundingClientRect();
+
+      // Save drawing
+      const ctx = canvas.getContext("2d");
+      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+
+      // Set proper size
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+
+      // Restore drawing
+      if (imageData) {
+        ctx?.putImageData(imageData, 0, 0);
+      }
+    };
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    return () => window.removeEventListener("resize", resizeCanvas);
+  }, []);
   const handleFileChange = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const uploaded = await Promise.all(
@@ -615,8 +646,16 @@ export default function MedicalPage() {
 
   const handleChange = (name: string, value: any) => {
     const updated = { ...form, [name]: value };
+
     setForm(updated);
-    setError(null);
+
+    // ✅ mark touched
+    setTouched((prev) => ({ ...prev, [name]: true }));
+
+    // ✅ LIVE VALIDATION
+    const err = validate();
+    setError(err);
+
     updateStep("healthAnswers", updated);
   };
 
@@ -678,8 +717,12 @@ export default function MedicalPage() {
 
   const validatePost = (): string | null => {
     const s = POST_STEPS[postStepIndex];
-    if (s.type === "documents") return null;
-    if (s.type === "signature" && !hasDrawn)
+    if (s.type === "documents") {
+      if (!form.documents || form.documents.length === 0) {
+        return "Please upload pending document to continue.";
+      }
+    }
+    if (s.type === "signature" && !form.signature)
       return "Please draw your signature before continuing.";
     if (s.type === "sepa") {
       if (!form.sepaName?.trim())
@@ -1379,8 +1422,7 @@ export default function MedicalPage() {
         return (
           <>
             <p className="text-sm text-slate-400 font-light leading-relaxed mb-5">
-              Upload any supporting documents required. You can always provide
-              these later if you don't have them ready now.
+              Upload any supporting documents required.
             </p>
             <motion.div
               onClick={() => fileInputRef.current?.click()}
@@ -1408,7 +1450,11 @@ export default function MedicalPage() {
                     }
               }
               transition={{ duration: 0.2 }}
-              className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center gap-3 text-center cursor-pointer mb-4"
+              className={`border-2 border-dashed rounded-xl p-8 ${
+                error && (!form.documents || form.documents.length === 0)
+                  ? "border-red-400 bg-red-50"
+                  : ""
+              } flex flex-col items-center gap-3 text-center cursor-pointer mb-4`}
             >
               <div className="w-12 h-12 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center">
                 <svg
@@ -1549,6 +1595,7 @@ export default function MedicalPage() {
                 className="w-full touch-none"
                 style={{
                   display: "block",
+                  touchAction: "none",
                   cursor: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cline x1='12' y1='2' x2='12' y2='22' stroke='%23334155' stroke-width='1.5'/%3E%3Cline x1='2' y1='12' x2='22' y2='12' stroke='%23334155' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='12' r='2' fill='none' stroke='%23334155' stroke-width='1.5'/%3E%3C/svg%3E") 12 12, crosshair`,
                 }}
                 onMouseDown={startDraw}
@@ -1943,17 +1990,6 @@ export default function MedicalPage() {
                   )}
                 </motion.button>
               </div>
-              {ps.type === "documents" && (
-                <button
-                  onClick={() => {
-                    setPostStepIndex((p) => p + 1);
-                    setError(null);
-                  }}
-                  className="w-full mt-2 text-xs text-slate-400 hover:text-slate-600 transition-colors py-1"
-                >
-                  Provide documents later →
-                </button>
-              )}
             </motion.div>
           </AnimatePresence>
         </div>

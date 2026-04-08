@@ -101,7 +101,7 @@ export default function FAQ() {
         </div>
 
         {/* RIGHT SIDE (STICKY CARD) */}
-        <div className="sticky top-24 h-fit">
+        <div className="sticky top-24 h-fit  md:px-10">
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -109,7 +109,7 @@ export default function FAQ() {
             className="rounded-3xl overflow-hidden shadow-xl "
           >
             {/* Top Gradient */}
-            <div className="bg-gradient-to-br from-purple-600 to-blue-500 p-8 text-white">
+            <div className="bg-gradient-to-br from-purple-800 to-purple-400 py-8 px-16  text-white">
               <h3 className="text-2xl font-bold mb-3">
                 Still have questions? Let's talk.
               </h3>
@@ -124,7 +124,7 @@ export default function FAQ() {
             <div className="p-6 flex flex-col items-center gap-4">
               <button
                 onClick={() => router.push("/book-appointment")}
-                className="w-full py-3 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 text-white font-semibold shadow-md hover:scale-105 transition"
+                className="w-full py-3 rounded-full bg-gradient-to-r from-purple-800 to-purple-400 text-white font-semibold shadow-md hover:scale-105 transition"
               >
                 📅 Book a Free Call
               </button>

@@ -212,7 +212,7 @@ export default function InsurancePage() {
   const [form, setForm] = useState<Form>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const application = useApplicationStore((s) => s.application);
   const setApplication = useApplicationStore((s) => s.setApplication);
   const updateStep = useApplicationStore((s) => s.updateStep);
@@ -260,7 +260,7 @@ export default function InsurancePage() {
         }
       }
     }
-    
+
     s.push("alwaysInsured");
     s.push("livingInGermany");
     return s;
@@ -291,6 +291,66 @@ export default function InsurancePage() {
         insuranceHistory.proofOfInsurance,
     });
   }, [application]);
+
+  const getStepError = (step: string, form: Form): string | null => {
+    switch (step) {
+      case "germanInsurance12m":
+        return normalizeYesNo(form.germanInsurance12m)
+          ? null
+          : "Please select an option.";
+
+      case "initialProviderName":
+        return form.initialProviderName?.trim()
+          ? null
+          : "Please enter your provider name.";
+
+      case "permanentContract":
+        return normalizeYesNo(form.permanentContract)
+          ? null
+          : "Please select an option.";
+
+      case "otherInsurance12m":
+        return form.otherInsurance12m?.trim()
+          ? null
+          : "Please describe your previous insurance.";
+
+      case "proofOfInsurance":
+        return normalizeYesNo(form.proofOfInsurance)
+          ? null
+          : "Please select an option.";
+
+      case "recentInsurance":
+        return form.recentInsurance ? null : "Please select an option.";
+
+      case "germanProvider":
+        return form.germanProvider ? null : "Please select an option.";
+
+      case "insuranceEndDate":
+        if (!form.insuranceEndDate) {
+          return "Please enter a date or select 'It's still active'.";
+        }
+        if (form.insuranceEndDate !== "still-active") {
+          if (!form.endDay || !form.endMonth || !form.endYear) {
+            return "Please fill all date fields.";
+          }
+        }
+        return null;
+
+      case "coverageStart":
+        return form.coverageStart
+          ? null
+          : "Please select a coverage start date.";
+
+      case "alwaysInsured":
+        return form.alwaysInsured ? null : "Please select an option.";
+
+      case "livingInGermany":
+        return form.livingInGermany ? null : "Please select an option.";
+
+      default:
+        return null;
+    }
+  };
 
   const handleChange = (name: string, value: any) => {
     const normalizedValue =
@@ -332,11 +392,16 @@ export default function InsurancePage() {
 
     setForm(updated);
 
+    // ✅ mark touched
+    setTouched((prev) => ({ ...prev, [name]: true }));
+
+    // ✅ LIVE VALIDATION (based on current step)
+    const stepError = getStepError(stepKey, updated);
+    setError(stepError);
+
     setTimeout(() => {
       updateStep("insuranceHistory", updated);
     }, 0);
-
-    setError(null);
   };
 
   useEffect(() => {
@@ -879,6 +944,16 @@ export default function InsurancePage() {
     );
   }
 
+  const getInputClasses = (field: string) => {
+    const hasError = error && touched[field];
+
+    return `w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm outline-none transition-all ${
+      hasError
+        ? "border-red-400 focus:ring-2 focus:ring-red-400/20"
+        : "border-black/[0.08] focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10"
+    }`;
+  };
+
   // ── STEP VIEW ─────────────────────────────────────────────────────────────
   const renderStep = () => {
     // ── NEW: Q1 — German insurance in past 12 months ──
@@ -933,8 +1008,10 @@ export default function InsurancePage() {
             type="text"
             placeholder="Provider name"
             value={form.initialProviderName || ""}
-            onChange={(e) => handleChange("initialProviderName", e.target.value)}
-            className="w-full bg-slate-50 border border-black/[0.08] rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all"
+            onChange={(e) =>
+              handleChange("initialProviderName", e.target.value)
+            }
+            className={getInputClasses("initialProviderName")}
           />
         </>
       );
@@ -953,7 +1030,13 @@ export default function InsurancePage() {
               return (
                 <motion.button
                   key={opt}
-                  onClick={() => handleChange("permanentContract", opt)}
+                  onClick={() => {
+                    handleChange("permanentContract", opt);
+                    setTouched((prev) => ({
+                      ...prev,
+                      permanentContract: true,
+                    }));
+                  }}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
@@ -993,7 +1076,7 @@ export default function InsurancePage() {
             value={form.otherInsurance12m || ""}
             onChange={(e) => handleChange("otherInsurance12m", e.target.value)}
             rows={3}
-            className="w-full bg-slate-50 border border-black/[0.08] rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all resize-none"
+            className={getInputClasses("otherInsurance12m") + " resize-none"}
           />
         </>
       );
@@ -1016,7 +1099,10 @@ export default function InsurancePage() {
               return (
                 <motion.button
                   key={opt}
-                  onClick={() => handleChange("proofOfInsurance", opt)}
+                  onClick={() => {
+                    handleChange("proofOfInsurance", opt);
+                    setTouched((prev) => ({ ...prev, proofOfInsurance: true }));
+                  }}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
@@ -1069,7 +1155,10 @@ export default function InsurancePage() {
               return (
                 <motion.button
                   key={value}
-                  onClick={() => handleChange("recentInsurance", value)}
+                  onClick={() => {
+                    handleChange("recentInsurance", value);
+                    setTouched((prev) => ({ ...prev, recentInsurance: true }));
+                  }}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-start gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20 hover:bg-slate-50"}`}
@@ -1114,7 +1203,10 @@ export default function InsurancePage() {
               return (
                 <motion.button
                   key={opt}
-                  onClick={() => handleChange("germanProvider", opt)}
+                  onClick={() => {
+                    handleChange("germanProvider", opt);
+                    setTouched((prev) => ({ ...prev, germanProvider: true }));
+                  }}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
@@ -1167,7 +1259,7 @@ export default function InsurancePage() {
                     handleChange("insuranceEndDate", "manual");
                     handleChange(field, e.target.value);
                   }}
-                  className="w-full bg-slate-50 border border-black/[0.08] rounded-xl px-3 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all text-center disabled:opacity-40"
+                  className={getInputClasses(field) + " text-center"}
                 />
               </div>
             ))}
@@ -1262,7 +1354,9 @@ export default function InsurancePage() {
             value={dontKnow ? "" : form.providerName || ""}
             disabled={dontKnow}
             onChange={(e) => handleChange("providerName", e.target.value)}
-            className="w-full bg-slate-50 border border-black/[0.08] rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all mb-3 disabled:opacity-40"
+            className={
+              getInputClasses("providerName") + " mb-3 disabled:opacity-40"
+            }
           />
           <motion.button
             onClick={() =>
@@ -1313,7 +1407,10 @@ export default function InsurancePage() {
               return (
                 <motion.button
                   key={opt}
-                  onClick={() => handleChange("alwaysInsured", opt)}
+                  onClick={() => {
+                    handleChange("alwaysInsured", opt);
+                    setTouched((prev) => ({ ...prev, alwaysInsured: true }));
+                  }}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
@@ -1358,7 +1455,10 @@ export default function InsurancePage() {
               return (
                 <motion.button
                   key={opt}
-                  onClick={() => handleChange("livingInGermany", opt)}
+                  onClick={() => {
+                    handleChange("livingInGermany", opt);
+                    setTouched((prev) => ({ ...prev, livingInGermany: true }));
+                  }}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
