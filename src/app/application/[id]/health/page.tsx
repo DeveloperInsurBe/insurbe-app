@@ -541,8 +541,6 @@ export default function MedicalPage() {
     if (!canvas) return;
     const onTS = (e: TouchEvent) => {
       e.preventDefault();
-      if (!canvasRef.current) return;
-      canvasRef.current.focus?.();
       isDrawing.current = true;
       const t = e.touches[0];
       const r = canvas.getBoundingClientRect();
@@ -601,32 +599,6 @@ export default function MedicalPage() {
   const captureSignature = () =>
     handleChange("signature", canvasRef.current!.toDataURL("image/png"));
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const resizeCanvas = () => {
-      const rect = canvas.getBoundingClientRect();
-
-      // Save drawing
-      const ctx = canvas.getContext("2d");
-      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
-
-      // Set proper size
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-
-      // Restore drawing
-      if (imageData) {
-        ctx?.putImageData(imageData, 0, 0);
-      }
-    };
-
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
-    return () => window.removeEventListener("resize", resizeCanvas);
-  }, []);
   const handleFileChange = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const uploaded = await Promise.all(
@@ -653,7 +625,7 @@ export default function MedicalPage() {
     setTouched((prev) => ({ ...prev, [name]: true }));
 
     // ✅ LIVE VALIDATION
-    const err = validate();
+    const err = validateWithData(updated);
     setError(err);
 
     updateStep("healthAnswers", updated);
@@ -662,7 +634,7 @@ export default function MedicalPage() {
   // ── Validate current grouped step ──────────────────────────────────────
   const validate = (): string | null => {
     const s = current as any;
-    if (s.type === "consent1" && !form.consent1)
+    if (s.type === "consent1" && !form.consent1 && touched.consent1)
       return "Please accept the terms to continue.";
     if (s.type === "consent2" && !form.consent2)
       return "Please accept the terms to continue.";
@@ -688,6 +660,44 @@ export default function MedicalPage() {
     }
     if (s.type === "spectacles" && !form.spectacles)
       return "Please select an option.";
+    return null;
+  };
+
+  const validateWithData = (data: Form): string | null => {
+    const s = current as any;
+
+    if (s.type === "consent1" && !data.consent1)
+      return "Please accept the terms to continue.";
+
+    if (s.type === "consent2" && !data.consent2)
+      return "Please accept the terms to continue.";
+
+    if (s.type === "measurements") {
+      for (const f of s.fields) {
+        if (!data[f.key]?.toString().trim())
+          return `Please enter your ${f.label.toLowerCase()}.`;
+        if (isNaN(Number(data[f.key])) || Number(data[f.key]) <= 0)
+          return `Please enter a valid ${f.label.toLowerCase()}.`;
+      }
+    }
+
+    if (s.type === "multi-yesno" || s.type === "multi-yesno-count") {
+      for (const q of s.questions) {
+        if (!data[q.key])
+          return "Please answer all questions before continuing.";
+
+        if (
+          s.type === "multi-yesno-count" &&
+          data[q.key] === "Yes" &&
+          !data[q.countKey]?.toString().trim()
+        )
+          return `Please enter the ${q.countLabel.toLowerCase()}.`;
+      }
+    }
+
+    if (s.type === "spectacles" && !data.spectacles)
+      return "Please select an option.";
+
     return null;
   };
 
@@ -722,7 +732,7 @@ export default function MedicalPage() {
         return "Please upload pending document to continue.";
       }
     }
-    if (s.type === "signature" && !form.signature)
+    if (s.type === "signature" && !form.signature && !hasDrawn)
       return "Please draw your signature before continuing.";
     if (s.type === "sepa") {
       if (!form.sepaName?.trim())
@@ -784,15 +794,22 @@ export default function MedicalPage() {
         body: JSON.stringify(cleanForm),
       });
       if (!healthRes.ok) {
-        console.warn("⚠️ Retrying health save...");
-        await new Promise((r) => setTimeout(r, 3000));
+        console.warn("⚠️ Database cold start, retrying...");
+
+        // show loader message instead of alert
+        setLoaderStep(0); // stays on "Reviewing answers"
+
+        await new Promise((r) => setTimeout(r, 2500));
+
         healthRes = await fetch(`/api/application/${id}/health`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(cleanForm),
         });
+
         if (!healthRes.ok) {
-          alert("Database is waking up. Please try again.");
+         
+          setError("Server is waking up… please try again in a moment.");
           setLoading(false);
           setShowLoader(false);
           return;
