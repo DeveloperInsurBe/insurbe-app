@@ -521,6 +521,42 @@ export default function MedicalPage() {
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
+
+  // ✅ ADD THIS (for mobile)
+  const startTouch = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    isDrawing.current = true;
+
+    const { canvas, ctx } = getCtx();
+    const r = canvas.getBoundingClientRect();
+
+    const x = (t.clientX - r.left) * (canvas.width / r.width);
+    const y = (t.clientY - r.top) * (canvas.height / r.height);
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const moveTouch = (e: React.TouchEvent) => {
+    if (!isDrawing.current) return;
+
+    const t = e.touches[0];
+    const { canvas, ctx } = getCtx();
+    const r = canvas.getBoundingClientRect();
+
+    const x = (t.clientX - r.left) * (canvas.width / r.width);
+    const y = (t.clientY - r.top) * (canvas.height / r.height);
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    setHasDrawn(true);
+  };
+
+  const endTouch = () => {
+    isDrawing.current = false;
+    getCtx().ctx.beginPath();
+  };
   const endDraw = () => {
     isDrawing.current = false;
     getCtx().ctx.beginPath();
@@ -535,60 +571,6 @@ export default function MedicalPage() {
     ctx.moveTo(x, y);
     setHasDrawn(true);
   };
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const onTS = (e: TouchEvent) => {
-      e.preventDefault();
-      isDrawing.current = true;
-      const t = e.touches[0];
-      const r = canvas.getBoundingClientRect();
-      const x = (t.clientX - r.left) * (canvas.width / r.width);
-      const y = (t.clientY - r.top) * (canvas.height / r.height);
-      const ctx = canvas.getContext("2d")!;
-      Object.assign(ctx, {
-        lineWidth: 2.5,
-        lineCap: "round",
-        lineJoin: "round",
-        strokeStyle: "#1e293b",
-      });
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-    };
-    const onTM = (e: TouchEvent) => {
-      if (!isDrawing.current) return;
-      e.preventDefault();
-      const t = e.touches[0];
-      const r = canvas.getBoundingClientRect();
-      const x = (t.clientX - r.left) * (canvas.width / r.width);
-      const y = (t.clientY - r.top) * (canvas.height / r.height);
-      const ctx = canvas.getContext("2d")!;
-      Object.assign(ctx, {
-        lineWidth: 2.5,
-        lineCap: "round",
-        lineJoin: "round",
-        strokeStyle: "#1e293b",
-      });
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      setHasDrawn(true);
-    };
-    const onTE = () => {
-      isDrawing.current = false;
-      canvas.getContext("2d")!.beginPath();
-    };
-    canvas.addEventListener("touchstart", onTS, { passive: false });
-    canvas.addEventListener("touchmove", onTM, { passive: false });
-    canvas.addEventListener("touchend", onTE, { passive: false });
-    return () => {
-      canvas.removeEventListener("touchstart", onTS);
-      canvas.removeEventListener("touchmove", onTM);
-      canvas.removeEventListener("touchend", onTE);
-    };
-  }, [screen, postStepIndex]);
 
   const clearCanvas = () => {
     const { canvas, ctx } = getCtx();
@@ -808,7 +790,6 @@ export default function MedicalPage() {
         });
 
         if (!healthRes.ok) {
-         
           setError("Server is waking up… please try again in a moment.");
           setLoading(false);
           setShowLoader(false);
@@ -1609,7 +1590,7 @@ export default function MedicalPage() {
                 ref={canvasRef}
                 width={520}
                 height={180}
-                className="w-full touch-none"
+                className="w-full"
                 style={{
                   display: "block",
                   touchAction: "none",
@@ -1619,6 +1600,9 @@ export default function MedicalPage() {
                 onMouseUp={endDraw}
                 onMouseLeave={endDraw}
                 onMouseMove={draw}
+                onTouchStart={startTouch}
+                onTouchMove={moveTouch}
+                onTouchEnd={endTouch}
               />
             </motion.div>
             <div className="flex justify-end">
