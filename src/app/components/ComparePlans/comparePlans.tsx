@@ -235,11 +235,22 @@ export default function ComparePlans() {
       let displayPremium: string;
       if (product.loading || product.premium == null) {
         displayPremium = "...";
-      } else if (!Number.isNaN(premiumNumber)) {
-        const adjusted =
-          isEmployed && isHallesche ? premiumNumber / 2 : premiumNumber;
-        displayPremium = adjusted.toFixed(2);
-      } else {
+     } else if (!Number.isNaN(premiumNumber)) {
+  let adjusted = premiumNumber;
+
+  if (isEmployed && isHallesche) {
+    const MAX_EMPLOYER_SUBSIDY = 508.59;
+
+    const employerSubsidy = Math.min(
+      premiumNumber * 0.5,
+      MAX_EMPLOYER_SUBSIDY
+    );
+
+    adjusted = premiumNumber - employerSubsidy;
+  }
+
+  displayPremium = adjusted.toFixed(2);
+} else {
         displayPremium = "N/A";
       }
 
