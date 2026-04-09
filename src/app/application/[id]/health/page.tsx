@@ -607,8 +607,8 @@ export default function MedicalPage() {
     setTouched((prev) => ({ ...prev, [name]: true }));
 
     // ✅ LIVE VALIDATION
-    const err = validateWithData(updated);
-    setError(err);
+    // const err = validateWithData(updated);
+    // setError(err);
 
     updateStep("healthAnswers", updated);
   };
@@ -707,11 +707,33 @@ export default function MedicalPage() {
     isLast ? setScreen("summary") : setStepIndex((p) => p + 1);
   };
 
+  const getPendingDocs = () => {
+    const financial = application?.financialHistory || {};
+
+    if (financial.employmentStatus === "employee" && !financial.documents) {
+      return ["Signed work contract"];
+    }
+
+    if (
+      financial.employmentStatus === "self-employed" &&
+      !financial.documents
+    ) {
+      return ["Last 3 months bank statements"];
+    }
+
+    return [];
+  };
+
   const validatePost = (): string | null => {
     const s = POST_STEPS[postStepIndex];
     if (s.type === "documents") {
-      if (!form.documents || form.documents.length === 0) {
-        return "Please upload pending document to continue.";
+      const pending = getPendingDocs();
+
+      if (
+        pending.length > 0 &&
+        (!form.documents || form.documents.length === 0)
+      ) {
+        return "Please upload required document to continue.";
       }
     }
     if (s.type === "signature" && !form.signature && !hasDrawn)
@@ -1414,14 +1436,45 @@ export default function MedicalPage() {
 
     const ps = POST_STEPS[postStepIndex];
     const postProgress = Math.round((postStepIndex / POST_STEPS.length) * 100);
+
     const renderPostContent = () => {
       if (ps.type === "documents") {
         const docs: any[] = form.documents || [];
+        const pendingDocs = getPendingDocs();
+        const financial = application?.financialHistory || {};
         return (
           <>
-            <p className="text-sm text-slate-400 font-light leading-relaxed mb-5">
-              Upload any supporting documents required.
-            </p>
+            {pendingDocs.length > 0 ? (
+              <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                <p className="text-sm font-semibold text-amber-700">
+                  Pending document required
+                </p>
+                <p className="text-xs text-amber-600 mt-1">
+                  Please upload: {pendingDocs.join(", ")}
+                </p>
+              </div>
+            ) : financial.documents ? (
+              <div className="mb-5 p-4 rounded-xl bg-green-50 border border-green-200">
+                <p className="text-sm font-semibold text-green-700">
+                  Document already provided
+                </p>
+
+                {financial.documents ? (
+                  <p className="text-xs text-green-600 mt-1">
+                    Uploaded:{" "}
+                    <span className="font-medium">
+                      {Array.isArray(financial.documents)
+                        ? financial.documents[0]?.name
+                        : financial.documents?.name}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="text-xs text-green-600 mt-1">
+                    Your document has been uploaded earlier
+                  </p>
+                )}
+              </div>
+            ) : null}
             <motion.div
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => {

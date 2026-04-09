@@ -396,8 +396,8 @@ export default function InsurancePage() {
     setTouched((prev) => ({ ...prev, [name]: true }));
 
     // ✅ LIVE VALIDATION (based on current step)
-    const stepError = getStepError(stepKey, updated);
-    setError(stepError);
+    // const stepError = getStepError(stepKey, updated);
+    // setError(stepError);
 
     setTimeout(() => {
       updateStep("insuranceHistory", updated);

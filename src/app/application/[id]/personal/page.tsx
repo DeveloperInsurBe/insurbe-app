@@ -272,6 +272,7 @@ export default function PersonalDetailsPage() {
   const [showResidenceInfo, setShowResidenceInfo] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   //   const [application, setApplication] = useState<any>(null);
+  const isReadyRef = useRef(false);
   const application = useApplicationStore((s) => s.application);
   const setApplication = useApplicationStore((s) => s.setApplication);
   const updateStep = useApplicationStore((s) => s.updateStep);
@@ -320,24 +321,28 @@ export default function PersonalDetailsPage() {
   const hasInitializedForm = useRef(false);
 
   useEffect(() => {
-    if (!application) return;
+    if (!application || !application.personalDetails) return;
     if (hasInitializedForm.current) return;
 
     const journey = useJourneyStore.getState();
     const personal = application.personalDetails || {};
 
-    setForm({
+    if (Object.keys(personal).length === 0) return;
+
+    setForm((prev: any) => ({
       ...personal,
 
-      email: personal.email || journey.email,
-      phone: personal.phone || journey.phone,
+      email: prev?.email ?? personal.email ?? journey.email ?? "",
+
+      phone: prev?.phone ?? personal.phone ?? journey.phone ?? "",
 
       day: personal.day || (journey.dob ? journey.dob.split("-")[2] : ""),
       month: personal.month || (journey.dob ? journey.dob.split("-")[1] : ""),
       year: personal.year || (journey.dob ? journey.dob.split("-")[0] : ""),
-    });
+    }));
 
     hasInitializedForm.current = true;
+    isReadyRef.current = true;
   }, [application]);
 
   const questions = [
@@ -465,8 +470,13 @@ export default function PersonalDetailsPage() {
   };
 
   useEffect(() => {
-    if (!id || !form || Object.keys(form).length === 0) return;
-
+    if (
+      !id ||
+      !form ||
+      Object.keys(form).length === 0 ||
+      !isReadyRef.current // ✅ ADD THIS
+    )
+      return;
     const timeout = setTimeout(async () => {
       try {
         await fetch(`/api/application/${id}`, {
