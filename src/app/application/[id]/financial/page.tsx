@@ -226,13 +226,7 @@ export default function FinancialPage() {
       key: "employmentStatus",
       title: "What is your employment status?",
       type: "radio",
-      options: [
-        "Employed",
-        "Self employed",
-        "Civil servant",
-        "University student",
-        "Other",
-      ],
+      options: ["employee", "self-employed", "free-lance", "not working"],
     },
     {
       key: "jobTitle",
