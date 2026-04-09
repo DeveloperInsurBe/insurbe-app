@@ -22,7 +22,8 @@ export async function POST(
     const financial = app.financialHistory as any;
     const insurance = app.insuranceHistory as any;
     const health = app.healthAnswers as any;
-
+    console.log("👤 PERSONAL:", personal);
+    console.log("💼 FINANCIAL:", financial);
     console.log("🧠 HEALTH DATA:", health);
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const soapRes = await fetch(`${baseUrl}/api/getorder`, {
@@ -34,7 +35,12 @@ export async function POST(
         name: personal?.lastName,
         geburtsdatum: `${personal?.year}-${personal?.month}-${personal?.day}`,
         anrede: "Item1",
-        geschlecht: "Item1",
+        geschlecht:
+          personal?.gender === "Female"
+            ? "Item2"
+            : personal?.gender === "Other"
+              ? "Item3"
+              : "Item1",
         beginn: "2026-04-01",
       }),
     });
@@ -89,30 +95,41 @@ export async function POST(
           const options = field.getOptions();
 
           console.log("📻 RADIO:", name, "OPTIONS:", options, "VALUE:", value);
+          // ✅ ADD THIS HERE
+          if (name === "Berufsstellung-VP1") {
+            console.log("🔥 EMPLOYMENT OPTIONS:", options);
+          }
+          const val = String(value).toLowerCase().trim();
 
-          // ✅ Normalize value
-          const val = String(value).toLowerCase();
-          const isYes = val === "yes" || val === "true" || val === "ja";
+          // ✅ FIRST: Try to match by exact value or case-insensitive match
+          let selected = options.find(
+            (opt: string) => opt.toLowerCase().trim() === val,
+          );
 
-          let selected;
+          // ✅ SECOND: Try partial matching (contains)
+          if (!selected) {
+            selected = options.find((opt: string) =>
+              opt.toLowerCase().includes(val),
+            );
+          }
 
-          // 🔥 FIX: SELECT BY POSITION (NOT STRING MATCH)
-          if (isYes) {
-            // usually YES is last option
-            selected = options[options.length - 1];
-          } else {
-            // NO is first option
-            selected = options[0];
+          // ✅ THIRD: Fall back to yes/no position logic for health questions
+          if (!selected) {
+            const isYes = val === "yes" || val === "true" || val === "ja";
+            if (isYes) {
+              selected = options[options.length - 1]; // YES is last
+            } else {
+              selected = options[0]; // NO is first
+            }
           }
 
           // ✅ Safety fallback
           if (!selected) {
-            console.log("❌ NO OPTION FOUND → USING FIRST OPTION");
+            console.log("❌ NO MATCH FOUND → USING FIRST OPTION");
             selected = options[0];
           }
 
           console.log("✅ SELECTED:", selected);
-
           field.select(selected);
         } else if (field instanceof PDFCheckBox) {
           value ? field.check() : field.uncheck();
@@ -141,16 +158,28 @@ export async function POST(
     setField("WohnortVN", String(personal?.city || ""));
     setField("NKZPLZ", String(personal?.postcode || ""));
     // ✅ FIXED EMPLOYMENT (SOURCE FIX)
-    setField(
-      "Berufsstellung-VP1",
-      financial?.employmentStatus === "Employed"
-        ? "employee"
-        : financial?.employmentStatus === "Self employed"
-          ? "self-employed"
-          : financial?.employmentStatus === "Freelancer"
-            ? "free-lance"
-            : "not working",
-    );
+    const employmentMap: any = {
+      "self-employed": "Selbstständig",
+      "free-lance": "Freiberuflich",
+      employee: "Arbeitnehmer",
+      "not working": "Nichtberufstätig",
+    };
+
+    // 🔥 handle old values also (important)
+    const fallbackMap: any = {
+      Employed: "Arbeitnehmer",
+      "Self employed": "Selbstständig",
+      Freelancer: "Freiberuflich",
+      Other: "Nichtberufstätig",
+    };
+
+    const employmentValue =
+      employmentMap[financial?.employmentStatus] ||
+      fallbackMap[financial?.employmentStatus] ||
+      "Arbeitnehmer";
+
+    setField("Berufsstellung-VP1", employmentValue);
+    setField("Berufsstellung-VN", employmentValue);
 
     const residenceMap: Record<string, string> = {
       Limited: "befristet",
@@ -162,6 +191,13 @@ export async function POST(
       residenceMap[personal?.residence] || personal?.residence,
     );
 
+    // GENDER FIELD
+    const genderMap: Record<string, string> = {
+      Male: "maennlich",
+      Female: "weiblich",
+      Other: "divers",
+    };
+    setField("Geschlecht-VP1", genderMap[personal?.gender] || personal?.gender);
     const relocationDate =
       personal?.relocationDay &&
       personal?.relocationMonth &&
@@ -172,19 +208,6 @@ export async function POST(
         : "";
 
     setField("Aufenthaltstitel-Datum-VP1", relocationDate);
-
-    // 🔥 ADD THIS (TOP SECTION)
-    setField(
-      "Berufsstellung-VN", // ⚠️ THIS IS THE MISSING ONE
-      financial?.employmentStatus === "Employed"
-        ? "employee"
-        : financial?.employmentStatus === "Self employed"
-          ? "self-employed"
-          : financial?.employmentStatus === "Freelancer"
-            ? "free-lance"
-            : "not working",
-    );
-
     // =========================
     // FINANCIAL (UNCHANGED ✅)
     // =========================
@@ -353,26 +376,26 @@ export async function POST(
     setField("BICKreditinstitut", health?.sepaBic);
     setField("OrtDatumIN4", new Date().toLocaleDateString());
 
-  const payment = String(health?.sepaPaymentFrequency || "").toLowerCase();
+    const payment = String(health?.sepaPaymentFrequency || "").toLowerCase();
 
-const paymentField = form.getFieldMaybe("Zahlart");
+    const paymentField = form.getFieldMaybe("Zahlart");
 
-if (paymentField instanceof PDFRadioGroup) {
-  const options = paymentField.getOptions();
+    if (paymentField instanceof PDFRadioGroup) {
+      const options = paymentField.getOptions();
 
-  const map: any = {
-    monthly: 0,
-    quarterly: 1,
-    "half-yearly": 2,
-    yearly: 3,
-  };
+      const map: any = {
+        monthly: 0,
+        quarterly: 1,
+        "half-yearly": 2,
+        yearly: 3,
+      };
 
-  const index = map[payment] ?? 0;
+      const index = map[payment] ?? 0;
 
-  console.log("💳 PAYMENT:", payment, "→ INDEX:", index);
+      console.log("💳 PAYMENT:", payment, "→ INDEX:", index);
 
-  paymentField.select(options[index]);
-}
+      paymentField.select(options[index]);
+    }
     // ✅ GERMAN TAX ID
     const taxId = financial?.germanTaxIdNumber || "";
 
@@ -515,45 +538,45 @@ if (paymentField instanceof PDFRadioGroup) {
     });
 
     // =========================
-   // =========================
-// 📧 SEND EMAIL WITH PDF (FIXED)
-// =========================
-try {
-  // 🔥 Always use relative URL (IMPORTANT for production)
-  const userEmail = personal?.email || "";
+    // =========================
+    // 📧 SEND EMAIL WITH PDF (FIXED)
+    // =========================
+    try {
+      // 🔥 Always use relative URL (IMPORTANT for production)
+      const userEmail = personal?.email || "";
 
-  if (!userEmail) {
-    console.log("⚠️ No user email found");
-  } else {
-    console.log("📧 Sending email to:", userEmail);
+      if (!userEmail) {
+        console.log("⚠️ No user email found");
+      } else {
+        console.log("📧 Sending email to:", userEmail);
 
-    const emailRes = await fetch(`/api/sendAcknowledgement`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: userEmail,
-        name: personal?.firstName || userEmail.split("@")[0],
-        orderId: app?.orderId || id,
-        formType: "private",
-        pdfBase64: base64, // ✅ FINAL PDF
-        filename: "Hallesche_Application.pdf",
-      }),
-    });
+        const emailRes = await fetch(`/api/sendAcknowledgement`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: userEmail,
+            name: personal?.firstName || userEmail.split("@")[0],
+            orderId: app?.orderId || id,
+            formType: "private",
+            pdfBase64: base64, // ✅ FINAL PDF
+            filename: "Hallesche_Application.pdf",
+          }),
+        });
 
-    // ✅ IMPORTANT: check response
-    const emailData = await emailRes.json().catch(() => ({}));
+        // ✅ IMPORTANT: check response
+        const emailData = await emailRes.json().catch(() => ({}));
 
-    if (!emailRes.ok) {
-      console.error("❌ EMAIL API FAILED:", emailData);
-    } else {
-      console.log("✅ Email sent successfully:", emailData);
+        if (!emailRes.ok) {
+          console.error("❌ EMAIL API FAILED:", emailData);
+        } else {
+          console.log("✅ Email sent successfully:", emailData);
+        }
+      }
+    } catch (emailError) {
+      console.error("❌ Email sending error:", emailError);
     }
-  }
-} catch (emailError) {
-  console.error("❌ Email sending error:", emailError);
-}
 
     console.log("✅ FINAL PDF DONE");
 
