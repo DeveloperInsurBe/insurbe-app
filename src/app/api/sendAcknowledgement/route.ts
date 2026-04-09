@@ -4,14 +4,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
-    const {
-      email,
-      name,
-      formType,
-      pdfBase64,
-      filename,
-      orderId,
-    } = await req.json();
+    const { email, name, formType, pdfBase64, filename, orderId } =
+      await req.json();
 
     if (!email) {
       return Response.json({ success: false, message: "Email required" });
@@ -23,8 +17,7 @@ export async function POST(req: Request) {
       expat: "Expat Health Insurance Application Received",
     };
 
-    const subject =
-      subjectMap[formType] || "Insurance Application Received";
+    const subject = subjectMap[formType] || "Insurance Application Received";
 
     // 🔥 CLEAN BASE64 (VERY IMPORTANT)
     const cleanBase64 = pdfBase64
@@ -45,9 +38,14 @@ export async function POST(req: Request) {
           <p>Please find your completed application attached as a PDF.</p>
 
           <br/>
-          <p style="color:#666;font-size:14px">
-            If you have any questions, feel free to reply to this email.
-          </p>
+         <p style="color:#666;font-size:14px">
+  If you need help making a decision, you can 
+  <a href="https://insurbe.com/book-appointment"  target="_blank" 
+     style="color:#820ad1;text-decoration:underline;font-weight:500;">
+     book a consultation
+  </a> 
+  with one of our insurance experts (in English).
+</p>
 
           <br/>
 
@@ -75,7 +73,6 @@ export async function POST(req: Request) {
     console.log("📧 Email sent with PDF");
 
     return Response.json({ success: true });
-
   } catch (error) {
     console.error("❌ Email API error:", error);
     return Response.json({ success: false });
