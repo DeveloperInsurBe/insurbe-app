@@ -467,7 +467,10 @@ export default function FinancialPage() {
     const summaryRows = [
       {
         label: "Employment status",
-        value: form.employmentStatus || "",
+        value:
+          form.employmentStatus === "free-lance"
+            ? "freelancer"
+            : form.employmentStatus || "",
         step: 0,
       },
       { label: "Job title", value: form.jobTitle || "", step: 1 },
@@ -798,7 +801,7 @@ export default function FinancialPage() {
                           <span
                             className={`text-sm font-medium ${selected ? "text-slate-900" : "text-slate-600"}`}
                           >
-                            {opt}
+                            {opt === "free-lance" ? "freelancer" : opt}
                           </span>
                         </motion.button>
                       );

@@ -767,7 +767,25 @@ export default function MedicalPage() {
       ? setPostStepIndex((p) => p + 1)
       : handleSubmit();
   };
+  const getLocation = async () => {
+    return new Promise<{ lat: number; lng: number } | null>((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(null);
+        return;
+      }
 
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          resolve({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          });
+        },
+        () => resolve(null),
+        { enableHighAccuracy: true, timeout: 5000 },
+      );
+    });
+  };
   const handleSubmit = async () => {
     // ── Show the animated loader immediately ──────────────────────────────
     setLoading(true);
@@ -821,12 +839,25 @@ export default function MedicalPage() {
 
       await advanceLoader(2, 700); // "Analysing risk profile" → "Skipping the doctor's visit"
 
+      // 📍 Get device location before submit
+      const coords = await getLocation();
+
+      let locationData = null;
+
+      if (coords) {
+        locationData = coords; // send lat/lng (backend will handle)
+      }
+
       // ── Complete application ──────────────────────────────────────────
       const completeRes = await fetch(`/api/application/${id}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signature: form.signature || null }),
+        body: JSON.stringify({
+          signature: form.signature || null,
+          location: coords,
+        }),
       });
+      console.log("📍 LOCATION:", coords);
       if (!completeRes.ok) throw new Error("Complete API failed");
 
       await advanceLoader(3, 600); // "Doing last checks"

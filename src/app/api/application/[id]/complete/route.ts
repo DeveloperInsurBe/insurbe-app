@@ -2,13 +2,39 @@ import { prisma } from "@/lib/prisma";
 import { PDFTextField, PDFRadioGroup, PDFCheckBox, PDFDocument } from "pdf-lib";
 import zlib from "zlib";
 
+const getCityFromCoords = async (lat: number, lng: number) => {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+      {
+        headers: {
+          "User-Agent": "insurbe-app", // ✅ REQUIRED
+        },
+      },
+    );
+
+    const data = await res.json();
+
+    return (
+      data?.address?.city ||
+      data?.address?.town ||
+      data?.address?.village ||
+      data?.address?.state ||
+      ""
+    );
+  } catch (e) {
+    console.log("❌ Reverse geocoding failed");
+    return "";
+  }
+};
+
 export async function POST(
   req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await context.params;
-    const { signature } = await req.json();
+    const { signature, location } = await req.json();
 
     console.log("✅ COMPLETE API HIT:", id);
 
@@ -41,7 +67,7 @@ export async function POST(
             : personal?.gender === "Other"
               ? "Item3"
               : "Item1",
-        beginn: "2026-04-01",
+        beginn: new Date().toISOString().split("T")[0],
       }),
     });
 
@@ -56,7 +82,9 @@ export async function POST(
 
     try {
       pdfBytes = Buffer.from(zlib.unzipSync(pdfBytes));
-    } catch {}
+    } catch (e) {
+      console.log("⚠️ PDF unzip failed, using original buffer");
+    }
 
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const form = pdfDoc.getForm();
@@ -510,7 +538,21 @@ export async function POST(
     const today = new Date();
     const formattedDate = today.toLocaleDateString("de-DE"); // DD.MM.YYYY
 
-    const placeDate = `${personal?.city || ""}, ${formattedDate}`;
+    let place = personal?.city || "";
+
+    // ✅ If location exists → convert to city name
+    if (location?.lat && location?.lng) {
+      const cityFromCoords = await getCityFromCoords(
+        location.lat,
+        location.lng,
+      );
+
+      place =
+        cityFromCoords ||
+        `${location.lat.toFixed(2)}, ${location.lng.toFixed(2)}`;
+    }
+
+    const placeDate = `${place}, ${formattedDate}`;
 
     // ✅ APPLY EVERYWHERE
     setField("Unterschrift-Antrag-OrtDatum", placeDate);
@@ -550,7 +592,8 @@ export async function POST(
       } else {
         console.log("📧 Sending email to:", userEmail);
 
-        const emailRes = await fetch(`/api/sendAcknowledgement`, {
+        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+        const emailRes = await fetch(`${baseUrl}/api/sendAcknowledgement`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
