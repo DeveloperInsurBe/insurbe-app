@@ -710,6 +710,10 @@ export default function MedicalPage() {
   const getPendingDocs = () => {
     const financial = application?.financialHistory || {};
 
+     if (financial.documents) {
+    return [];
+  }
+
     if (financial.employmentStatus === "employee" && !financial.documents) {
       return ["Signed work contract"];
     }
@@ -723,6 +727,17 @@ export default function MedicalPage() {
 
     return [];
   };
+
+  useEffect(() => {
+  const financial = application?.financialHistory;
+
+  if (financial?.documents && !form.documents) {
+    setForm((prev: any) => ({
+      ...prev,
+      documents: [financial.documents], // ✅ autofill
+    }));
+  }
+}, [application]);
 
   const validatePost = (): string | null => {
     const s = POST_STEPS[postStepIndex];
@@ -861,31 +876,6 @@ export default function MedicalPage() {
       if (!completeRes.ok) throw new Error("Complete API failed");
 
       await advanceLoader(3, 600); // "Doing last checks"
-
-      // ── Send acknowledgement email ────────────────────────────────────
-      try {
-        const appRes = await fetch(`/api/application/${id}`);
-        const appData = await appRes.json();
-        const userEmail =
-          appData?.user?.email || appData?.personalDetails?.email || "";
-        if (userEmail) {
-          await fetch("/api/sendAcknowledgement", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: userEmail,
-              name: userEmail.split("@")[0],
-              orderId: appData?.orderId,
-              formType: "private",
-              pdfBase64: appData?.pdfBase64,
-              filename: "Hallesche.pdf",
-            }),
-          });
-          console.log("📧 Acknowledgement email sent to:", userEmail);
-        }
-      } catch (emailErr) {
-        console.warn("⚠️ Email send failed (non-fatal):", emailErr);
-      }
 
       // ── Determine if a health check warning should show ───────────────
       // Any redirectOnYes question answered Yes means a health check may be needed.
