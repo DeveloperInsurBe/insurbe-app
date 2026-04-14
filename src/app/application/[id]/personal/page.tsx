@@ -57,10 +57,10 @@ function isRealDate(day: number, month: number, year: number) {
 function validateStep(stepIndex: number, form: Form): string | null {
   const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,50}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const streetRegex = /^[A-Za-z0-9À-ÿ\s.,'-]{2,100}$/;
+  const streetRegex = /^[A-Za-z0-9À-ÿ\s.,'#/-]{1,100}$/;
   const houseNumberRegex = /^[A-Za-z0-9\s/-]{1,12}$/;
   const cityRegex = /^[A-Za-zÀ-ÿ\s.'-]{2,60}$/;
-  const postcodeRegex = /^\d{4,6}$/; // Germany format
+const postcodeRegex = /^[A-Za-z0-9\s-]{3,12}$/;
   const allowedMarital = ["Single", "Married", "Widowed", "Divorced"];
   const allowedGender = ["Male", "Female", "Other"];
   const allowedResidence = ["Limited", "Unlimited"];
@@ -150,7 +150,7 @@ function validateStep(stepIndex: number, form: Form): string | null {
 
       if (!postcode) return "Postcode is required.";
       if (!postcodeRegex.test(postcode))
-        return "Enter a valid 4- or 5-digit postcode.";
+        return "Enter a valid postcode.";
 
       if (!city) return "City is required.";
       if (!cityRegex.test(city)) return "Enter a valid city name.";

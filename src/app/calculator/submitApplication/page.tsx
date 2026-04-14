@@ -4,10 +4,12 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePremiumStore } from "@/app/stores/premiumStore";
 import { useJourneyStore } from "@/app/stores/journeyStore";
-import { Shield, Star } from "lucide-react";
+import { Shield, Star, Mail, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useApplicationStore } from "@/app/stores/applicationStore";
+import Link from "next/link";
+
 /* ---------------- Helpers ---------------- */
 
 type Plan = {
@@ -76,6 +78,8 @@ export default function SubmitApplication() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [showNewUserModal, setShowNewUserModal] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState("");
 
   const birthYear = journeyStore.dob ? journeyStore.dob.split("-")[0] : "";
   /* ---------- Guard ---------- */
@@ -261,11 +265,9 @@ export default function SubmitApplication() {
       const responseText = await res.text();
 
       console.log("⬅️ RESPONSE STATUS:", res);
-      // console.log("📄 RAW SOAP RESPONSE:", responseText || "(empty)");
 
       /* ✅ CHECK SOAP FAULT */
       if (responseText.includes("Fault")) {
-        // console.error("SOAP Fault detected:", responseText);
         setError("Insurance provider rejected the request. Please try again.");
         return;
       }
@@ -279,7 +281,6 @@ export default function SubmitApplication() {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(responseText, "application/xml");
 
-      // Log all fields so we can see what the server returns
       const allElements = xmlDoc.querySelectorAll("*");
       allElements.forEach((el) => {
         if (el.textContent?.trim() && el.children.length === 0) {
@@ -329,14 +330,13 @@ export default function SubmitApplication() {
 
           console.log("✅ Application saved:", applicationId);
 
-          // store only ID (not full PDF)
           sessionStorage.setItem("applicationId", applicationId);
         } catch (err) {
           console.error("❌ Failed to save application:", err);
         }
       }
 
-      /* ✅ SAVE TO SESSION STORAGE — only once, correctly */
+      /* ✅ SAVE TO SESSION STORAGE */
       sessionStorage.setItem("applicationOrderId", finalOrderId);
 
       sessionStorage.setItem(
@@ -371,9 +371,10 @@ export default function SubmitApplication() {
           console.error("❌ Failed to link application:", err);
         }
       }
+
       console.log("Selected plan:", plan);
 
-      // ✅ SAVE USER DATA TO APPLICATION DB (CRITICAL)
+      // ✅ SAVE USER DATA TO APPLICATION DB
       try {
         await fetch(`/api/application/${applicationId}`, {
           method: "PUT",
@@ -404,8 +405,67 @@ export default function SubmitApplication() {
 
       if (session) {
         router.push("/dashboard");
-      } else {
+        return;
+      }
+
+      // 🔍 check if user exists
+      const checkRes = await fetch("/api/user/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const { exists } = await checkRes.json();
+
+      if (exists) {
+        // existing user
         router.push("/login");
+      } else {
+        // 🚀 NEW USER FLOW - Show modal instead of redirecting immediately
+
+        const createRes = await fetch("/api/user/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+          }),
+        });
+
+        const createData = await createRes.json();
+
+        console.log("CREATE USER RESPONSE:", createData);
+
+        if (!createData.success) {
+          console.error("❌ User creation failed");
+          return;
+        }
+
+        const password = createData.password;
+
+        console.log("PASSWORD BEFORE EMAIL:", password);
+
+        if (!password) {
+          console.error("❌ Password missing before email call");
+          return;
+        }
+
+        // ✅ send email
+        await fetch("/api/send-credentials", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            name: `${firstName} ${lastName}`,
+            password: password,
+          }),
+        });
+
+        console.log("✅ SENT PASSWORD:", password);
+
+        // ✅ Show success modal for new user
+        setNewUserEmail(email);
+        setLoading(false);
+        setShowNewUserModal(true);
       }
     } catch (err) {
       console.error("❌ Submit error:", err);
@@ -436,20 +496,17 @@ export default function SubmitApplication() {
 
   function calculateCoverageStartDate() {
     const today = new Date();
-    const month = today.getMonth(); // 0 = Jan, 11 = Dec
+    const month = today.getMonth();
     const year = today.getFullYear();
 
-    // December → 01.04 next year
     if (month === 11) {
       return `01.04.${year + 1}`;
     }
 
-    // January → 01.05 same year
     if (month === 0) {
       return `01.05.${year}`;
     }
 
-    // ✅ Fallback → 2 days after today
     const fallbackDate = new Date();
     fallbackDate.setDate(fallbackDate.getDate() + 2);
 
@@ -496,7 +553,7 @@ export default function SubmitApplication() {
             <span className="text-gray-700">
               <span className="text-gray-700">{formattedCategory}</span>
             </span>{" "}
-             insurance application
+            insurance application
           </motion.h1>
         </div>
       </div>
@@ -519,7 +576,9 @@ export default function SubmitApplication() {
             {/* SECTION 1 */}
             <div className="space-y-6">
               <div className={sectionHeaderClass}>
-                <h2 className="text-xl font-bold text-white">Personal Details</h2>
+                <h2 className="text-xl font-bold text-white">
+                  Personal Details
+                </h2>
               </div>
 
               <motion.div variants={itemVariants} className="space-y-3">
@@ -752,7 +811,9 @@ export default function SubmitApplication() {
             {/* SECTION 4 */}
             <div className="space-y-4">
               <div className={sectionHeaderClass}>
-                <h2 className="text-xl font-bold text-white">Health Information</h2>
+                <h2 className="text-xl font-bold text-white">
+                  Health Information
+                </h2>
               </div>
 
               <motion.div variants={itemVariants} className="space-y-3">
@@ -761,8 +822,8 @@ export default function SubmitApplication() {
                 </label>
                 <p className="text-xs text-gray-600 mb-4">
                   This includes, among other things, cancer, severe addictions,
-                  cardiovascular diseases, or serious illnesses affecting organs,
-                  other parts of the body, or the psyche.
+                  cardiovascular diseases, or serious illnesses affecting
+                  organs, other parts of the body, or the psyche.
                 </p>
 
                 <div className="space-y-3">
@@ -783,7 +844,9 @@ export default function SubmitApplication() {
                       className="h-5 w-5 text-violet-600 focus:ring-violet-500"
                       required
                     />
-                    <span className="ml-3 text-sm font-medium text-gray-900">Yes</span>
+                    <span className="ml-3 text-sm font-medium text-gray-900">
+                      Yes
+                    </span>
                   </motion.label>
 
                   <motion.label
@@ -803,7 +866,9 @@ export default function SubmitApplication() {
                       className="h-5 w-5 text-violet-600 focus:ring-violet-500"
                       required
                     />
-                    <span className="ml-3 text-sm font-medium text-gray-900">No</span>
+                    <span className="ml-3 text-sm font-medium text-gray-900">
+                      No
+                    </span>
                   </motion.label>
                 </div>
               </motion.div>
@@ -847,10 +912,11 @@ export default function SubmitApplication() {
 
                 <div className="mt-4 pt-4 border-t border-violet-200">
                   <p className="text-sm text-gray-600 italic">
-                    <strong>Note:</strong> Some documents may not be automatically
-                    generated because multiple tariff IDs are being processed. Our
-                    team is working on this, and we'll share any missing documents
-                    with you as soon as they're available.
+                    <strong>Note:</strong> Some documents may not be
+                    automatically generated because multiple tariff IDs are
+                    being processed. Our team is working on this, and we'll
+                    share any missing documents with you as soon as they're
+                    available.
                   </p>
                 </div>
               </motion.div>
@@ -869,19 +935,19 @@ export default function SubmitApplication() {
                 />
                 <label htmlFor="terms" className="ml-3 text-sm text-gray-700">
                   I agree to the{" "}
-                  <a
+                  <Link
                     href="/termscondition"
                     className="text-violet-700 font-semibold hover:underline"
                   >
                     Terms and Conditions
-                  </a>{" "}
+                  </Link>{" "}
                   and{" "}
-                  <a
+                  <Link
                     href="/privacypolicy"
                     className="text-violet-700 font-semibold hover:underline"
                   >
                     Privacy Policy
-                  </a>
+                  </Link>
                 </label>
               </motion.div>
             </div>
@@ -918,7 +984,7 @@ export default function SubmitApplication() {
         </motion.form>
       </motion.div>
 
-      {/* Overlay */}
+      {/* Loading Overlay */}
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 backdrop-blur-[2px]">
           <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md text-center shadow-2xl border border-violet-100">
@@ -937,6 +1003,97 @@ export default function SubmitApplication() {
           </div>
         </div>
       )}
+
+      {/* ✅ NEW USER SUCCESS MODAL */}
+      <AnimatePresence>
+        {showNewUserModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
+            onClick={() => {
+              setShowNewUserModal(false);
+              router.push("/login");
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl border border-violet-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Success Icon */}
+              <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="w-10 h-10 text-white" />
+              </div>
+
+              {/* Title */}
+              <h2 className="text-2xl font-bold text-gray-900 text-center mb-3">
+                Account Created Successfully!
+              </h2>
+
+              {/* Message */}
+              <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <Mail className="w-5 h-5 text-violet-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      We've sent your login credentials to{" "}
+                      <span className="font-semibold text-violet-700">
+                        {newUserEmail}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Info List */}
+              <div className="space-y-3 mb-6">
+                <div className="flex items-start gap-2">
+                  <span className="text-violet-600 font-bold mt-0.5">•</span>
+                  <p className="text-sm text-gray-600">
+                    Check your inbox for the email with your password
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-violet-600 font-bold mt-0.5">•</span>
+                  <p className="text-sm text-gray-600">
+                    Use your email and the password provided to log in
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-violet-600 font-bold mt-0.5">•</span>
+                  <p className="text-sm text-gray-600">
+                    You can change your password after logging in
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  setShowNewUserModal(false);
+                  router.push("/login");
+                }}
+                className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-violet-200 transition-all"
+              >
+                Go to Login
+              </motion.button>
+
+              {/* Footer Note */}
+              <p className="text-xs text-gray-500 text-center mt-4">
+                Didn't receive the email? Check your spam folder or contact
+                support.
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

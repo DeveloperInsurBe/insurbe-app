@@ -1475,8 +1475,7 @@ export default function MedicalPage() {
         const financial = application?.financialHistory || {};
         return (
           <>
-            {pendingDocs.length > 0 ? (
-              <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
+{pendingDocs.length > 0 && (!form.documents || form.documents.length === 0) ? (              <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
                 <p className="text-sm font-semibold text-amber-700">
                   Pending document required
                 </p>
@@ -1484,10 +1483,10 @@ export default function MedicalPage() {
                   Please upload: {pendingDocs.join(", ")}
                 </p>
               </div>
-            ) : financial.documents ? (
+            ) : form.documents && form.documents.length > 0 ? (
               <div className="mb-5 p-4 rounded-xl bg-green-50 border border-green-200">
                 <p className="text-sm font-semibold text-green-700">
-                  Document already provided
+                  Document provided
                 </p>
 
                 {financial.documents ? (
@@ -1501,7 +1500,7 @@ export default function MedicalPage() {
                   </p>
                 ) : (
                   <p className="text-xs text-green-600 mt-1">
-                    Your document has been uploaded earlier
+                    Your document has been uploaded
                   </p>
                 )}
               </div>
