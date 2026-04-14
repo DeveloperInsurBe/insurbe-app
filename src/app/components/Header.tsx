@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -136,6 +136,8 @@ const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
 
+  const { data: session, status } = useSession();
+
   const toggleDrawer = () => {
     setIsOpen(!isOpen);
     setMobileProductsOpen(false);
@@ -180,16 +182,12 @@ const Header = () => {
     document.body.style.overflow = "unset";
   };
 
-  const { data: session, status } = useSession();
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    router.push("/");
+    handleLinkClick();
+  };
 
-  // Optional: avoid flicker while loading
-  if (status === "loading") {
-    return (
-      <div className="hidden md:flex items-center gap-4 ml-6">
-        <div className="h-9 w-24 rounded-xl bg-gray-200 animate-pulse" />
-      </div>
-    );
-  }
   return (
     <header className="sticky top-0 w-full z-50 backdrop-blur-xl bg-white/70 supports-backdrop-filter:bg-white/60 border-b border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
       <nav className="flex justify-between items-center px-6 md:px-10 xl:px-20 py-4 w-full">
@@ -197,6 +195,7 @@ const Header = () => {
         <Link href="/" className="font-bold font-serif flex items-center gap-2">
           <Image src="/logo.svg" alt="Logo" width={100} height={20} priority />
         </Link>
+
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-10 text-lg">
           {navLinks.map((link) =>
@@ -271,17 +270,7 @@ const Header = () => {
                         transition={{ duration: 0.2 }}
                         className="fixed left-0 top-[72px] w-screen z-50"
                       >
-                        <div
-                          className="
-  w-full
-  backdrop-blur-xl
-  bg-[#f4f4f4]/98
-  supports-[backdrop-filter]:bg-[#f4f4f4]/98
-  border-b border-white/20
-  shadow-[0_8px_30px_rgba(0,0,0,0.06)]
-"
-                        >
-                          {" "}
+                        <div className="w-full backdrop-blur-xl bg-[#f4f4f4]/98 supports-[backdrop-filter]:bg-[#f4f4f4]/98 border-b border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
                           <div className="max-w-6xl mx-auto px-8 py-10">
                             <h3 className="text-xl font-bold text-gray-900 mb-6">
                               Insurance Products
@@ -359,7 +348,7 @@ const Header = () => {
                                           {item.name}
                                         </h4>
 
-                                        {/* ✅ PRODUCT TAGS (ONLY NAVIGATION LINKS) */}
+                                        {/* PRODUCT TAGS */}
                                         <div className="flex flex-wrap gap-2 mb-3">
                                           {productTagsConfig[item.name]?.map(
                                             (tag) => (
@@ -367,12 +356,11 @@ const Header = () => {
                                                 key={tag.label}
                                                 type="button"
                                                 onClick={(e) => {
-                                                  e.stopPropagation(); // stops card click
+                                                  e.stopPropagation();
                                                   setShowProducts(false);
                                                   router.push(tag.href);
                                                 }}
-                                                className={`flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full font-semibold ${tag.color}
-              transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.03] hover:shadow-sm`}
+                                                className={`flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full font-semibold ${tag.color} transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.03] hover:shadow-sm`}
                                               >
                                                 <span className="text-xs">
                                                   {tag.icon}
@@ -423,11 +411,13 @@ const Header = () => {
             ),
           )}
         </div>
+
+        {/* Desktop Auth Buttons */}
         <div className="hidden md:flex items-center gap-4 ml-6">
           {!session ? (
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl  text-gray-900 text-[15px] font-medium  transition"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-gray-900 text-[15px] font-medium transition"
             >
               <User className="w-5 h-5" />
               Log in
@@ -497,26 +487,40 @@ const Header = () => {
                   </motion.button>
                 </div>
 
-                {/* Navigation Links - THIS IS THE KEY FIX */}
+                {/* Navigation Links */}
                 <div className="flex-1 min-h-0 overflow-y-auto p-4">
                   <div className="space-y-1">
-                    {/* Mobile Login CTA */}
-                    <Link
-                      href="/login"
-                      onClick={handleLinkClick}
-                      className="
-    flex items-center justify-center
-    px-4 py-3.5 mb-2
-    rounded-xl
-    bg-gradient-to-r from-primary to-purple-600
-    text-white
-    font-semibold
-    shadow-lg
-    transition
-  "
-                    >
-                      🔐 Login
-                    </Link>
+                    {/* Mobile Auth CTA */}
+                    {!session ? (
+                      <Link
+                        href="/login"
+                        onClick={handleLinkClick}
+                        className="flex items-center justify-center px-4 py-3.5 mb-2 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-semibold shadow-lg transition"
+                      >
+                        <User className="w-5 h-5 mr-2" />
+                        Log in
+                      </Link>
+                    ) : (
+                      <div className="mb-3 space-y-2">
+                        <button
+                          onClick={() => {
+                            router.push("/dashboard");
+                            handleLinkClick();
+                          }}
+                          className="w-full flex items-center justify-center px-4 py-3.5 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-semibold shadow-lg transition"
+                        >
+                          <LayoutDashboard className="w-5 h-5 mr-2" />
+                          My Account
+                        </button>
+                        <button
+                          onClick={handleSignOut}
+                          className="w-full flex items-center justify-center px-4 py-3 rounded-xl bg-red-50 text-red-600 font-semibold border border-red-200 hover:bg-red-100 transition"
+                        >
+                          <LogOut className="w-5 h-5 mr-2" />
+                          Sign Out
+                        </button>
+                      </div>
+                    )}
 
                     {navLinks.map((link) =>
                       link.submenu ? (
@@ -620,7 +624,6 @@ const Header = () => {
                         >
                           <span className="flex items-center gap-3">
                             <span className="text-xl">
-                              {/* {link.name === "Home" && "🏠"} */}
                               {link.name === "Enterprise" && "🏢"}
                               {link.name === "Support" && "🆘"}
                             </span>
