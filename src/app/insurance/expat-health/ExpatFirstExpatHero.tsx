@@ -24,13 +24,11 @@ export default function ExpatFirstExpatHero() {
   return (
     <section className="relative py-16 sm:py-10 px-4 sm:px-8 lg:px-18 overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-
         {/* LEFT CONTENT */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
         >
           {/* Heading */}
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
@@ -42,8 +40,8 @@ export default function ExpatFirstExpatHero() {
 
           {/* Description */}
           <p className="mt-2 text-gray-600 max-w-xl text-base sm:text-lg leading-relaxed">
-             Save money compared to public insurance
-            while enjoying superior coverage.
+            Save money compared to public insurance while enjoying superior
+            coverage.
           </p>
 
           {/* Benefits */}
@@ -59,12 +57,8 @@ export default function ExpatFirstExpatHero() {
               >
                 <CheckCircle className="w-4 h-4 text-purple-600 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="font-semibold text-gray-900">
-                    {item.title}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {item.desc}
-                  </p>
+                  <p className="font-semibold text-gray-900">{item.title}</p>
+                  <p className="text-sm text-gray-600">{item.desc}</p>
                 </div>
               </motion.li>
             ))}
@@ -93,8 +87,7 @@ export default function ExpatFirstExpatHero() {
         {/* RIGHT IMAGE */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="relative flex justify-center"
         >
@@ -110,7 +103,6 @@ export default function ExpatFirstExpatHero() {
             priority
           />
         </motion.div>
-
       </div>
     </section>
   );
