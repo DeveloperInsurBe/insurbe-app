@@ -30,31 +30,57 @@ export async function POST(req: Request) {
       subject: `${subject} (${orderId || ""})`,
 
       html: `
-        <div style="font-family:Arial,sans-serif;line-height:1.6">
-          <h2 style="color:#820ad1;">Hi ${name || "there"},</h2>
+    <div style="font-family:Arial,sans-serif;line-height:1.6;background:#f9fafb;padding:30px">
+      
+      <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;padding:30px;border:1px solid #eee">
+        
+        <h2 style="color:#820ad1;margin-bottom:10px;">
+          Hi ${name || "there"},
+        </h2>
 
-          <p>Thank you for submitting your <b>InsurBe insurance</b> application.</p>
+        <p style="font-size:16px;color:#333;margin-top:0;">
+          <b>You’re All Set! Your InsurBe Submission Is Complete</b>
+        </p>
 
-          <p>Please find your completed application attached as a PDF.</p>
+        <p style="color:#555;">
+          Thank you for choosing <b>InsurBe</b>.
+        </p>
 
-          <br/>
-         <p style="color:#666;font-size:14px">
-  If you need help making a decision, you can 
-  <a href="https://insurbe.com/book-appointment"  target="_blank" 
-     style="color:#820ad1;text-decoration:underline;font-weight:500;">
-     book a consultation
-  </a> 
-  with one of our insurance experts (in English).
-</p>
+        <p style="color:#555;">
+          Your insurance application has been successfully submitted, and a completed copy is attached to this email for your reference.
+        </p>
 
-          <br/>
-
-          <p>Best regards,<br/>
-          <b>InsurBe Team</b></p>
+        <div style="margin:25px 0;padding:20px;background:#f4f0ff;border-radius:10px;border:1px solid #e6dbff">
+          <p style="margin:0;color:#5b21b6;font-weight:600;">
+            📄 Your application PDF is attached to this email
+          </p>
         </div>
-      `,
 
-      // 🔥 ATTACHMENT (THIS WAS MISSING)
+        <p style="color:#555;">
+          If you’d like help reviewing your options or making a decision, you can 
+          <a href="https://insurbe.com/book-appointment" target="_blank" 
+             style="color:#820ad1;text-decoration:underline;font-weight:500;">
+             book a consultation
+          </a> 
+          with one of our insurance experts.
+        </p>
+
+        <p style="color:#555;">
+          We’re here to make this process simple and clear for you.
+        </p>
+
+        <br/>
+
+        <p style="color:#333;">
+          Warm regards,<br/>
+          <b>Team InsurBe</b>
+        </p>
+
+      </div>
+
+    </div>
+  `,
+
       attachments: cleanBase64
         ? [
             {
