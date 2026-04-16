@@ -12,28 +12,54 @@ export async function POST(req: Request) {
       subject: "Welcome to InsurBe 🎉",
 
       html: `
-        <div style="font-family:Arial,sans-serif;line-height:1.6">
-          <h2 style="color:#820ad1;">Hi ${name},</h2>
+    <div style="font-family:Arial,sans-serif;line-height:1.6;background:#f9fafb;padding:30px">
+      
+      <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;padding:30px;border:1px solid #eee">
+        
+        <h2 style="color:#820ad1;margin-bottom:10px;">
+          Hi ${name},
+        </h2>
 
-          <p>Welcome to <b>InsurBe</b> 🎉</p>
+        <p style="font-size:16px;color:#333;margin-top:0;">
+          Welcome to <b>InsurBe</b> 🎉
+        </p>
 
-          <p>Your account has been created successfully.</p>
+        <p style="color:#555;">
+          We’re excited to have you on board.
+        </p>
 
-          <h3>Your Login Credentials:</h3>
+        <p style="color:#555;">
+          Your account has been successfully created, and you’re now ready to explore everything InsurBe has to offer.
+        </p>
 
-          <p><b>Email:</b> ${email}</p>
-          <p><b>Password:</b> ${password}</p>
+        <div style="margin:25px 0;padding:20px;background:#f4f0ff;border-radius:10px;border:1px solid #e6dbff">
+          <h3 style="margin-top:0;color:#5b21b6;">
+            Your Login Credentials
+          </h3>
 
-          <p style="color:#666;font-size:14px">
-            You can change your password after logging in.
-          </p>
-
-          <br/>
-
-          <p>Best regards,<br/>
-          <b>InsurBe Team</b></p>
+          <p style="margin:6px 0;"><b>Email:</b> ${email}</p>
+          <p style="margin:6px 0;"><b>Password:</b> ${password}</p>
         </div>
-      `,
+
+        <p style="color:#555;">
+          For your security, we strongly recommend updating your password after your first login.
+        </p>
+
+        <p style="color:#555;">
+          If you need any assistance, our team is always here to help.
+        </p>
+
+        <br/>
+
+        <p style="color:#333;">
+          Looking forward to supporting you,<br/>
+          <b>Team InsurBe</b>
+        </p>
+
+      </div>
+
+    </div>
+  `,
     });
 
     if (data.error) {
