@@ -13,7 +13,7 @@ const providers = [
   {
     id: "tk",
     name: "TK",
-    logo: "/partners_asset/TK_logo.avif",
+    logo: "/icons/tk.png",
     english: 3,
     digital: 3,
     speed: 3,

@@ -399,7 +399,7 @@ export default function InsuranceCalculatorPrivate({
           >
             {/* Logo Added */}
             <Image
-              src="/partners_asset/TK_logo.avif"
+              src="/icons/tk.png"
               alt="Provider Logo"
               width={60}
               height={60}

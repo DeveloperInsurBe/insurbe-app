@@ -23,8 +23,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { INSURANCE_PLANS } from "@/app/constants/insurance";
-
+import { INSURANCE_PLANS, TK_CONFIG } from "@/app/constants/insurance";
 export default function InsuranceEligibilityQuiz() {
   const router = useRouter();
 
@@ -72,7 +71,7 @@ export default function InsuranceEligibilityQuiz() {
   ];
 
   // Determine if user is eligible for public insurance (age < 30)
-  const isEligibleForPublic = age === "below-30";
+  const isEligibleForPublic = age === "below-30" && degree !== "phd";
 
   const handlePlanSelect = ({
     title,
@@ -95,7 +94,10 @@ export default function InsuranceEligibilityQuiz() {
   };
 
   return (
-    <section id="studentjourney" className="relative py-16 sm:py-10 px-4 sm:px-8 lg:px-18 overflow-hidden">
+    <section
+      id="studentjourney"
+      className="relative py-16 sm:py-10 px-4 sm:px-8 lg:px-18 overflow-hidden"
+    >
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -375,6 +377,11 @@ export default function InsuranceEligibilityQuiz() {
                   transition={{ duration: 0.5 }}
                   className="space-y-6"
                 >
+                  {/* {degree === "phd" && (
+                    <p className="text-sm text-yellow-600 bg-yellow-50 p-3 rounded-lg mb-3">
+                      ⚠ {TK_CONFIG.eligibilityNote}
+                    </p>
+                  )} */}
                   {isEligibleForPublic ? (
                     // TK PUBLIC INSURANCE FOR UNDER 30
                     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-cyan-600 to-blue-700 p-[2px]">
@@ -398,7 +405,7 @@ export default function InsuranceEligibilityQuiz() {
                           </div>
                           <div className="flex items-center">
                             <Image
-                              src="/partners_asset/TK_logo.avif"
+                              src="/icons/tk.png"
                               alt="TK"
                               width={40}
                               height={40}
@@ -445,10 +452,10 @@ export default function InsuranceEligibilityQuiz() {
                           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div>
                               <p className="text-sm text-gray-500 mb-1">
-                                Starting from
+                                {TK_CONFIG.priceLabel} approx.
                               </p>
                               <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">
-                                €141
+                                €{TK_CONFIG.minPrice}
                                 <span className="text-lg text-gray-500 font-medium">
                                   /month
                                 </span>
@@ -459,11 +466,13 @@ export default function InsuranceEligibilityQuiz() {
                               onClick={() => {
                                 handlePlanSelect({
                                   title: "TK Public Insurance",
-                                  price: "141",
+                                  price: TK_CONFIG.minPrice.toString(),
                                   category: "Public",
                                 });
                                 // router.push("/insuranceSignupFlow");
-                                 router.push(`/insuranceSignupFlow?provider=${"tk"}`)
+                                router.push(
+                                  `/insuranceSignupFlow?provider=${"tk"}`,
+                                );
                               }}
                               whileHover={{ scale: 1.05, y: -2 }}
                               whileTap={{ scale: 0.95 }}
@@ -483,8 +492,7 @@ export default function InsuranceEligibilityQuiz() {
                     </div>
                   ) : (
                     // <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                                        <div className="grid grid-cols-1 gap-4 sm:gap-6">
-
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
                       {/* ================= OTTONOVA ================= */}
                       {/* <motion.div
                         initial={{ opacity: 0, y: 20 }}

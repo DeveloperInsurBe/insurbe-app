@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Check, X } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Check, X } from "lucide-react";
 
 interface Plan {
   id: string;
@@ -16,26 +16,31 @@ interface PlansCompareProps {
 
 export default function PlansCompare({ plans }: PlansCompareProps) {
   const features = [
-    { label: 'Monthly Premium', values: plans.map(p => p.price) },
-    { label: '24/7 Medical Assistance', values: [true, true, true] },
-    { label: 'English Support', values: [true, true, true] },
-    { label: 'Digital Services & App', values: [true, true, true] },
-    { label: 'Dental Coverage', values: [true, true, true] },
-    { label: 'Vision Coverage', values: [true, true, true] },
-    { label: 'Alternative Medicine', values: [true, true, true] },
-    { label: 'Hospital Private Room', values: [false, true, true] },
-    { label: 'Chief Physician Treatment', values: [false, true, true] },
-    { label: 'Worldwide Coverage', values: [true, true, true] },
-    { label: 'No Waiting Period', values: [true, false, false] },
-    { label: 'Prescription Medications', values: [true, true, true] }
+    {
+      label: "Monthly Premium",
+      values: plans.map((p) =>
+        p.id === "tk" ? `approx. €${p.price}` : `€${p.price}`,
+      ),
+    },
+    { label: "24/7 Medical Assistance", values: [true, true, true] },
+    { label: "English Support", values: [true, true, true] },
+    { label: "Digital Services & App", values: [true, true, true] },
+    { label: "Dental Coverage", values: [true, true, true] },
+    { label: "Vision Coverage", values: [true, true, true] },
+    { label: "Alternative Medicine", values: [true, true, true] },
+    { label: "Hospital Private Room", values: [false, true, true] },
+    { label: "Chief Physician Treatment", values: [false, true, true] },
+    { label: "Worldwide Coverage", values: [false, true, true] },
+    { label: "No Waiting Period", values: [true, false, false] },
+    { label: "Prescription Medications", values: [true, true, true] },
   ];
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.05 }
-    }
+      transition: { staggerChildren: 0.05 },
+    },
   };
 
   const rowVariants = {
@@ -43,8 +48,8 @@ export default function PlansCompare({ plans }: PlansCompareProps) {
     visible: {
       opacity: 1,
       x: 0,
-      transition: { duration: 0.3 }
-    }
+      transition: { duration: 0.3 },
+    },
   };
 
   return (
@@ -54,7 +59,7 @@ export default function PlansCompare({ plans }: PlansCompareProps) {
         className="overflow-x-auto md:overflow-visible cursor-grab active:cursor-grabbing"
         drag="x"
         dragConstraints={{ left: -300, right: 0 }} // adjust if needed
-        transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+        transition={{ type: "spring", stiffness: 200, damping: 25 }}
       >
         <motion.div
           initial="hidden"
@@ -65,10 +70,14 @@ export default function PlansCompare({ plans }: PlansCompareProps) {
           {/* Header Row */}
           <div
             className="grid gap-0 border-b border-gray-200"
-            style={{ gridTemplateColumns: `300px repeat(${plans.length}, 1fr)` }}
+            style={{
+              gridTemplateColumns: `300px repeat(${plans.length}, 1fr)`,
+            }}
           >
             <div className="p-6 bg-gray-50">
-              <h3 className="text-lg font-bold text-gray-900">Plan Comparison</h3>
+              <h3 className="text-lg font-bold text-gray-900">
+                Plan Comparison
+              </h3>
             </div>
 
             {plans.map((plan) => (
@@ -96,22 +105,51 @@ export default function PlansCompare({ plans }: PlansCompareProps) {
               key={idx}
               variants={rowVariants}
               className="grid gap-0 border-b border-gray-200 hover:bg-gray-50/50 transition-colors"
-              style={{ gridTemplateColumns: `300px repeat(${plans.length}, 1fr)` }}
+              style={{
+                gridTemplateColumns: `300px repeat(${plans.length}, 1fr)`,
+              }}
             >
               <div className="p-6 bg-gray-50">
-                <p className="text-sm font-medium text-gray-900">{feature.label}</p>
+                <div className="relative group">
+                  <p className="text-sm font-medium text-gray-900">
+                    {feature.label}
+                  </p>
+
+                  {(feature.label === "Hospital Private Room" ||
+                    feature.label === "Chief Physician Treatment" ||
+                    feature.label === "Worldwide Coverage") && (
+                    <div className="absolute left-0 top-6 w-64 p-3 text-xs text-white bg-black rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 z-10">
+                      {feature.label === "Worldwide Coverage" &&
+                        "Public insurance covers mainly EU & partner countries. Extra travel insurance is recommended outside Europe."}
+
+                      {feature.label === "Hospital Private Room" &&
+                        "Not included in public insurance. Available only with supplementary private insurance."}
+
+                      {feature.label === "Chief Physician Treatment" &&
+                        "Not included in public insurance. Requires additional private insurance."}
+                    </div>
+                  )}
+                </div>{" "}
               </div>
 
               {feature.values.map((value, planIdx) => (
-                <div key={planIdx} className="p-6 flex items-center justify-center">
-                  {typeof value === 'boolean' ? (
+                <div
+                  key={planIdx}
+                  className="p-6 flex items-center justify-center"
+                >
+                  {typeof value === "boolean" ? (
                     value ? (
-                      <Check className="w-6 h-6 text-green-500" strokeWidth={3} />
+                      <Check
+                        className="w-6 h-6 text-green-500"
+                        strokeWidth={3}
+                      />
                     ) : (
                       <X className="w-6 h-6 text-gray-300" strokeWidth={3} />
                     )
                   ) : (
-                    <p className="text-lg font-semibold text-gray-900">{value}</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {value}
+                    </p>
                   )}
                 </div>
               ))}
@@ -122,14 +160,18 @@ export default function PlansCompare({ plans }: PlansCompareProps) {
           <motion.div
             variants={rowVariants}
             className="grid gap-0 bg-gradient-to-r from-primary/5 to-primary/10"
-            style={{ gridTemplateColumns: `300px repeat(${plans.length}, 1fr)` }}
+            style={{
+              gridTemplateColumns: `300px repeat(${plans.length}, 1fr)`,
+            }}
           >
             <div className="p-6 bg-gray-50">
               <p className="text-sm font-bold text-gray-900">Best For</p>
             </div>
 
             <div className="p-6">
-              <p className="text-sm text-gray-700 text-center font-medium">Employees</p>
+              <p className="text-sm text-gray-700 text-center font-medium">
+                Employees
+              </p>
             </div>
             <div className="p-6">
               <p className="text-sm text-gray-700 text-center font-medium">

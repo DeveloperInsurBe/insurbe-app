@@ -39,7 +39,7 @@ const products = [
 
 export default function ProductBanner() {
   return (
-    <section className="py-16 px-6 lg:px-20 ">
+    <section className="pb-16 pt-6 px-6 lg:px-20 ">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -58,8 +58,6 @@ export default function ProductBanner() {
               traveling to Germany
             </h2>
           </div>
-
-         
         </motion.div>
 
         {/* Cards */}
