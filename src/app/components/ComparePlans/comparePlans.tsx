@@ -199,7 +199,7 @@ export default function ComparePlans() {
       let buttonColor = "bg-white text-primary";
 
       if (product.id === "tk") {
-        logo = "/icons/tk.svg";
+        logo = "/icons/tk.png";
         bgColor = "bg-white";
         textColor = "text-gray-700";
         buttonColor =
@@ -235,22 +235,22 @@ export default function ComparePlans() {
       let displayPremium: string;
       if (product.loading || product.premium == null) {
         displayPremium = "...";
-     } else if (!Number.isNaN(premiumNumber)) {
-  let adjusted = premiumNumber;
+      } else if (!Number.isNaN(premiumNumber)) {
+        let adjusted = premiumNumber;
 
-  if (isEmployed && isHallesche) {
-    const MAX_EMPLOYER_SUBSIDY = 508.59;
+        if (isEmployed && isHallesche) {
+          const MAX_EMPLOYER_SUBSIDY = 508.59;
 
-    const employerSubsidy = Math.min(
-      premiumNumber * 0.5,
-      MAX_EMPLOYER_SUBSIDY
-    );
+          const employerSubsidy = Math.min(
+            premiumNumber * 0.5,
+            MAX_EMPLOYER_SUBSIDY,
+          );
 
-    adjusted = premiumNumber - employerSubsidy;
-  }
+          adjusted = premiumNumber - employerSubsidy;
+        }
 
-  displayPremium = adjusted.toFixed(2);
-} else {
+        displayPremium = adjusted.toFixed(2);
+      } else {
         displayPremium = "N/A";
       }
 
@@ -675,7 +675,7 @@ export default function ComparePlans() {
                       initial={{ scale: 0.8 }}
                       animate={{ scale: 1 }}
                       transition={{ delay: index * 0.1 + 0.4, type: "spring" }}
-                      className="flex items-baseline gap-1"
+                      className="flex flex-col xs:flex-row xs:items-baseline xs:gap-1 gap-0.5"
                     >
                       {plan.loading ? (
                         <div className="flex items-center gap-3">
@@ -686,21 +686,30 @@ export default function ComparePlans() {
                         </div>
                       ) : (
                         <>
+                          <div className="flex items-baseline gap-0.5 xs:gap-1">
+                            <span
+                              className={`text-2xl xs:text-3xl sm:text-4xl font-bold ${plan.textColor}`}
+                            >
+                              €
+                            </span>
+                            <span
+                              className={`text-2xl xs:text-3xl sm:text-4xl bg-gradient-to-br from-gray-900 to-purple-900 bg-clip-text text-transparent font-extrabold ${plan.textColor}`}
+                            >
+                              {plan.price}
+                            </span>
+                          </div>
+                          
                           <span
-                            className={`text-gray-700 text-3xl sm:text-4xl font-bold10 ${plan.textColor}`}
-                          >
-                            €
-                          </span>
-                          <span
-                            className={`text-3xl sm:text-4xl bg-gradient-to-br from-gray-900 to-purple-900 bg-clip-text text-transparent font-extrabold ${plan.textColor}`}
-                          >
-                            {plan.price}
-                          </span>
-                          <span
-                            className={`text-sm text-gray-600 font-medium ml-1 ${plan.textColor}`}
+                            className={`text-xs xs:text-sm text-gray-600 font-medium ${plan.textColor}`}
                           >
                             {plan.period}
                           </span>
+
+                          {plan.id === "tk" && (
+                            <span className="text-xs xs:text-sm text-gray-500 font-medium order-first xs:order-none">
+                              (approx.)
+                            </span>
+                          )}
                         </>
                       )}
                     </motion.div>

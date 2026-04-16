@@ -25,7 +25,7 @@ export default function Featureshome() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
-    <section className="relative py-20 px-4 sm:px-8 lg:px-16 overflow-hidden ">
+    <section className="relative pb-16 px-4 sm:px-8 lg:px-16 overflow-hidden ">
       <div className="relative max-w-7xl mx-auto">
         {/* Heading */}
         <motion.div

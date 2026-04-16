@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Check, Gift, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { TK_CONFIG } from "@/app/constants/insurance";
 
 /* -------------------------------------------------------------------------- */
 /* DATA */
@@ -23,12 +24,12 @@ const providers = [
   {
     id: "tk",
     name: "TK",
-    logo: "/partners_asset/TK_logo.avif",
+    logo: "/icons/tk.png",
     english: 3,
     digital: 3,
     speed: 3,
     highlight: "Best service for expats, students, and families",
-    bonus: "Bonus up to €400*",
+    bonus: `Bonus up to €${TK_CONFIG.bonus}*`,
     featured: true,
   },
   {
@@ -147,6 +148,9 @@ export default function ProviderComparison({
 
                 {p.id === "tk" && premium && (
                   <span className="text-2xl font-bold text-black drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]">
+                    <span className="text-sm text-gray-600 font-normal">
+                      approx.
+                    </span>{" "}
                     € {premium.total.toFixed(2)}
                   </span>
                 )}
@@ -181,7 +185,26 @@ export default function ProviderComparison({
               {/* BONUS */}
               <div className="flex items-center gap-2 mb-8">
                 <Gift className="w-5 h-5 " />
-                <span className="font-medium ">{p.bonus}</span>
+
+                <span className="font-medium">{p.bonus.replace("*", "")}</span>
+
+                {/* Star with tooltip */}
+                {p.id === "tk" && (
+                  <span className="relative cursor-pointer text-purple-600 font-bold inline-block group">
+                    *
+                    <span
+                      className="absolute left-1/2 -translate-x-1/2 top-8 w-72 px-4 py-3 text-xs text-white
+                        bg-white/10 backdrop-blur-md border border-white/20 rounded-xl
+                        opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 
+                        shadow-xl z-10 group-hover:top-8"
+                    >
+                      <div className="flex text-gray-700 items-start gap-2">
+                        <span className="text-gray-700 mt-0.5">✓</span>
+                        <p>Bonus depends on participation in TK programs and specific conditions.</p>
+                      </div>
+                    </span>
+                  </span>
+                )}
               </div>
 
               {/* CTA */}
