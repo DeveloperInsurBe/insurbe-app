@@ -39,7 +39,7 @@ const products = [
 
 export default function ProductBanner() {
   return (
-    <section className="pb-16 pt-6 px-6 lg:px-20 ">
+    <section className="md:pb-16 pb-10 px-6 lg:px-20 ">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div

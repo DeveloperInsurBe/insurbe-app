@@ -94,7 +94,7 @@ export default function OurServices() {
   };
 
   return (
-    <section className="py-16 sm:py-10 px-4 sm:px-8 lg:px-18 bg-gradient-to-b from-gray-50 to-white">
+    <section className="py-10 md:py-16 px-4 sm:px-8 lg:px-18 bg-gradient-to-b from-gray-50 to-white">
       <div className="max-w-7xl mx-auto">
 
         {/* HEADER */}

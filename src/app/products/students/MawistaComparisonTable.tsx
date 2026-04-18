@@ -180,7 +180,7 @@ export default function MawistaComparisonTable() {
   };
 
   return (
-    <section className="py-12 sm:py-20 px-4 ">
+    <section className="py-10 md:py-16 px-4 ">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div

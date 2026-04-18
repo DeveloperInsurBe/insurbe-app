@@ -96,7 +96,7 @@ export default function InsuranceEligibilityQuiz() {
   return (
     <section
       id="studentjourney"
-      className="relative py-16 sm:py-10 px-4 sm:px-8 lg:px-18 overflow-hidden"
+      className="relative py-10 md:py-16 px-4 sm:px-8 lg:px-18 overflow-hidden"
     >
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
