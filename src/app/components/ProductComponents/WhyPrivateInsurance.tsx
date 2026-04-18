@@ -8,7 +8,7 @@ export default function WhyPrivateInsurance() {
   const router = useRouter();
 
   return (
-    <section id="insurance" className="py-16 sm:py-10 px-4 sm:px-18 overflow-hidden">
+    <section id="insurance" className="py-10 md:py-16 px-4 sm:px-18 overflow-hidden">
       <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-12 max-w-7xl mx-auto">
 
         {/* Left Content */}

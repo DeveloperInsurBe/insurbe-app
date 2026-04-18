@@ -68,7 +68,7 @@ export default function PrivateFAQ() {
 
   return (
     <>
-      <section className="py-16 sm:py-10 px-4 sm:px-8 lg:px-18 overflow-hidden">
+      <section className="py-10 md:py-16 px-4 sm:px-8 lg:px-18 overflow-hidden">
         <div className="max-w-4xl mx-auto grid items-start px-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

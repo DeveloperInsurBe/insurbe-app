@@ -73,7 +73,7 @@ export default function ChooseUs() {
   };
 
   return (
-    <section id="explore" className="relative pb-16 px-4 sm:px-8 lg:px-18 overflow-hidden">
+    <section id="explore" className="relative md:pb-16 pb-10 px-4 sm:px-8 lg:px-18 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         {/* Heading */}
         <motion.div

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function SustainableSection() {
   return (
-    <section className="relative py-24 px-4 sm:px-6 lg:px-12 overflow-hidden bg-linear-to-br from-slate-50 via-purple-50/40 to-blue-50/40">
+    <section className="relative md:py-24 py-10 px-4 sm:px-6 lg:px-12 overflow-hidden bg-linear-to-br from-slate-50 via-purple-50/40 to-blue-50/40">
       
       
       

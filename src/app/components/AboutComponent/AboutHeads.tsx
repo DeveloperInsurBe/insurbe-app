@@ -48,7 +48,7 @@ const teamMembers: TeamMember[] = [
 
 export default function AboutHeads() {
   return (
-    <section className="relative py-24 px-4 sm:px-6 lg:px-18 bg-linear-to-br from-slate-50 via-purple-50/40 to-blue-50/40 overflow-hidden">
+    <section className="relative md:py-24 py-10 px-4 sm:px-6 lg:px-18 bg-linear-to-br from-slate-50 via-purple-50/40 to-blue-50/40 overflow-hidden">
      
       <div className="max-w-7xl mx-auto">
 

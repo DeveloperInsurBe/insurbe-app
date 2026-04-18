@@ -7,7 +7,7 @@ import { Shield, Heart, CheckCircle2 } from "lucide-react";
 
 export default function PublicVsPrivateIntro() {
   return (
-    <section className="relative py-16 sm:py-10 px-4 sm:px-8 lg:px-18 overflow-hidden">
+    <section className="relative py-10 md:py-16 px-4 sm:px-8 lg:px-18 overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
         {/* LEFT CONTENT */}
         <motion.div

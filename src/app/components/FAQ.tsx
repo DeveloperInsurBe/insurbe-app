@@ -38,7 +38,7 @@ export default function FAQ() {
   const router = useRouter();
 
   return (
-    <section className="py-20 px-6 lg:px-20 ">
+    <section className="md:pb-16 pb-10 px-6 lg:px-20 ">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12">
         {/* LEFT SIDE */}
         <div className="max-h-[600px] overflow-y-auto pr-4 custom-scroll">

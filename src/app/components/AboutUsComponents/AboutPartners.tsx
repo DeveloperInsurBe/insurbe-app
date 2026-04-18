@@ -71,7 +71,7 @@ export default function AboutPartners() {
   return (
     <>
       {/* PARTNERS SECTION */}
-      <section className="relative py-24 px-4 sm:px-6 lg:px-12 bg-gradient-to-br from-slate-50 via-purple-50/40 to-blue-50/40 overflow-hidden">
+      <section className="relative md:py-24 py-10 px-4 sm:px-6 lg:px-12 bg-gradient-to-br from-slate-50 via-purple-50/40 to-blue-50/40 overflow-hidden">
         <div className="max-w-6xl mx-auto">
 
           {/* Heading */}
