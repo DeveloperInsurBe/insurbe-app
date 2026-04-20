@@ -507,7 +507,7 @@ export default function ComparePlans() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen py-10 px-4 sm:px-6 md:px-16 "
+      className="min-h-screen pt-16 pb-10 px-4 sm:px-6 md:px-16 overflow-visible"
     >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -615,11 +615,11 @@ export default function ComparePlans() {
           initial="hidden"
           animate="visible"
           className={`
-            flex md:grid gap-6 
-            overflow-x-auto md:overflow-visible
-            snap-x snap-mandatory md:snap-none
-            pb-4
-            scrollbar-hide
+             flex md:grid gap-6 
+  overflow-x-auto md:overflow-visible
+  snap-x snap-mandatory md:snap-none
+  pt-6 pb-6
+  scrollbar-hide
             ${plans.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}
           `}
         >
@@ -640,9 +640,9 @@ export default function ComparePlans() {
                 onMouseLeave={() => setHoveredCard(recommendedPlanId)}
                 className={`
                   min-w-[85%] xs:min-w-[75%] sm:min-w-[60%] md:min-w-0
-                  snap-center
-                  rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all
-                  flex flex-col relative
+  snap-center
+  rounded-3xl p-6 sm:p-8 shadow-xl hover:shadow-2xl transition-all
+  flex flex-col relative mt-4
                  
                   ${plan.bgColor}
                  
@@ -654,7 +654,7 @@ export default function ComparePlans() {
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ delay: 0.6, type: "spring" }}
-                    className="absolute -top-4 -right-4 bg-linear-to-r from-purple-400 to-blue-400 text-black text-xs font-bold px-4 py-2 rounded-full shadow-xl z-10 border-2 border-white"
+                    className="absolute -top-3 sm:-top-4 -right-3 sm:-right-4 bg-linear-to-r from-purple-400 to-blue-400 text-black text-xs font-bold px-4 py-2 rounded-full shadow-xl z-10 border-2 border-white"
                   >
                     <span className="flex gap-1 items-center">
                       <Star className="w-3 h-3 fill-current" />
@@ -698,7 +698,7 @@ export default function ComparePlans() {
                               {plan.price}
                             </span>
                           </div>
-                          
+
                           <span
                             className={`text-xs xs:text-sm text-gray-600 font-medium ${plan.textColor}`}
                           >

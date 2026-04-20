@@ -463,7 +463,10 @@ export default function InsuranceCalculatorPrivate({
 
                   <div className="border-t pt-3">
                     <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-primary bg-clip-text text-transparent">
-                      {premium.total.toFixed(2)} €
+                   <span className="text-sm text-gray-600 font-normal">
+                      approx.
+                    </span>{" "}
+                    {premium.total.toFixed(2)} €
                     </div>
                     <p className="text-gray-600 text-sm">Total contribution</p>
                   </div>
