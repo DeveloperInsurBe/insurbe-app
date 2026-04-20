@@ -16,24 +16,60 @@ interface PlansCompareProps {
 
 export default function PlansCompare({ plans }: PlansCompareProps) {
   const features = [
-    {
-      label: "Monthly Premium",
-      values: plans.map((p) =>
-        p.id === "tk" ? `approx. €${p.price}` : `€${p.price}`,
-      ),
-    },
-    { label: "24/7 Medical Assistance", values: [true, true, true] },
-    { label: "English Support", values: [true, true, true] },
-    { label: "Digital Services & App", values: [true, true, true] },
-    { label: "Dental Coverage", values: [true, true, true] },
-    { label: "Vision Coverage", values: [true, true, true] },
-    { label: "Alternative Medicine", values: [true, true, true] },
-    { label: "Hospital Private Room", values: [false, true, true] },
-    { label: "Chief Physician Treatment", values: [false, true, true] },
-    { label: "Worldwide Coverage", values: [false, true, true] },
-    { label: "No Waiting Period", values: [true, false, false] },
-    { label: "Prescription Medications", values: [true, true, true] },
-  ];
+  {
+    label: "Monthly Premium",
+    values: plans.map((p) =>
+      p.id === "tk" ? `approx. €${p.price}` : `€${p.price}`
+    ),
+  },
+
+  {
+    label: "24/7 Medical Assistance",
+    values: plans.map(() => true),
+  },
+  {
+    label: "English Support",
+    values: plans.map(() => true),
+  },
+  {
+    label: "Digital Services & App",
+    values: plans.map(() => true),
+  },
+  {
+    label: "Dental Coverage",
+    values: plans.map(() => true),
+  },
+  {
+    label: "Vision Coverage",
+    values: plans.map(() => true),
+  },
+  {
+    label: "Alternative Medicine",
+    values: plans.map(() => true),
+  },
+
+  {
+    label: "Hospital Private Room",
+    values: plans.map((p) => (p.id === "tk" ? false : true)),
+  },
+  {
+    label: "Chief Physician Treatment",
+    values: plans.map((p) => (p.id === "tk" ? false : true)),
+  },
+  {
+    label: "Worldwide Coverage",
+    values: plans.map((p) => (p.id === "tk" ? false : true)),
+  },
+
+  {
+    label: "No Waiting Period",
+    values: plans.map((p) => (p.id === "tk" ? true : false)),
+  },
+  {
+    label: "Prescription Medications",
+    values: plans.map(() => true),
+  },
+];
 
   const containerVariants = {
     hidden: { opacity: 0 },

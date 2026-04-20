@@ -200,7 +200,7 @@ export default function ProviderComparison({
                     >
                       <div className="flex text-gray-700 items-start gap-2">
                         <span className="text-gray-700 mt-0.5">✓</span>
-                        <p>Bonus depends on participation in TK programs and specific conditions.</p>
+                        <p>Public insurers often introduce bonus programs to motivate policyholders to take part in preventive check-ups and maintain their fitness. These programs provide cash rewards, with the amount typically depending on the type and frequency of participation.For more details, please refer to this link.</p>
                       </div>
                     </span>
                   </span>
