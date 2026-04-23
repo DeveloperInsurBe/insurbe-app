@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-  memo,
-} from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import {
   Briefcase,
   Euro,
@@ -424,28 +417,27 @@ export default function InsuranceJourney() {
     [setEmploymentStatus],
   );
 
- const handleIncomeSelect = useCallback(
-  (val: string) => {
-    setIncomeRange(val);
+  const handleIncomeSelect = useCallback(
+    (val: string) => {
+      setIncomeRange(val);
 
-    let income = 50000;
+      let income = 50000;
 
-    if (val === "<30000") {
-      income = 30000;
-      setStep(98); // contact flow
-    } else if (val === "30001-77400") {
-      income = 54000;
-      setStep(3);
-    } else if (val === ">77400") {
-      income = 6500 * 12; // monthly 6000 forced
-      setStep(3);
-    }
+      if (val === "<30000") {
+        income = 30000;
+        setStep(98); // contact flow
+      } else if (val === "30001-77400") {
+        income = 54000;
+        setStep(3);
+      } else if (val === ">77400") {
+        income = 6500 * 12; // monthly 6000 forced
+        setStep(3);
+      }
 
-    setActualIncome(income);
-  },
-  [setIncomeRange, setActualIncome]
-);
-
+      setActualIncome(income);
+    },
+    [setIncomeRange, setActualIncome],
+  );
 
   const handleOtherSubmit = useCallback(() => {
     if (!otherEmployment || !email || !phone) {
@@ -551,8 +543,7 @@ export default function InsuranceJourney() {
         currentActualIncome / 12, // convert yearly to monthly
         age,
         currentHasChildren,
-       employmentForCalculator
-,
+        employmentForCalculator,
         false, // always Saxony
       );
 
@@ -581,7 +572,10 @@ export default function InsuranceJourney() {
         loading: false,
       });
 
-      if (currentIncomeRange === ">77400") {
+      if (
+        currentIncomeRange === ">77400" ||
+        normalizedEmployment === "self-employed"
+      ) {
         products.push({
           id: "hallesche-premium",
           name: "Hallesche Premium",
@@ -659,21 +653,24 @@ export default function InsuranceJourney() {
   );
 
   const StaticSideImage = () => (
-  <div className="flex flex-col justify-center items-center ">
-    <Image
-      src="/hero_assets/userJourney.jpg" 
-      alt="Journey"
-      width={400}
-      height={300}
-      className="w-full max-w-md rounded-2xl object-cover"
-      priority
-    />
-    <div className="flex flex-col items-start py-4 md:pl-10">
-    <h2 className="text-primary">Why this question ?</h2>
-    <p className="text-gray-500 text-sm">To better assist you, we need to get to know you better. This information allows us to offer you a more personalized response.</p>
-  </div>
-  </div>
-);
+    <div className="flex flex-col justify-center items-center ">
+      <Image
+        src="/hero_assets/userJourney.jpg"
+        alt="Journey"
+        width={400}
+        height={300}
+        className="w-full max-w-md rounded-2xl object-cover"
+        priority
+      />
+      <div className="flex flex-col items-start py-4 md:pl-10">
+        <h2 className="text-primary">Why this question ?</h2>
+        <p className="text-gray-500 text-sm">
+          To better assist you, we need to get to know you better. This
+          information allows us to offer you a more personalized response.
+        </p>
+      </div>
+    </div>
+  );
 
   // ================= UI ===================
   return (
@@ -716,7 +713,7 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70  backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-8"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-             <StaticSideImage />
+              <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 flex items-center gap-3">
@@ -747,8 +744,7 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-               <StaticSideImage />
-               
+              <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">
@@ -841,7 +837,7 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-             <StaticSideImage />
+              <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2
@@ -939,7 +935,7 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <StaticSideImage />
+              <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2
@@ -997,7 +993,7 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-    <StaticSideImage />
+              <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2
@@ -1068,7 +1064,7 @@ export default function InsuranceJourney() {
             className="w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl shadow-purple-500/10 p-6 md:p-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-             <StaticSideImage />
+              <StaticSideImage />
 
               <motion.div variants={containerVariants} className="space-y-4">
                 <motion.h2
@@ -1190,7 +1186,6 @@ export default function InsuranceJourney() {
             </div>
           </motion.div>
         )}
-        
       </AnimatePresence>
     </section>
   );

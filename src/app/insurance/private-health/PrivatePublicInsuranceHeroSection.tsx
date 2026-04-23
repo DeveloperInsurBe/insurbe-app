@@ -79,11 +79,11 @@ export default function PrivatePublicInsuranceHeroSection() {
           {/* CTA */}
           <div className="mt-8 flex flex-wrap gap-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-              <button
-                onClick={scrollToNextSection}
+              <Link
+                href="/products/insuranceJourney"
                 className="inline-flex items-center gap-2 justify-center rounded-full px-8 py-4 font-semibold text-white
-                  bg-gradient-to-r from-purple-600 to-primary
-                  hover:opacity-90 transition shadow-md"
+            bg-gradient-to-r from-purple-600 to-primary
+            hover:opacity-90 transition shadow-md"
               >
                 Discover tariffs now
                 <motion.span
@@ -93,8 +93,9 @@ export default function PrivatePublicInsuranceHeroSection() {
                 >
                   <ArrowRight className="w-5 h-5" />
                 </motion.span>
-              </button>
+              </Link>
             </motion.div>
+          
           </div>
         </motion.div>
 

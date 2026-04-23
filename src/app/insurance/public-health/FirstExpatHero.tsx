@@ -40,7 +40,7 @@ export default function FirstExpatHero() {
   className="text-center mb-14"
 >
   <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">
-    Expat Health Insurance in{" "}
+     Health Insurance in{" "}
     <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-purple-600">
       Germany
     </span>
