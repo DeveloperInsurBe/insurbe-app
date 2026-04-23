@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import AppointmentModal from "./modals/AppointmentModal";
+import { useRouter } from "next/navigation";
 
 /* ---------------- Feature Item ---------------- */
 
@@ -49,7 +50,7 @@ export default function HeroInsurancenew1() {
     time: "",
     comment: "",
   });
-
+ const router = useRouter();
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -72,12 +73,14 @@ export default function HeroInsurancenew1() {
     window.scrollTo({ top: y, behavior: "smooth" });
   };
 
-   const handleScroll1 = () => {
+  const handleScroll1 = () => {
     const le = document.getElementById("explore");
     if (!le) return;
     const y = le.getBoundingClientRect().top + window.scrollY - 80;
     window.scrollTo({ top: y, behavior: "smooth" });
   };
+
+
   return (
     <>
       <section className="relative overflow-hidden bg-linear-to-br from-slate-50 via-blue-50/50 to-purple-50/30 py-8 sm:py-12 lg:py-16 xl:py-20">
@@ -120,27 +123,27 @@ export default function HeroInsurancenew1() {
               <div className="flex flex-col xs:flex-row gap-3 pt-2 max-w-md mx-auto lg:mx-0 px-2 sm:px-4">
                 <motion.button
                   // onClick={() => setIsModalOpen(true)}
-                   onClick={handleScroll1}
+                  onClick={handleScroll1}
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
                   className="w-full xs:flex-1 rounded-2xl cursor-pointer lg:rounded-3xl bg-linear-to-r from-primary to-purple-600 text-white text-sm sm:text-base font-bold py-3 sm:py-4 px-6 shadow-xl hover:shadow-2xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300/50"
                 >
-                 Explore Our Policies
+                  Explore Our Policies
                 </motion.button>
 
                 <motion.button
-                  onClick={handleScroll}
+                  onClick={() => router.push("/products/insuranceJourney")}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.96 }}
-                  className="w-full xs:flex-1 rounded-2xl lg:rounded-3xl border-2 border-gray-300 hover:border-gray-400 px-6 py-3 sm:py-4 text-gray-800 font-semibold text-sm sm:text-base hover:bg-gray-50 hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300/50"
+                  className="w-full xs:flex-1 cursor-pointer rounded-2xl lg:rounded-3xl border-2 border-gray-300 hover:border-gray-400 px-6 py-3 sm:py-4 text-gray-800 font-semibold text-sm sm:text-base hover:bg-gray-50 hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300/50"
                 >
-                  Learn more 
+                  Learn more
                   <ArrowRight className="w-4 h-4 inline-block ml-1 -mt-0.5" />
                 </motion.button>
               </div>
 
               {/* Reviews */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
@@ -184,18 +187,16 @@ export default function HeroInsurancenew1() {
                   sizes="(max-width: 1024px) 100vw, 50vw"
                 />
                 {/* Decorative Badge */}
-             
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
- <AppointmentModal
+      <AppointmentModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-  
     </>
   );
 }

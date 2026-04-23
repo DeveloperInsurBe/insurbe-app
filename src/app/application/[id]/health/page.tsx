@@ -444,7 +444,9 @@ export default function MedicalPage() {
 
   const [stepIndex, setStepIndex] = useState(0);
   const [postStepIndex, setPostStepIndex] = useState(0);
-  const [form, setForm] = useState<Form>({});
+  const [form, setForm] = useState<Form>({
+    sepaPaymentFrequency: "monthly",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -466,7 +468,8 @@ export default function MedicalPage() {
 
   const updateStep = useApplicationStore((s) => s.updateStep);
   const application = useApplicationStore((s) => s.application);
-
+console.log("🧾 APPLICATION DATA:", application);
+console.log("🎯 TARIFF IDS:", application?.tariffIds);
   // init from store once
   useEffect(() => {
     if (!application?.healthAnswers || hasInitialized.current) return;
@@ -710,9 +713,9 @@ export default function MedicalPage() {
   const getPendingDocs = () => {
     const financial = application?.financialHistory || {};
 
-     if (financial.documents) {
-    return [];
-  }
+    if (financial.documents) {
+      return [];
+    }
 
     if (financial.employmentStatus === "employee" && !financial.documents) {
       return ["Signed work contract"];
@@ -729,15 +732,15 @@ export default function MedicalPage() {
   };
 
   useEffect(() => {
-  const financial = application?.financialHistory;
+    const financial = application?.financialHistory;
 
-  if (financial?.documents && !form.documents) {
-    setForm((prev: any) => ({
-      ...prev,
-      documents: [financial.documents], // ✅ autofill
-    }));
-  }
-}, [application]);
+    if (financial?.documents && !form.documents) {
+      setForm((prev: any) => ({
+        ...prev,
+        documents: [financial.documents], // ✅ autofill
+      }));
+    }
+  }, [application]);
 
   const validatePost = (): string | null => {
     const s = POST_STEPS[postStepIndex];
@@ -820,7 +823,10 @@ export default function MedicalPage() {
 
     try {
       const cleanForm = JSON.parse(JSON.stringify(form));
+      console.log("📦 FULL FORM DATA:", cleanForm);
 
+      // If tariffIds exist
+      console.log("🎯 TARIFF IDS:", cleanForm.tariffIds);
       // Row 0 "Reviewing answers" — fires immediately (already set above)
       await advanceLoader(1, 900); // move to row 1 after 900ms
 
@@ -1465,7 +1471,9 @@ export default function MedicalPage() {
         const financial = application?.financialHistory || {};
         return (
           <>
-{pendingDocs.length > 0 && (!form.documents || form.documents.length === 0) ? (              <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
+            {pendingDocs.length > 0 &&
+            (!form.documents || form.documents.length === 0) ? (
+              <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
                 <p className="text-sm font-semibold text-amber-700">
                   Pending document required
                 </p>
@@ -2217,8 +2225,8 @@ export default function MedicalPage() {
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { key: "dioptreRight", label: "Right eye" },
                     { key: "dioptreLeft", label: "Left eye" },
+                    { key: "dioptreRight", label: "Right eye" },
                   ].map((eye) => (
                     <div key={eye.key}>
                       <label className="text-[11px] text-slate-400 mb-1 block">

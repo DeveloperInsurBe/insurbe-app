@@ -230,7 +230,7 @@ export default function SubmitApplication() {
     };
 
     const payload = {
-      tariffIds: plan?.tariffIds || ["35653", "24449", "24332", "1803"],
+      tariffIds: plan?.tariffIds || ["35659", "24449", "24332", "1803"],
       vorname: firstName,
       name: lastName,
       geburtsdatum: dob,

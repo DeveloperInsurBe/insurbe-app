@@ -73,7 +73,7 @@ export default function ExpatFirstExpatHero() {
             className="mt-8"
           >
             <Link
-              href="/products/insuranceJourney"
+              href="/book-appointment"
               className="inline-flex items-center justify-center
               px-10 py-4 rounded-full font-semibold text-white
               bg-gradient-to-r from-purple-600 to-primary
