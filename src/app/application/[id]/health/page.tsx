@@ -468,8 +468,8 @@ export default function MedicalPage() {
 
   const updateStep = useApplicationStore((s) => s.updateStep);
   const application = useApplicationStore((s) => s.application);
-console.log("🧾 APPLICATION DATA:", application);
-console.log("🎯 TARIFF IDS:", application?.tariffIds);
+  console.log("🧾 APPLICATION DATA:", application);
+  console.log("🎯 TARIFF IDS:", application?.tariffIds);
   // init from store once
   useEffect(() => {
     if (!application?.healthAnswers || hasInitialized.current) return;
@@ -710,27 +710,27 @@ console.log("🎯 TARIFF IDS:", application?.tariffIds);
     isLast ? setScreen("summary") : setStepIndex((p) => p + 1);
   };
 
-  const getPendingDocs = () => {
-    const financial = application?.financialHistory || {};
+ const getPendingDocs = () => {
+  const employmentStatus =
+    form?.employmentStatus || application?.financialHistory?.employmentStatus;
 
-    if (financial.documents) {
-      return [];
-    }
+  const required: string[] = [];
+  const optional: string[] = [
+    "Blue Card",
+    "Residence Permit (RP)",
+    "Passport",
+  ];
 
-    if (financial.employmentStatus === "employee" && !financial.documents) {
-      return ["Signed work contract"];
-    }
+  if (employmentStatus === "employee") {
+    required.push("Signed work contract");
+  }
 
-    if (
-      financial.employmentStatus === "self-employed" &&
-      !financial.documents
-    ) {
-      return ["Last 3 months bank statements"];
-    }
+  if (employmentStatus === "self-employed") {
+    required.push("Last 3 months bank statements");
+  }
 
-    return [];
-  };
-
+  return { required, optional };
+};
   useEffect(() => {
     const financial = application?.financialHistory;
 
@@ -745,15 +745,16 @@ console.log("🎯 TARIFF IDS:", application?.tariffIds);
   const validatePost = (): string | null => {
     const s = POST_STEPS[postStepIndex];
     if (s.type === "documents") {
-      const pending = getPendingDocs();
+      const { required } = getPendingDocs(); // ✅ FIX
 
       if (
-        pending.length > 0 &&
+        required.length > 0 &&
         (!form.documents || form.documents.length === 0)
       ) {
         return "Please upload required document to continue.";
       }
     }
+
     if (s.type === "signature" && !form.signature && !hasDrawn)
       return "Please draw your signature before continuing.";
     if (s.type === "sepa") {
@@ -1467,42 +1468,45 @@ console.log("🎯 TARIFF IDS:", application?.tariffIds);
     const renderPostContent = () => {
       if (ps.type === "documents") {
         const docs: any[] = form.documents || [];
-        const pendingDocs = getPendingDocs();
-        const financial = application?.financialHistory || {};
+        const { required, optional } = getPendingDocs();
+
         return (
           <>
-            {pendingDocs.length > 0 &&
-            (!form.documents || form.documents.length === 0) ? (
-              <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
-                <p className="text-sm font-semibold text-amber-700">
-                  Pending document required
+            {/* 🔥 REQUIRED DOCUMENT */}
+            {required.length > 0 && (
+              <div className="mb-5 p-4 rounded-xl bg-red-50 border border-red-200">
+                <p className="text-sm font-semibold text-red-700">
+                  Required document
                 </p>
-                <p className="text-xs text-amber-600 mt-1">
-                  Please upload: {pendingDocs.join(", ")}
+                <p className="text-xs text-red-600 mt-1">
+                  {required.join(", ")}
                 </p>
               </div>
-            ) : form.documents && form.documents.length > 0 ? (
+            )}
+
+            {/* 🟢 OPTIONAL DOCUMENTS */}
+            <div className="mb-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <p className="text-sm font-semibold text-slate-700">
+                Optional documents
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                {optional.join(", ")}
+              </p>
+            </div>
+
+            {/* ✅ SUCCESS STATE */}
+            {docs.length > 0 && (
               <div className="mb-5 p-4 rounded-xl bg-green-50 border border-green-200">
                 <p className="text-sm font-semibold text-green-700">
-                  Document provided
+                  Document uploaded
                 </p>
-
-                {financial.documents ? (
-                  <p className="text-xs text-green-600 mt-1">
-                    Uploaded:{" "}
-                    <span className="font-medium">
-                      {Array.isArray(financial.documents)
-                        ? financial.documents[0]?.name
-                        : financial.documents?.name}
-                    </span>
-                  </p>
-                ) : (
-                  <p className="text-xs text-green-600 mt-1">
-                    Your document has been uploaded
-                  </p>
-                )}
+                <p className="text-xs text-green-600 mt-1">
+                  {docs.length} file(s) uploaded
+                </p>
               </div>
-            ) : null}
+            )}
+
+            {/* 📤 UPLOAD BOX */}
             <motion.div
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => {
@@ -1528,26 +1532,14 @@ console.log("🎯 TARIFF IDS:", application?.tariffIds);
                       scale: 1,
                     }
               }
-              transition={{ duration: 0.2 }}
-              className={`border-2 border-dashed rounded-xl p-8 ${
-                error && (!form.documents || form.documents.length === 0)
-                  ? "border-red-400 bg-red-50"
-                  : ""
-              } flex flex-col items-center gap-3 text-center cursor-pointer mb-4`}
+              className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center gap-3 text-center cursor-pointer mb-4 ${
+                error && docs.length === 0 ? "border-red-400 bg-red-50" : ""
+              }`}
             >
               <div className="w-12 h-12 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 text-violet-600"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                ⬆️
               </div>
+
               <div>
                 <p className="text-sm font-medium text-slate-600">
                   {dragOver ? "Drop files here" : "Choose file or drag & drop"}
@@ -1556,6 +1548,7 @@ console.log("🎯 TARIFF IDS:", application?.tariffIds);
                   Supports images, PDFs and documents
                 </p>
               </div>
+
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1564,60 +1557,45 @@ console.log("🎯 TARIFF IDS:", application?.tariffIds);
                 onChange={(e) => handleFileChange(e.target.files)}
               />
             </motion.div>
-            <AnimatePresence>
-              {docs.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="overflow-hidden space-y-2"
-                >
-                  {docs.map((doc, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="flex items-center gap-3 bg-slate-50 border border-black/[0.07] rounded-xl px-3.5 py-2.5 group"
+
+            {/* 📄 FILE LIST */}
+            {docs.length > 0 && (
+              <div className="space-y-2">
+                {docs.map((doc, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 bg-slate-50 border border-black/[0.07] rounded-xl px-3.5 py-2.5"
+                  >
+                    <span>📄</span>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-slate-700 truncate">
+                        {doc.name}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {(doc.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        handleChange(
+                          "documents",
+                          docs.filter((_: any, j: number) => j !== i),
+                        )
+                      }
+                      className="text-red-500 text-xs"
                     >
-                      <span className="text-lg">📄</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-slate-700 font-medium truncate">
-                          {doc.name}
-                        </p>
-                        <p className="text-[10px] text-slate-400">
-                          {(doc.size / 1024).toFixed(1)} KB
-                        </p>
-                      </div>
-                      <button
-                        onClick={() =>
-                          handleChange(
-                            "documents",
-                            docs.filter((_: any, j: number) => j !== i),
-                          )
-                        }
-                        className="w-6 h-6 rounded-full bg-black/[0.04] hover:bg-red-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <svg
-                          className="w-3 h-3 text-slate-400 hover:text-red-500"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </button>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         );
       }
+
       if (ps.type === "signature")
         return (
           <>
@@ -1803,9 +1781,7 @@ console.log("🎯 TARIFF IDS:", application?.tariffIds);
                 <div className="space-y-2">
                   {[
                     { value: "monthly", label: "Monthly" },
-                    { value: "quarterly", label: "Quarterly" },
-                    { value: "half-yearly", label: "Half-yearly" },
-                    { value: "yearly", label: "Yearly (3% discount)" },
+                  
                   ].map((option) => {
                     const isSelected =
                       form.sepaPaymentFrequency === option.value;

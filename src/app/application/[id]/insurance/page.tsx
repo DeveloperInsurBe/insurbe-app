@@ -220,7 +220,10 @@ export default function InsurancePage() {
   const buildSteps = (f: Form): string[] => {
     const germanInsurance12m = normalizeYesNo(f.germanInsurance12m);
     const permanentContract = normalizeYesNo(f.permanentContract);
-    const s: string[] = ["germanInsurance12m"];
+    const s: string[] = ["alwaysInsured"];
+
+    // After alwaysInsured, ask about past 12 months insurance
+    s.push("germanInsurance12m");
 
     if (germanInsurance12m === "Yes") {
       s.push("initialProviderName");
@@ -249,25 +252,18 @@ export default function InsurancePage() {
     if (isNoneTravelExpat) return s;
 
     if (isPublicOrPrivate) {
-      s.push("germanProvider");
-      if (f.germanProvider === "No") return s;
-
-      if (f.germanProvider === "Yes") {
-        s.push("insuranceEndDate");
-        s.push("coverageStart");
-        if (ins === "Public insurance") {
-          s.push("providerName");
-        }
+      s.push("insuranceEndDate");
+      s.push("coverageStart");
+      if (ins === "Public insurance") {
+        s.push("providerName");
       }
     }
 
-    s.push("alwaysInsured");
-    s.push("livingInGermany");
     return s;
   };
 
   const steps = buildSteps(form);
-  const [stepKey, setStepKey] = useState("germanInsurance12m");
+  const [stepKey, setStepKey] = useState("alwaysInsured");
   const stepIndex = steps.indexOf(stepKey);
   const totalSteps = steps.length;
   const progress = Math.round(
@@ -322,9 +318,6 @@ export default function InsurancePage() {
       case "recentInsurance":
         return form.recentInsurance ? null : "Please select an option.";
 
-      case "germanProvider":
-        return form.germanProvider ? null : "Please select an option.";
-
       case "insuranceEndDate":
         if (!form.insuranceEndDate) {
           return "Please enter a date or select 'It's still active'.";
@@ -343,9 +336,6 @@ export default function InsurancePage() {
 
       case "alwaysInsured":
         return form.alwaysInsured ? null : "Please select an option.";
-
-      case "livingInGermany":
-        return form.livingInGermany ? null : "Please select an option.";
 
       default:
         return null;
@@ -371,6 +361,8 @@ export default function InsurancePage() {
       delete updated.jobContractRequired;
       delete updated.proofDocumentRequired;
       delete updated.appointmentRequired;
+      delete updated.germanProvider;
+      delete updated.livingInGermany;
 
       if (normalized === "No") {
         delete updated.providerName;
@@ -498,7 +490,7 @@ export default function InsurancePage() {
         handleChange("proofDocumentRequired", true); // ask upload later
       } else {
         handleChange("proofDocumentRequired", false);
-        handleChange("appointmentRequired", true); // appointment at the end
+       // appointment at the end
       }
 
       goNext();
@@ -519,19 +511,6 @@ export default function InsurancePage() {
           "Expat/incoming insurance",
         ].includes(ins)
       ) {
-        setScreen("employer-warning");
-        return;
-      }
-      goNext();
-      return;
-    }
-
-    if (stepKey === "germanProvider") {
-      if (!form.germanProvider) {
-        setError("Please select an option.");
-        return;
-      }
-      if (form.germanProvider === "No") {
         setScreen("employer-warning");
         return;
       }
@@ -577,15 +556,6 @@ export default function InsurancePage() {
       return;
     }
 
-    if (stepKey === "livingInGermany") {
-      if (!form.livingInGermany) {
-        setError("Please select an option.");
-        return;
-      }
-      setScreen("summary");
-      return;
-    }
-
     goNext();
   };
 
@@ -610,10 +580,10 @@ export default function InsurancePage() {
         setApplication(updated);
       }
 
-      if (form.appointmentRequired) {
-        router.push("/book-appointment");
-        return;
-      }
+     if (form.appointmentRequired === true && form.proofOfInsurance === "No") {
+  router.push("/book-appointment");
+  return;
+}
 
       router.push(`/application/${id}/health`);
     } catch (err) {
@@ -702,15 +672,7 @@ export default function InsurancePage() {
         value: form.recentInsurance || "",
         key: "recentInsurance",
       },
-      ...(form.germanProvider !== undefined
-        ? [
-            {
-              label: "German health provider",
-              value: form.germanProvider || "",
-              key: "germanProvider",
-            },
-          ]
-        : []),
+
       ...(form.insuranceEndDate
         ? [
             {
@@ -749,15 +711,6 @@ export default function InsurancePage() {
               label: "Always insured since 2025",
               value: form.alwaysInsured || "",
               key: "alwaysInsured",
-            },
-          ]
-        : []),
-      ...(form.livingInGermany
-        ? [
-            {
-              label: "Living in Germany",
-              value: form.livingInGermany || "",
-              key: "livingInGermany",
             },
           ]
         : []),
@@ -963,9 +916,6 @@ export default function InsurancePage() {
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-2">
             Have you had health insurance in the past 12 months?
           </h1>
-          <InfoNote>
-            Please do not include Mawista, Dr. Walter, or Care Concept.
-          </InfoNote>
           <div className="space-y-2">
             {["Yes", "No"].map((opt) => {
               const sel = normalizeYesNo(form.germanInsurance12m) === opt;
@@ -1190,47 +1140,6 @@ export default function InsurancePage() {
       );
     }
 
-    // ── German provider ──
-    if (stepKey === "germanProvider") {
-      return (
-        <>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-5">
-            Is that insurance with a German health provider?
-          </h1>
-          <div className="space-y-2">
-            {["Yes", "No"].map((opt) => {
-              const sel = form.germanProvider === opt;
-              return (
-                <motion.button
-                  key={opt}
-                  onClick={() => {
-                    handleChange("germanProvider", opt);
-                    setTouched((prev) => ({ ...prev, germanProvider: true }));
-                  }}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${sel ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}
-                  >
-                    {sel && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                    )}
-                  </div>
-                  <span
-                    className={`text-sm font-medium ${sel ? "text-slate-900" : "text-slate-600"}`}
-                  >
-                    {opt}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </>
-      );
-    }
-
     // ── Insurance end date ──
     if (stepKey === "insuranceEndDate") {
       const stillActive = form.insuranceEndDate === "still-active";
@@ -1410,54 +1319,6 @@ export default function InsurancePage() {
                   onClick={() => {
                     handleChange("alwaysInsured", opt);
                     setTouched((prev) => ({ ...prev, alwaysInsured: true }));
-                  }}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${sel ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}
-                  >
-                    {sel && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                    )}
-                  </div>
-                  <span
-                    className={`text-sm font-medium ${sel ? "text-slate-900" : "text-slate-600"}`}
-                  >
-                    {opt}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </>
-      );
-    }
-
-    // ── Living in Germany ──
-    if (stepKey === "livingInGermany") {
-      const startDate = form.coverageStart
-        ? new Date(form.coverageStart).toLocaleDateString("en-GB", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })
-        : "the coverage start date";
-      return (
-        <>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-5">
-            Will you be living in Germany on {startDate}?
-          </h1>
-          <div className="space-y-2">
-            {["Yes", "No"].map((opt) => {
-              const sel = form.livingInGermany === opt;
-              return (
-                <motion.button
-                  key={opt}
-                  onClick={() => {
-                    handleChange("livingInGermany", opt);
-                    setTouched((prev) => ({ ...prev, livingInGermany: true }));
                   }}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}

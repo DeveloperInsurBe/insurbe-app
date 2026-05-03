@@ -24,48 +24,24 @@ function validateStep(stepIndex: number, form: Form): string | null {
       if (!form.employerName?.trim()) return "Employer name is required.";
       return null;
     case 3:
-      if (!form.startDay || !form.startMonth || !form.startYear)
-        return "Please enter your employment start date.";
-      if (
-        isNaN(Number(form.startDay)) ||
-        Number(form.startDay) < 1 ||
-        Number(form.startDay) > 31
-      )
-        return "Invalid day.";
-      if (
-        isNaN(Number(form.startMonth)) ||
-        Number(form.startMonth) < 1 ||
-        Number(form.startMonth) > 12
-      )
-        return "Invalid month.";
-      if (
-        isNaN(Number(form.startYear)) ||
-        Number(form.startYear) < 1950 ||
-        Number(form.startYear) > new Date().getFullYear() + 5
-      )
-        return "Invalid year.";
-      return null;
-    case 4:
-      return null; // work contract — optional (provide later)
-    case 5:
       if (!form.annualIncome?.toString().trim())
         return "Please enter your annual income.";
       if (isNaN(Number(form.annualIncome)) || Number(form.annualIncome) < 0)
         return "Enter a valid income.";
       return null;
-    case 6:
+    case 4:
       if (!form.employedOutsideGermany) return "Please select an option.";
       return null;
-    case 7:
+    case 5:
       if (!form.hasGermanTaxId) return "Please select an option.";
       return null;
-    case 8:
+    case 6:
       if (form.hasGermanTaxId === "Yes" && !form.germanTaxIdNumber?.trim()) {
         return "Please enter your German Tax ID.";
       }
       return null;
 
-    case 9:
+    case 7:
       if (!form.taxIdAccepted) return "Please accept the terms to continue.";
       return null;
     default:
@@ -237,27 +213,6 @@ export default function FinancialPage() {
       placeholder: "Employer name",
     },
     {
-      key: "startDate",
-      title: "What is the start date of your employment contract?",
-      type: "date",
-    },
-    {
-      key: "documents",
-      title:
-        form.employmentStatus === "self-employed"
-          ? "Please upload your last 3 months bank statements"
-          : "Please upload a signed copy of your work contract",
-
-      type: "file",
-
-      hint:
-        form.employmentStatus === "self-employed"
-          ? "Since you are self-employed, we require your last 3 months bank statements."
-          : "Since you are employed we require a signed copy of the employment contract from your employer.",
-
-      provideLater: true,
-    },
-    {
       key: "annualIncome",
       title: "What is your annual income in Euros before taxes?",
       type: "currency",
@@ -361,8 +316,8 @@ export default function FinancialPage() {
         return;
       }
     }
-    // New income‑based ineligibility (only after answering income on step 5)
-    if (stepIndex === 5) {
+    // New income‑based ineligibility (only after answering income on step 3)
+    if (stepIndex === 3) {
       const income = Number(form.annualIncome);
       if (!isNaN(income) && income < 30000) {
         setShowIneligible(true);
@@ -410,8 +365,6 @@ export default function FinancialPage() {
     "employmentStatus",
     "jobTitle",
     "employerName",
-    "startDay",
-    "workContract",
     "annualIncome",
     "employedOutsideGermany",
     "hasGermanTaxId",
@@ -476,24 +429,11 @@ export default function FinancialPage() {
       { label: "Job title", value: form.jobTitle || "", step: 1 },
       { label: "Employer name", value: form.employerName || "", step: 2 },
       {
-        label: "Employment start date",
-        value:
-          form.startDay && form.startMonth && form.startYear
-            ? `${form.startYear}-${String(form.startMonth).padStart(2, "0")}-${String(form.startDay).padStart(2, "0")}`
-            : "",
-        step: 3,
-      },
-      {
-        label: "Copy of work contract",
-        value: form.documents?.name || "Provided separately",
-        step: 4,
-      },
-      {
         label: "Income",
         value: form.annualIncome
           ? `€${Number(form.annualIncome).toLocaleString()}`
           : "",
-        step: 5,
+        step: 3,
       },
       {
         label: "Employed outside Germany",
@@ -503,7 +443,7 @@ export default function FinancialPage() {
             : form.employedOutsideGermany === "No"
               ? "No"
               : "",
-        step: 6,
+        step: 4,
       },
       {
         label: "Has German tax ID?",
@@ -513,7 +453,7 @@ export default function FinancialPage() {
             : form.hasGermanTaxId === "No"
               ? "No"
               : "",
-        step: 7,
+        step: 5,
       },
     ];
 
