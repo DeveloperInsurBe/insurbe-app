@@ -157,6 +157,148 @@ function YesNoQuestion({
   );
 }
 
+// ── Health Guidance Modal ─────────────────────────────────────────────────────
+function HealthGuidanceModal({
+  onClose,
+  onContinue,
+}: {
+  onClose: () => void;
+  onContinue: () => void;
+}) {
+  const router = useRouter();
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        className="fixed inset-0 z-50 flex items-center justify-center px-4"
+        style={{ background: "rgba(15, 10, 40, 0.55)", backdropFilter: "blur(8px)" }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 32, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.96 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="relative w-full max-w-[440px] bg-white rounded-3xl overflow-hidden shadow-2xl"
+          style={{ boxShadow: "0 32px 80px rgba(109,40,217,0.2), 0 8px 24px rgba(0,0,0,0.1)" }}
+        >
+          {/* ── Close button ── */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150"
+            style={{ background: "rgba(255,255,255,0.18)", border: "1px solid rgba(255,255,255,0.28)", backdropFilter: "blur(4px)" }}
+          >
+            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+
+          {/* ── Gradient hero ── */}
+          <div
+            className="relative h-[192px] flex items-center justify-center overflow-hidden"
+            style={{ background: "linear-gradient(135deg, #3b0764 0%, #5b21b6 35%, #7c3aed 65%, #a855f7 100%)" }}
+          >
+            {/* Decorative radials */}
+            <div className="absolute inset-0" style={{ background: "radial-gradient(circle at 25% 55%, rgba(255,255,255,0.1) 0%, transparent 55%), radial-gradient(circle at 80% 20%, rgba(168,85,247,0.35) 0%, transparent 50%)" }} />
+
+            {/* Floating orbs */}
+            <motion.div
+              className="absolute w-24 h-24 rounded-full"
+              style={{ background: "rgba(255,255,255,0.05)", top: -12, right: -12 }}
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 4, repeat: Infinity }}
+            />
+            <motion.div
+              className="absolute w-16 h-16 rounded-full"
+              style={{ background: "rgba(255,255,255,0.06)", bottom: 16, left: 20 }}
+              animate={{ scale: [1, 1.08, 1] }}
+              transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+            />
+
+            {/* Icon */}
+            <div
+              className="relative z-10 w-[72px] h-[72px] rounded-2xl flex items-center justify-center"
+              style={{ background: "rgba(255,255,255,0.14)", border: "1.5px solid rgba(255,255,255,0.28)", backdropFilter: "blur(8px)" }}
+            >
+              <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+              </svg>
+            </div>
+
+            {/* White curve at bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-white" style={{ borderRadius: "24px 24px 0 0" }} />
+          </div>
+
+          {/* ── Body ── */}
+          <div className="px-7 pb-7 pt-0">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 mb-4" style={{ background: "#f3f0ff", border: "1px solid #e2d9ff" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
+              <span className="text-[10px] font-bold tracking-widest uppercase text-violet-700">Health Advisory</span>
+            </div>
+
+            <h2 className="text-[22px] font-extrabold text-slate-900 leading-tight tracking-tight mb-3">
+              A little personalised<br />guidance goes a long way
+            </h2>
+
+            <p className="text-[13.5px] text-slate-500 leading-relaxed mb-5 font-light">
+              Thank you for sharing your health details. Based on your response, we recommend speaking with one of our{" "}
+              <span className="text-slate-700 font-semibold">specialist advisors</span> who can help find the most suitable coverage for your situation.
+            </p>
+
+            {/* Info card */}
+            <div className="flex items-start gap-3 rounded-2xl p-4 mb-5" style={{ background: "#fafafa", border: "1px solid #f0eff8" }}>
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: "#f3f0ff", border: "1px solid #e4dcff" }}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-[13px] font-bold text-slate-800 mb-0.5">Free 20-min consultation</p>
+                <p className="text-xs text-slate-500 leading-relaxed font-light">
+                  Our advisors will review your profile and ensure you get the right level of cover — with no obligation.
+                </p>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <motion.button
+              onClick={() => router.push("/book-appointment")}
+              whileHover={{ y: -2, boxShadow: "0 10px 28px rgba(109,40,217,0.4)" }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3.5 rounded-2xl text-white text-sm font-bold mb-3 flex items-center justify-center gap-2 transition-shadow"
+              style={{ background: "linear-gradient(135deg, #5b21b6, #7c3aed)", boxShadow: "0 4px 18px rgba(109,40,217,0.32)" }}
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Book a free appointment
+            </motion.button>
+
+           
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 // ── Book appointment screen ───────────────────────────────────────────────────
 function BookAppointmentScreen({ onBack }: { onBack: () => void }) {
   const router = useRouter();
@@ -346,7 +488,7 @@ const GROUPED_STEPS = [
       },
     ],
   },
-  // 8 — Spectacles (solo — needs sub-fields)
+  // 8 — Spectacles (solo — needs sub-fields) — redirectOnYes: false (vision input)
   {
     key: "step_spectacles",
     title: "Vision & eyewear",
@@ -354,7 +496,7 @@ const GROUPED_STEPS = [
     subtitle:
       "Please state dioptres from +8/–8 onwards. A monthly surcharge may apply depending on your tariff.",
   },
-  // 9 — Dental (3 questions)
+  // 9 — Dental (3 questions) — redirectOnYes: false
   {
     key: "step_dental",
     title: "Dental health",
@@ -381,7 +523,7 @@ const GROUPED_STEPS = [
       },
     ],
   },
-  // 10 — Missing teeth + Dentures
+  // 10 — Missing teeth + Dentures — redirectOnYes: false (count input)
   {
     key: "step_teeth",
     title: "Missing teeth & dentures",
@@ -454,14 +596,18 @@ export default function MedicalPage() {
   const [dragOver, setDragOver] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
 
+  // ── NEW: modal state ────────────────────────────────────────────────────
+  const [showGuidanceModal, setShowGuidanceModal] = useState(false);
+  const [pendingNext, setPendingNext] = useState(false); // tracks if we should proceed after modal dismiss
+
   // ── Loader / result state ───────────────────────────────────────────────
   const [showLoader, setShowLoader] = useState(false);
-  const [loaderStep, setLoaderStep] = useState(0); // 0-3 = which row is "active"
+  const [loaderStep, setLoaderStep] = useState(0);
   const [loaderDone, setLoaderDone] = useState(false);
   const [needsHealthCheck, setNeedsHealthCheck] = useState(false);
 
   const steps = GROUPED_STEPS;
-  const totalSteps = steps.length; // 11
+  const totalSteps = steps.length;
   const current = steps[stepIndex];
   const isLast = stepIndex === totalSteps - 1;
   const progress = Math.round((stepIndex / totalSteps) * 100);
@@ -470,6 +616,7 @@ export default function MedicalPage() {
   const application = useApplicationStore((s) => s.application);
   console.log("🧾 APPLICATION DATA:", application);
   console.log("🎯 TARIFF IDS:", application?.tariffIds);
+
   // init from store once
   useEffect(() => {
     if (!application?.healthAnswers || hasInitialized.current) return;
@@ -525,34 +672,26 @@ export default function MedicalPage() {
     ctx.moveTo(x, y);
   };
 
-  // ✅ ADD THIS (for mobile)
   const startTouch = (e: React.TouchEvent) => {
     const t = e.touches[0];
     isDrawing.current = true;
-
     const { canvas, ctx } = getCtx();
     const r = canvas.getBoundingClientRect();
-
     const x = (t.clientX - r.left) * (canvas.width / r.width);
     const y = (t.clientY - r.top) * (canvas.height / r.height);
-
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
 
   const moveTouch = (e: React.TouchEvent) => {
     if (!isDrawing.current) return;
-
     const t = e.touches[0];
     const { canvas, ctx } = getCtx();
     const r = canvas.getBoundingClientRect();
-
     const x = (t.clientX - r.left) * (canvas.width / r.width);
     const y = (t.clientY - r.top) * (canvas.height / r.height);
-
     ctx.lineTo(x, y);
     ctx.stroke();
-
     setHasDrawn(true);
   };
 
@@ -603,16 +742,8 @@ export default function MedicalPage() {
 
   const handleChange = (name: string, value: any) => {
     const updated = { ...form, [name]: value };
-
     setForm(updated);
-
-    // ✅ mark touched
     setTouched((prev) => ({ ...prev, [name]: true }));
-
-    // ✅ LIVE VALIDATION
-    // const err = validateWithData(updated);
-    // setError(err);
-
     updateStep("healthAnswers", updated);
   };
 
@@ -650,13 +781,10 @@ export default function MedicalPage() {
 
   const validateWithData = (data: Form): string | null => {
     const s = current as any;
-
     if (s.type === "consent1" && !data.consent1)
       return "Please accept the terms to continue.";
-
     if (s.type === "consent2" && !data.consent2)
       return "Please accept the terms to continue.";
-
     if (s.type === "measurements") {
       for (const f of s.fields) {
         if (!data[f.key]?.toString().trim())
@@ -665,12 +793,10 @@ export default function MedicalPage() {
           return `Please enter a valid ${f.label.toLowerCase()}.`;
       }
     }
-
     if (s.type === "multi-yesno" || s.type === "multi-yesno-count") {
       for (const q of s.questions) {
         if (!data[q.key])
           return "Please answer all questions before continuing.";
-
         if (
           s.type === "multi-yesno-count" &&
           data[q.key] === "Yes" &&
@@ -679,13 +805,13 @@ export default function MedicalPage() {
           return `Please enter the ${q.countLabel.toLowerCase()}.`;
       }
     }
-
     if (s.type === "spectacles" && !data.spectacles)
       return "Please select an option.";
-
     return null;
   };
 
+  // ── Check if any redirectOnYes question was answered Yes ───────────────
+  // Only triggers for questions where redirectOnYes === true
   const checkRedirect = (): boolean => {
     const s = current as any;
     if (s.type === "multi-yesno" || s.type === "multi-yesno-count") {
@@ -696,6 +822,7 @@ export default function MedicalPage() {
     return false;
   };
 
+  // ── handleNext: show modal instead of navigating away ──────────────────
   const handleNext = () => {
     const err = validate();
     if (err) {
@@ -703,41 +830,59 @@ export default function MedicalPage() {
       return;
     }
     setError(null);
+
+    // If any redirectOnYes question answered Yes → show guidance modal
     if (checkRedirect()) {
-      setScreen("book-appointment");
+      setShowGuidanceModal(true);
+      setPendingNext(true);
       return;
     }
+
+    // Normal flow
     isLast ? setScreen("summary") : setStepIndex((p) => p + 1);
   };
 
- const getPendingDocs = () => {
-  const employmentStatus =
-    form?.employmentStatus || application?.financialHistory?.employmentStatus;
+  // ── Modal: user clicks "Continue without booking" ──────────────────────
+  const handleModalContinue = () => {
+    setShowGuidanceModal(false);
+    setPendingNext(false);
+    isLast ? setScreen("summary") : setStepIndex((p) => p + 1);
+  };
 
-  const required: string[] = [];
-  const optional: string[] = [
-    "Blue Card",
-    "Residence Permit (RP)",
-    "Passport",
-  ];
+  // ── Modal: user clicks × to dismiss (stay on same step) ───────────────
+  const handleModalClose = () => {
+    setShowGuidanceModal(false);
+    setPendingNext(false);
+  };
 
-  if (employmentStatus === "employee") {
-    required.push("Signed work contract");
-  }
+  const getPendingDocs = () => {
+    const employmentStatus =
+      form?.employmentStatus || application?.financialHistory?.employmentStatus;
 
-  if (employmentStatus === "self-employed") {
-    required.push("Last 3 months bank statements");
-  }
+    const required: string[] = [];
+    const optional: string[] = [
+      "Blue Card",
+      "Residence Permit (RP)",
+      "Passport",
+    ];
 
-  return { required, optional };
-};
+    if (employmentStatus === "employee") {
+      required.push("Signed work contract");
+    }
+
+    if (employmentStatus === "self-employed") {
+      required.push("Last 3 months bank statements");
+    }
+
+    return { required, optional };
+  };
+
   useEffect(() => {
     const financial = application?.financialHistory;
-
     if (financial?.documents && !form.documents) {
       setForm((prev: any) => ({
         ...prev,
-        documents: [financial.documents], // ✅ autofill
+        documents: [financial.documents],
       }));
     }
   }, [application]);
@@ -745,8 +890,7 @@ export default function MedicalPage() {
   const validatePost = (): string | null => {
     const s = POST_STEPS[postStepIndex];
     if (s.type === "documents") {
-      const { required } = getPendingDocs(); // ✅ FIX
-
+      const { required } = getPendingDocs();
       if (
         required.length > 0 &&
         (!form.documents || form.documents.length === 0)
@@ -754,7 +898,6 @@ export default function MedicalPage() {
         return "Please upload required document to continue.";
       }
     }
-
     if (s.type === "signature" && !form.signature && !hasDrawn)
       return "Please draw your signature before continuing.";
     if (s.type === "sepa") {
@@ -786,13 +929,13 @@ export default function MedicalPage() {
       ? setPostStepIndex((p) => p + 1)
       : handleSubmit();
   };
+
   const getLocation = async () => {
     return new Promise<{ lat: number; lng: number } | null>((resolve) => {
       if (!navigator.geolocation) {
         resolve(null);
         return;
       }
-
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           resolve({
@@ -805,15 +948,14 @@ export default function MedicalPage() {
       );
     });
   };
+
   const handleSubmit = async () => {
-    // ── Show the animated loader immediately ──────────────────────────────
     setLoading(true);
     setShowLoader(true);
     setLoaderStep(0);
     setLoaderDone(false);
     setNeedsHealthCheck(false);
 
-    // Helper: advance the loader row with a delay
     const advanceLoader = (step: number, ms: number) =>
       new Promise<void>((res) =>
         setTimeout(() => {
@@ -825,13 +967,10 @@ export default function MedicalPage() {
     try {
       const cleanForm = JSON.parse(JSON.stringify(form));
       console.log("📦 FULL FORM DATA:", cleanForm);
-
-      // If tariffIds exist
       console.log("🎯 TARIFF IDS:", cleanForm.tariffIds);
-      // Row 0 "Reviewing answers" — fires immediately (already set above)
-      await advanceLoader(1, 900); // move to row 1 after 900ms
 
-      // ── Save health data ──────────────────────────────────────────────
+      await advanceLoader(1, 900);
+
       let healthRes = await fetch(`/api/application/${id}/health`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -839,18 +978,13 @@ export default function MedicalPage() {
       });
       if (!healthRes.ok) {
         console.warn("⚠️ Database cold start, retrying...");
-
-        // show loader message instead of alert
-        setLoaderStep(0); // stays on "Reviewing answers"
-
+        setLoaderStep(0);
         await new Promise((r) => setTimeout(r, 2500));
-
         healthRes = await fetch(`/api/application/${id}/health`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(cleanForm),
         });
-
         if (!healthRes.ok) {
           setError("Server is waking up… please try again in a moment.");
           setLoading(false);
@@ -859,18 +993,10 @@ export default function MedicalPage() {
         }
       }
 
-      await advanceLoader(2, 700); // "Analysing risk profile" → "Skipping the doctor's visit"
+      await advanceLoader(2, 700);
 
-      // 📍 Get device location before submit
       const coords = await getLocation();
 
-      let locationData = null;
-
-      if (coords) {
-        locationData = coords; // send lat/lng (backend will handle)
-      }
-
-      // ── Complete application ──────────────────────────────────────────
       const completeRes = await fetch(`/api/application/${id}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -882,11 +1008,8 @@ export default function MedicalPage() {
       console.log("📍 LOCATION:", coords);
       if (!completeRes.ok) throw new Error("Complete API failed");
 
-      await advanceLoader(3, 600); // "Doing last checks"
+      await advanceLoader(3, 600);
 
-      // ── Determine if a health check warning should show ───────────────
-      // Any redirectOnYes question answered Yes means a health check may be needed.
-      // (In practice user wouldn't reach submit if redirected, but flag anyway.)
       const healthCheckFields = [
         "outpatient3y",
         "inpatient5y",
@@ -902,12 +1025,10 @@ export default function MedicalPage() {
       const flagged = healthCheckFields.some((k) => cleanForm[k] === "Yes");
       setNeedsHealthCheck(flagged);
 
-      // ── Finish loader ─────────────────────────────────────────────────
       await new Promise((r) => setTimeout(r, 500));
       setLoaderDone(true);
       sessionStorage.setItem("justCompleted", "1");
 
-      // Auto-redirect after user sees result (3 s for success, stays for health-check until they click Continue)
       if (!flagged) {
         setTimeout(() => router.push("/dashboard"), 3000);
       }
@@ -929,11 +1050,9 @@ export default function MedicalPage() {
       { label: "Doing last checks" },
     ];
 
-    // Before result is shown: animated "Checking your answers" view
     if (!loaderDone) {
       return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-slate-50 via-blue-50/50 to-purple-50/30 px-6">
-          {/* Icon */}
           <div className="w-24 h-24 rounded-2xl bg-white border border-purple/[0.08] flex items-center justify-center mb-8 shadow-sm">
             <svg
               className="w-12 h-12 text-purple-600"
@@ -957,7 +1076,6 @@ export default function MedicalPage() {
             We're reviewing your data to assess your eligibility
           </p>
 
-          {/* Progress rows */}
           <div className="w-full max-w-lg space-y-6">
             {LOADER_ROWS.map((row, i) => {
               const isActive = i === loaderStep;
@@ -1011,14 +1129,12 @@ export default function MedicalPage() {
       );
     }
 
-    // Result screen — success or health-check warning
     const rowColors = needsHealthCheck
       ? ["#6d28d9", "#7c3aed", "#f59e0b", "#a78bfa"]
       : ["#6d28d9", "#7c3aed", "#8b5cf6", "#a78bfa"];
 
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 px-6">
-        {/* Icon */}
         <div className="w-24 h-24 rounded-2xl bg-white border border-purple/[0.08] flex items-center justify-center mb-8 shadow-sm">
           {needsHealthCheck ? (
             <svg
@@ -1071,7 +1187,6 @@ export default function MedicalPage() {
             : "Your application is complete. We've sent a confirmation to your email. Redirecting to your dashboard…"}
         </motion.p>
 
-        {/* Completed rows */}
         <div className="w-full max-w-lg space-y-6 mb-12">
           {LOADER_ROWS.map((row, i) => (
             <motion.div
@@ -1114,32 +1229,6 @@ export default function MedicalPage() {
       </div>
     );
   }
-
-  // ════════════════════════════════════════════════════════════════════════
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 p-6 relative overflow-hidden">
-    <motion.div
-      className="absolute top-[-120px] left-[-120px] w-[400px] h-[400px] rounded-full bg-violet-400/10 blur-[100px] pointer-events-none"
-      animate={{ scale: [1, 1.1, 1] }}
-      transition={{ duration: 10, repeat: Infinity }}
-    />
-    <motion.div
-      className="absolute bottom-[-100px] right-[-80px] w-[350px] h-[350px] rounded-full bg-pink-400/10 blur-[100px] pointer-events-none"
-      animate={{ scale: [1, 1.08, 1] }}
-      transition={{ duration: 12, repeat: Infinity, delay: 3 }}
-    />
-    <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-    <div className="max-w-xl mx-auto relative z-10">
-      <ApplicationStepper currentStep="healthAnswers" />
-      <div className="mt-6">
-        <BookAppointmentScreen
-          onBack={() => {
-            setScreen("steps");
-            setError(null);
-          }}
-        />
-      </div>
-    </div>
-  </div>;
 
   // ════════════════════════════════════════════════════════════════════════
   if (screen === "summary") {
@@ -1221,12 +1310,10 @@ export default function MedicalPage() {
       try {
         const res = await fetch(`/api/application/${id}`);
         const data = await res.json();
-
         if (!data?.pdfBase64) {
           alert("PDF not ready yet");
           return;
         }
-
         const link = document.createElement("a");
         link.href = `data:application/pdf;base64,${data.pdfBase64}`;
         link.download = "Hallesche_Application.pdf";
@@ -1312,11 +1399,7 @@ export default function MedicalPage() {
                 }}
                 className="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0 p-1"
               >
-                <svg
-                  className="w-5 h-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
+                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
                     d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
@@ -1432,11 +1515,7 @@ export default function MedicalPage() {
                 onClick={() => setScreen("summary")}
                 className="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0 p-1"
               >
-                <svg
-                  className="w-5 h-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
+                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
                     d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
@@ -1459,7 +1538,6 @@ export default function MedicalPage() {
 
   // ════════════════════════════════════════════════════════════════════════
   if (screen === "post-summary") {
-    // ── Yield to full-screen loader as soon as submit is clicked ──────────
     if (showLoader) return null;
 
     const ps = POST_STEPS[postStepIndex];
@@ -1472,7 +1550,6 @@ export default function MedicalPage() {
 
         return (
           <>
-            {/* 🔥 REQUIRED DOCUMENT */}
             {required.length > 0 && (
               <div className="mb-5 p-4 rounded-xl bg-red-50 border border-red-200">
                 <p className="text-sm font-semibold text-red-700">
@@ -1484,7 +1561,6 @@ export default function MedicalPage() {
               </div>
             )}
 
-            {/* 🟢 OPTIONAL DOCUMENTS */}
             <div className="mb-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
               <p className="text-sm font-semibold text-slate-700">
                 Optional documents
@@ -1494,7 +1570,6 @@ export default function MedicalPage() {
               </p>
             </div>
 
-            {/* ✅ SUCCESS STATE */}
             {docs.length > 0 && (
               <div className="mb-5 p-4 rounded-xl bg-green-50 border border-green-200">
                 <p className="text-sm font-semibold text-green-700">
@@ -1506,7 +1581,6 @@ export default function MedicalPage() {
               </div>
             )}
 
-            {/* 📤 UPLOAD BOX */}
             <motion.div
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => {
@@ -1539,7 +1613,6 @@ export default function MedicalPage() {
               <div className="w-12 h-12 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center">
                 ⬆️
               </div>
-
               <div>
                 <p className="text-sm font-medium text-slate-600">
                   {dragOver ? "Drop files here" : "Choose file or drag & drop"}
@@ -1548,7 +1621,6 @@ export default function MedicalPage() {
                   Supports images, PDFs and documents
                 </p>
               </div>
-
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1558,7 +1630,6 @@ export default function MedicalPage() {
               />
             </motion.div>
 
-            {/* 📄 FILE LIST */}
             {docs.length > 0 && (
               <div className="space-y-2">
                 {docs.map((doc, i) => (
@@ -1567,7 +1638,6 @@ export default function MedicalPage() {
                     className="flex items-center gap-3 bg-slate-50 border border-black/[0.07] rounded-xl px-3.5 py-2.5"
                   >
                     <span>📄</span>
-
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-slate-700 truncate">
                         {doc.name}
@@ -1576,7 +1646,6 @@ export default function MedicalPage() {
                         {(doc.size / 1024).toFixed(1)} KB
                       </p>
                     </div>
-
                     <button
                       onClick={() =>
                         handleChange(
@@ -1669,11 +1738,7 @@ export default function MedicalPage() {
                 onClick={clearCanvas}
                 className="flex items-center gap-1.5 text-[11px] text-slate-400 hover:text-slate-600 transition-colors px-2 py-1 rounded-lg hover:bg-black/[0.04]"
               >
-                <svg
-                  className="w-3 h-3"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
+                <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
                     d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
@@ -1685,6 +1750,7 @@ export default function MedicalPage() {
             </div>
           </>
         );
+
       if (ps.type === "sepa")
         return (
           <>
@@ -1756,11 +1822,7 @@ export default function MedicalPage() {
                     form[f.key]?.trim() &&
                     !f.validate(form[f.key]) && (
                       <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                        <svg
-                          className="w-3 h-3"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
+                        <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                           <path
                             fillRule="evenodd"
                             d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
@@ -1773,16 +1835,12 @@ export default function MedicalPage() {
                 </div>
               ))}
 
-              {/* Payment Frequency */}
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">
                   Payment Frequency *
                 </label>
                 <div className="space-y-2">
-                  {[
-                    { value: "monthly", label: "Monthly" },
-                  
-                  ].map((option) => {
+                  {[{ value: "monthly", label: "Monthly" }].map((option) => {
                     const isSelected =
                       form.sepaPaymentFrequency === option.value;
                     return (
@@ -1817,11 +1875,6 @@ export default function MedicalPage() {
                         >
                           {option.label}
                         </span>
-                        {option.value === "yearly" && (
-                          <span className="ml-auto text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                            Save 3%
-                          </span>
-                        )}
                       </motion.button>
                     );
                   })}
@@ -1857,11 +1910,7 @@ export default function MedicalPage() {
                   }`}
                 >
                   {form.sepaMandateAccepted && (
-                    <svg
-                      className="w-2.5 h-2.5 text-white"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
+                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
                       <path
                         fillRule="evenodd"
                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -1872,9 +1921,7 @@ export default function MedicalPage() {
                 </div>
                 <span
                   className={`text-sm font-medium ${
-                    form.sepaMandateAccepted
-                      ? "text-violet-800"
-                      : "text-slate-600"
+                    form.sepaMandateAccepted ? "text-violet-800" : "text-slate-600"
                   }`}
                 >
                   I accept the SEPA direct debit mandate
@@ -1884,6 +1931,7 @@ export default function MedicalPage() {
           </>
         );
     };
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 p-6 relative overflow-hidden">
         <motion.div
@@ -1935,7 +1983,6 @@ export default function MedicalPage() {
               <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 py-1 mb-4">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
                 <span className="text-violet-700 text-[10px] font-semibold tracking-[0.12em] uppercase">
-                  {" "}
                   {postStepIndex === 0
                     ? "Documents"
                     : postStepIndex === 1
@@ -1956,11 +2003,7 @@ export default function MedicalPage() {
                     exit={{ opacity: 0, y: -6 }}
                     className="mt-4 flex items-center gap-2 text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5"
                   >
-                    <svg
-                      className="w-4 h-4 flex-shrink-0"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
+                    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                       <path
                         fillRule="evenodd"
                         d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
@@ -1994,55 +2037,24 @@ export default function MedicalPage() {
                 >
                   {loading ? (
                     <>
-                      <svg
-                        className="w-4 h-4 animate-spin"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                        />
+                      <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                       </svg>
                       Submitting…
                     </>
                   ) : postStepIndex === POST_STEPS.length - 1 ? (
                     <>
                       Submit Application{" "}
-                      <svg
-                        className="w-4 h-4"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
+                      <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </>
                   ) : (
                     <>
                       Continue{" "}
-                      <svg
-                        className="w-4 h-4"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
+                      <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                       </svg>
                     </>
                   )}
@@ -2074,6 +2086,7 @@ export default function MedicalPage() {
           />
         </>
       );
+
     if (s.type === "consent2")
       return (
         <>
@@ -2224,129 +2237,132 @@ export default function MedicalPage() {
           </AnimatePresence>
         </>
       );
+
     return null;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 p-6 relative overflow-hidden">
-      <motion.div
-        className="absolute top-[-120px] left-[-120px] w-[400px] h-[400px] rounded-full bg-violet-400/10 blur-[100px] pointer-events-none"
-        animate={{ scale: [1, 1.1, 1], x: [0, 20, 0], y: [0, -15, 0] }}
-        transition={{ duration: 10, repeat: Infinity }}
-      />
-      <motion.div
-        className="absolute bottom-[-100px] right-[-80px] w-[350px] h-[350px] rounded-full bg-pink-400/10 blur-[100px] pointer-events-none"
-        animate={{ scale: [1, 1.08, 1] }}
-        transition={{ duration: 12, repeat: Infinity, delay: 3 }}
-      />
-      <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-      <div className="max-w-xl mx-auto relative z-10">
-        <ApplicationStepper currentStep="healthAnswers" />
-        <div className="mt-6 mb-3">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-slate-400">
-              Step {stepIndex + 1} of {totalSteps}
-            </span>
-            <span className="text-xs font-semibold text-violet-600">
-              {progress}%
-            </span>
-          </div>
-          <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500"
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            />
-          </div>
-        </div>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={stepIndex}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-2xl shadow-xl shadow-black/[0.06] p-7"
-          >
-            <div className="flex justify-end mb-2">
-              <button
-                onClick={() => setScreen("summary")}
-                className="text-xs font-semibold cursor-pointer text-violet-600 hover:text-violet-700 transition"
-              >
-                Review →
-              </button>
-            </div>
-            <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 py-1 mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
-              <span className="text-violet-700 text-[10px] font-semibold tracking-[0.12em] uppercase">
-                Medical Info · {stepIndex + 1}/{totalSteps}
+    <>
+      {/* ── Health Guidance Modal (portal-style, renders on top of everything) ── */}
+      {showGuidanceModal && (
+        <HealthGuidanceModal
+          onClose={handleModalClose}
+          onContinue={handleModalContinue}
+        />
+      )}
+
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 p-6 relative overflow-hidden">
+        <motion.div
+          className="absolute top-[-120px] left-[-120px] w-[400px] h-[400px] rounded-full bg-violet-400/10 blur-[100px] pointer-events-none"
+          animate={{ scale: [1, 1.1, 1], x: [0, 20, 0], y: [0, -15, 0] }}
+          transition={{ duration: 10, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-[-100px] right-[-80px] w-[350px] h-[350px] rounded-full bg-pink-400/10 blur-[100px] pointer-events-none"
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 12, repeat: Infinity, delay: 3 }}
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+        <div className="max-w-xl mx-auto relative z-10">
+          <ApplicationStepper currentStep="healthAnswers" />
+          <div className="mt-6 mb-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs text-slate-400">
+                Step {stepIndex + 1} of {totalSteps}
+              </span>
+              <span className="text-xs font-semibold text-violet-600">
+                {progress}%
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-1">
-              {current.title}
-            </h1>
-            <div className="mb-4" />
-            {renderContent()}
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  className="mt-4 flex items-center gap-2 text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5"
+            <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500"
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </div>
+          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={stepIndex}
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -40 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-2xl shadow-xl shadow-black/[0.06] p-7"
+            >
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={() => setScreen("summary")}
+                  className="text-xs font-semibold cursor-pointer text-violet-600 hover:text-violet-700 transition"
                 >
-                  <svg
-                    className="w-4 h-4 flex-shrink-0"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                  Review →
+                </button>
+              </div>
+              <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 py-1 mb-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
+                <span className="text-violet-700 text-[10px] font-semibold tracking-[0.12em] uppercase">
+                  Medical Info · {stepIndex + 1}/{totalSteps}
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-1">
+                {current.title}
+              </h1>
+              <div className="mb-4" />
+              {renderContent()}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    className="mt-4 flex items-center gap-2 text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5"
                   >
+                    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="text-xs font-medium">{error}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <div className="mt-6 flex gap-3">
+                {stepIndex > 0 && (
+                  <motion.button
+                    onClick={() => {
+                      setStepIndex((p) => p - 1);
+                      setError(null);
+                    }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-5 py-3 rounded-xl border border-black/[0.08] text-slate-600 text-sm font-semibold bg-slate-50 hover:bg-slate-100 transition-colors flex-shrink-0"
+                  >
+                    ←
+                  </motion.button>
+                )}
+                <motion.button
+                  onClick={handleNext}
+                  whileHover={{ y: -1, scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2"
+                >
+                  {isLast ? "Review & Continue" : "Continue"}
+                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                     <path
                       fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="text-xs font-medium">{error}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <div className="mt-6 flex gap-3">
-              {stepIndex > 0 && (
-                <motion.button
-                  onClick={() => {
-                    setStepIndex((p) => p - 1);
-                    setError(null);
-                  }}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-5 py-3 rounded-xl border border-black/[0.08] text-slate-600 text-sm font-semibold bg-slate-50 hover:bg-slate-100 transition-colors flex-shrink-0"
-                >
-                  ←
                 </motion.button>
-              )}
-              <motion.button
-                onClick={handleNext}
-                whileHover={{ y: -1, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow flex items-center justify-center gap-2"
-              >
-                {isLast ? "Review & Continue" : "Continue"}
-                <svg
-                  className="w-4 h-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </motion.button>
-            </div>
-          </motion.div>
-        </AnimatePresence>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
