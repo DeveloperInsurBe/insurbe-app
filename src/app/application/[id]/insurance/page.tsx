@@ -151,7 +151,7 @@ function EmployerWarningScreen({
             whileTap={{ scale: 0.98 }}
             className="w-full py-3.5 rounded-xl border border-black/[0.08] text-slate-600 text-sm font-semibold bg-slate-50 hover:bg-slate-100 transition-colors"
           >
-            Contact us
+            Book an appointment 
           </motion.button>
         </div>
       </div>
@@ -615,7 +615,7 @@ export default function InsurancePage() {
                 setScreen("steps");
                 goNext();
               }}
-              onContact={() => router.push("/contact")}
+              onContact={() => router.push("/book-appointment")}
             />
           </div>
         </div>
