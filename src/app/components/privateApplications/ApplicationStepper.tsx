@@ -28,7 +28,7 @@ export default function ApplicationStepper({ currentStep }: Props) {
             <span
               className={`${
                 isActive
-                  ? "text-black font-semibold"
+                  ? "text-black font-bold"
                   : "text-gray-400"
               }`}
             >

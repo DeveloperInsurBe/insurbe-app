@@ -239,7 +239,7 @@ export default function ApplicationPage() {
         initial={{ opacity: 0, y: 40, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-4xl relative z-10"
+        className="w-full max-w-5xl relative z-10"
       >
         {/* ── HERO HEADER ── */}
         <motion.div
@@ -521,7 +521,7 @@ export default function ApplicationPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.75 }}
-          className="text-[11px] text-black/20 mt-5 text-center"
+          className="text-[11px] text-black/80 mt-5 text-center"
         >
           🔒 Encrypted & secure — your data is never shared
         </motion.p>
