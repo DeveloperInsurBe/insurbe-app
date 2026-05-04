@@ -610,7 +610,7 @@ export default function PersonalDetailsPage() {
         />
         <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
-        <div className="max-w-xl mx-auto px-4 py-8 relative z-10">
+        <div className="w-full max-w-xl mx-auto px-4 py-8 relative z-10">
           <ApplicationStepper currentStep="personalDetails" />
 
           <motion.div
@@ -747,6 +747,7 @@ export default function PersonalDetailsPage() {
               </span>
             </motion.div>
           </motion.div>
+          
         </div>
       </div>
     );
