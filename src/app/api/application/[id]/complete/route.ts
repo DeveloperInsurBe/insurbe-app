@@ -241,7 +241,13 @@ export async function POST(
     // =========================
     setField("AusgeübteTätigkeit-VP1", financial?.jobTitle);
     setField("Betrieb-Arbeitgeber-VN", financial?.employerName);
-    setField("KT-Nettoeinkünfte-VP1", financial?.annualIncome);
+
+    // setField("KT-Nettoeinkünfte-VP1", financial?.annualIncome);
+    const monthlyNetIncome = financial?.annualIncome
+  ? Math.round((parseFloat(financial.annualIncome) / 12) * 0.6)
+  : "";
+
+setField("KT-Nettoeinkünfte-VP1", monthlyNetIncome ? String(monthlyNetIncome) : "");
     // =========================
     // ✅ BUSINESS / FREELANCE START DATE (FIX)
     // =========================
@@ -398,6 +404,45 @@ export async function POST(
       iban: health?.sepaIban,
       bic: health?.sepaBic,
     });
+
+    // =========================
+    // SEPA MANDATE FIELDS (ADD THESE)
+    // =========================
+
+    // Date of birth of account holder
+    setField(
+      "GebDatumKontoinhaber",
+      `${personal?.day}.${personal?.month}.${personal?.year}`,
+    );
+
+    // Street name and number
+    setField(
+      "StraßeKontoinhaber",
+      [personal?.street, personal?.houseNumber].filter(Boolean).join(" "),
+    );
+
+    // Postal code and city (combined field)
+    setField(
+      "PLZOrtKontoinhaber",
+      `${personal?.postcode || ""} ${personal?.city || ""}`.trim(),
+    );
+
+    // OR combined postal + city field (some PDFs combine them)
+    setField(
+      "PLZOrtIN4",
+      `${personal?.postcode || ""} ${personal?.city || ""}`.trim(),
+    );
+
+    // VN details in SEPA section (bottom of mandate page)
+    setField("VorZunameVNIN4", `${personal?.firstName} ${personal?.lastName}`);
+    setField(
+      "GebDatumVNIN4",
+      `${personal?.day}.${personal?.month}.${personal?.year}`,
+    );
+    setField(
+      "StraßePLZOrtVNIN4",
+      `${[personal?.street, personal?.houseNumber].filter(Boolean).join(" ")}, ${personal?.postcode || ""} ${personal?.city || ""}`.trim(),
+    );
 
     setField("VorZunameKontoinhaber", health?.sepaName);
     setField("IBANZahlen", health?.sepaIban);
