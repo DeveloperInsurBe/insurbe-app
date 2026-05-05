@@ -100,31 +100,32 @@ export default function BecomePartnerPage() {
                   <span className="font-bold text-purple-600">€750/month</span>
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                  <motion.button
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() =>
-                      document
-                        .getElementById("application-form")
-                        ?.scrollIntoView({ behavior: "smooth" })
-                    }
-                    className="px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-600 text-white rounded-full font-bold shadow-xl hover:shadow-2xl hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2"
-                  >
-                    Sign up
-                    <ArrowRight className="w-5 h-5" />
-                  </motion.button>
+            <div className="flex flex-col sm:flex-row gap-4 mb-12">
 
-                  <Link href="/login">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-8 py-4 bg-white border-2 border-purple-600 text-purple-600 rounded-full font-bold shadow-lg hover:bg-purple-50 transition-all"
-                    >
-                      Log in
-                    </motion.button>
-                  </Link>
-                </div>
+  {/* SIGN UP */}
+  <Link href="/partner/signup">
+    <motion.button
+      whileHover={{ scale: 1.05, y: -2 }}
+      whileTap={{ scale: 0.95 }}
+      className="px-8 py-4 bg-gradient-to-r from-[#820ad1] to-[#820ad1] text-white rounded-full font-bold shadow-xl hover:shadow-2xl hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2"
+    >
+      Sign up
+      <ArrowRight className="w-5 h-5" />
+    </motion.button>
+  </Link>
+
+  {/* LOGIN */}
+  <Link href="/partner/login">
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className="px-8 py-4 bg-white border-2 border-[#820ad1] text-[#820ad1] rounded-full font-bold shadow-lg hover:bg-purple-50 transition-all"
+    >
+      Log in
+    </motion.button>
+  </Link>
+
+</div>
 
                 {/* Trust Indicators */}
                 <div className="flex flex-wrap items-center gap-8">
