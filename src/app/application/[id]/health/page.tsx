@@ -176,9 +176,6 @@ function HealthGuidanceModal({
         transition={{ duration: 0.25 }}
         className="fixed inset-0 z-50 flex items-center justify-center px-4"
         style={{ background: "rgba(15, 10, 40, 0.55)", backdropFilter: "blur(8px)" }}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
       >
         <motion.div
           initial={{ opacity: 0, y: 32, scale: 0.95 }}
@@ -188,27 +185,12 @@ function HealthGuidanceModal({
           className="relative w-full max-w-[440px] bg-white rounded-3xl overflow-hidden shadow-2xl"
           style={{ boxShadow: "0 32px 80px rgba(109,40,217,0.2), 0 8px 24px rgba(0,0,0,0.1)" }}
         >
-          {/* ── Close button ── */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150"
-            style={{ background: "rgba(255,255,255,0.18)", border: "1px solid rgba(255,255,255,0.28)", backdropFilter: "blur(4px)" }}
-          >
-            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-
           {/* ── Gradient hero ── */}
           <div
             className="relative h-[192px] flex items-center justify-center overflow-hidden"
             style={{ background: "linear-gradient(135deg, #3b0764 0%, #5b21b6 35%, #7c3aed 65%, #a855f7 100%)" }}
           >
-            {/* Decorative radials */}
             <div className="absolute inset-0" style={{ background: "radial-gradient(circle at 25% 55%, rgba(255,255,255,0.1) 0%, transparent 55%), radial-gradient(circle at 80% 20%, rgba(168,85,247,0.35) 0%, transparent 50%)" }} />
-
-            {/* Floating orbs */}
             <motion.div
               className="absolute w-24 h-24 rounded-full"
               style={{ background: "rgba(255,255,255,0.05)", top: -12, right: -12 }}
@@ -221,8 +203,6 @@ function HealthGuidanceModal({
               animate={{ scale: [1, 1.08, 1] }}
               transition={{ duration: 5, repeat: Infinity, delay: 1 }}
             />
-
-            {/* Icon */}
             <div
               className="relative z-10 w-[72px] h-[72px] rounded-2xl flex items-center justify-center"
               style={{ background: "rgba(255,255,255,0.14)", border: "1.5px solid rgba(255,255,255,0.28)", backdropFilter: "blur(8px)" }}
@@ -231,14 +211,11 @@ function HealthGuidanceModal({
                 <path d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>
             </div>
-
-            {/* White curve at bottom */}
             <div className="absolute bottom-0 left-0 right-0 h-8 bg-white" style={{ borderRadius: "24px 24px 0 0" }} />
           </div>
 
           {/* ── Body ── */}
           <div className="px-7 pb-7 pt-0">
-            {/* Badge */}
             <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 mb-4" style={{ background: "#f3f0ff", border: "1px solid #e2d9ff" }}>
               <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
               <span className="text-[10px] font-bold tracking-widest uppercase text-violet-700">Health Advisory</span>
@@ -253,7 +230,6 @@ function HealthGuidanceModal({
               <span className="text-slate-700 font-semibold">specialist advisors</span> who can help find the most suitable coverage for your situation.
             </p>
 
-            {/* Info card */}
             <div className="flex items-start gap-3 rounded-2xl p-4 mb-5" style={{ background: "#fafafa", border: "1px solid #f0eff8" }}>
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -274,12 +250,11 @@ function HealthGuidanceModal({
               </div>
             </div>
 
-            {/* CTA */}
             <motion.button
               onClick={() => router.push("/book-appointment")}
               whileHover={{ y: -2, boxShadow: "0 10px 28px rgba(109,40,217,0.4)" }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-3.5 rounded-2xl text-white text-sm font-bold mb-3 flex items-center justify-center gap-2 transition-shadow"
+              className="w-full cursor-pointer py-3.5 rounded-2xl text-white text-sm font-bold mb-3 flex items-center justify-center gap-2 transition-shadow"
               style={{ background: "linear-gradient(135deg, #5b21b6, #7c3aed)", boxShadow: "0 4px 18px rgba(109,40,217,0.32)" }}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -291,7 +266,18 @@ function HealthGuidanceModal({
               Book a free appointment
             </motion.button>
 
-           
+            <motion.button
+              onClick={() => router.push("/dashboard")}
+              whileHover={{ y: -1, backgroundColor: "#f8f7ff" }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3.5 cursor-pointer rounded-2xl text-slate-600 text-sm font-semibold flex items-center justify-center gap-2 transition-all border border-slate-200 bg-white"
+            >
+              <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              Go to Dashboard
+            </motion.button>
           </div>
         </motion.div>
       </motion.div>
@@ -358,19 +344,8 @@ function BookAppointmentScreen({ onBack }: { onBack: () => void }) {
 // ── GROUPED STEP DEFINITIONS  (20 questions → 11 steps)
 // ════════════════════════════════════════════════════════════════════════════
 const GROUPED_STEPS = [
-  // 0 — Consent 1
-  {
-    key: "step_consent1",
-    title: "Before we continue… (1 of 2)",
-    type: "consent1",
-  },
-  // 1 — Consent 2
-  {
-    key: "step_consent2",
-    title: "Before we continue… (2 of 2)",
-    type: "consent2",
-  },
-  // 2 — Height + Weight
+  { key: "step_consent1", title: "Before we continue… (1 of 2)", type: "consent1" },
+  { key: "step_consent2", title: "Before we continue… (2 of 2)", type: "consent2" },
   {
     key: "step_measurements",
     title: "Your measurements",
@@ -380,7 +355,6 @@ const GROUPED_STEPS = [
       { key: "weight", label: "Weight", placeholder: "e.g. 72", unit: "kg" },
     ],
   },
-  // 3 — Out-patient + In-patient
   {
     key: "step_patient",
     title: "Recent medical visits",
@@ -388,21 +362,17 @@ const GROUPED_STEPS = [
     questions: [
       {
         key: "outpatient3y",
-        label:
-          "Have out-patient examinations or treatments been carried out during the last 3 years?",
-        subtitle:
-          "Including medical check-ups, treatments by doctors, non-medical practitioners or other persons.",
+        label: "Have out-patient examinations or treatments been carried out during the last 3 years?",
+        subtitle: "Including medical check-ups, treatments by doctors, non-medical practitioners or other persons.",
         redirectOnYes: true,
       },
       {
         key: "inpatient5y",
-        label:
-          "Did in-patient examinations, treatments or operations take place within the last 5 years?",
+        label: "Did in-patient examinations, treatments or operations take place within the last 5 years?",
         redirectOnYes: true,
       },
     ],
   },
-  // 4 — Psychotherapy + Sterility
   {
     key: "step_psycho_sterility",
     title: "Mental health & fertility",
@@ -410,20 +380,17 @@ const GROUPED_STEPS = [
     questions: [
       {
         key: "psychotherapy10y",
-        label:
-          "Has a psychotherapy been recommended or carried out in the last 10 years, or is one intended?",
+        label: "Has a psychotherapy been recommended or carried out in the last 10 years, or is one intended?",
         redirectOnYes: true,
       },
       {
         key: "sterility3y",
-        label:
-          "During the last 3 years have you had examinations or treatment due to sterility or an unfulfilled wish for a child?",
+        label: "During the last 3 years have you had examinations or treatment due to sterility or an unfulfilled wish for a child?",
         subtitle: "To be answered by male and female applicants.",
         redirectOnYes: true,
       },
     ],
   },
-  // 5 — Planned treatment + Untreated disease
   {
     key: "step_planned_untreated",
     title: "Planned & untreated conditions",
@@ -431,21 +398,17 @@ const GROUPED_STEPS = [
     questions: [
       {
         key: "plannedTreatment",
-        label:
-          "Is an out-patient or in-patient examination, treatment or operation necessary, intended or recommended?",
+        label: "Is an out-patient or in-patient examination, treatment or operation necessary, intended or recommended?",
         redirectOnYes: true,
       },
       {
         key: "untreatedDisease",
-        label:
-          "Have you suffered from any disease, complaint or addiction not treated in the last 3 years?",
-        subtitle:
-          "Including physical or psychological faults, or need of care during the last 3 years.",
+        label: "Have you suffered from any disease, complaint or addiction not treated in the last 3 years?",
+        subtitle: "Including physical or psychological faults, or need of care during the last 3 years.",
         redirectOnYes: true,
       },
     ],
   },
-  // 6 — Chronic disease + HIV
   {
     key: "step_chronic_hiv",
     title: "Chronic conditions & HIV",
@@ -453,10 +416,8 @@ const GROUPED_STEPS = [
     questions: [
       {
         key: "chronicDisease",
-        label:
-          "Do chronic diseases, permanent/recurring complaints, organic or physical faults, body implants or prostheses exist?",
-        subtitle:
-          "Including maxillodental abnormalities, breast implants, artificial joints, etc.",
+        label: "Do chronic diseases, permanent/recurring complaints, organic or physical faults, body implants or prostheses exist?",
+        subtitle: "Including maxillodental abnormalities, breast implants, artificial joints, etc.",
         redirectOnYes: true,
       },
       {
@@ -466,7 +427,6 @@ const GROUPED_STEPS = [
       },
     ],
   },
-  // 7 — Handicap + Regular medication
   {
     key: "step_handicap_meds",
     title: "Disability & medication",
@@ -475,28 +435,23 @@ const GROUPED_STEPS = [
       {
         key: "handicap",
         label: "Do you have a recognized handicap?",
-        subtitle:
-          "If yes, please have ready a copy of the recognition certificate (German GdB).",
+        subtitle: "If yes, please have ready a copy of the recognition certificate (German GdB).",
         redirectOnYes: true,
       },
       {
         key: "regularMedication",
-        label:
-          "Have you taken or do you take medicaments regularly during the last 3 years?",
+        label: "Have you taken or do you take medicaments regularly during the last 3 years?",
         subtitle: "Including medications taken for prevention.",
         redirectOnYes: true,
       },
     ],
   },
-  // 8 — Spectacles (solo — needs sub-fields) — redirectOnYes: false (vision input)
   {
     key: "step_spectacles",
     title: "Vision & eyewear",
     type: "spectacles",
-    subtitle:
-      "Please state dioptres from +8/–8 onwards. A monthly surcharge may apply depending on your tariff.",
+    subtitle: "Please state dioptres from +8/–8 onwards. A monthly surcharge may apply depending on your tariff.",
   },
-  // 9 — Dental (3 questions) — redirectOnYes: false
   {
     key: "step_dental",
     title: "Dental health",
@@ -504,26 +459,22 @@ const GROUPED_STEPS = [
     questions: [
       {
         key: "dentalExam3y",
-        label:
-          "Have you had dental examinations or treatment during the last 3 years?",
+        label: "Have you had dental examinations or treatment during the last 3 years?",
         subtitle: "Including dental check-ups.",
         redirectOnYes: false,
       },
       {
         key: "dentalOngoing",
-        label:
-          "Are you in dental treatment at the moment, or is treatment for dental regulation, periodontosis or dentures necessary or intended?",
+        label: "Are you in dental treatment at the moment, or is treatment for dental regulation, periodontosis or dentures necessary or intended?",
         redirectOnYes: false,
       },
       {
         key: "gumDisease",
-        label:
-          "Does a gum disease (e.g. periodontosis, periodontitis) or an anomalous position of the teeth or jaw exist?",
+        label: "Does a gum disease (e.g. periodontosis, periodontitis) or an anomalous position of the teeth or jaw exist?",
         redirectOnYes: false,
       },
     ],
   },
-  // 10 — Missing teeth + Dentures — redirectOnYes: false (count input)
   {
     key: "step_teeth",
     title: "Missing teeth & dentures",
@@ -531,8 +482,7 @@ const GROUPED_STEPS = [
     questions: [
       {
         key: "missingTeeth",
-        label:
-          "Are any teeth (except wisdom teeth) missing and not yet replaced?",
+        label: "Are any teeth (except wisdom teeth) missing and not yet replaced?",
         subtitle: "Only for persons 16 years of age and older.",
         countKey: "missingTeethCount",
         countLabel: "Number of missing teeth",
@@ -540,10 +490,8 @@ const GROUPED_STEPS = [
       },
       {
         key: "dentures",
-        label:
-          "Do you have dentures (replaced or crowned teeth, including implants, bridges, crowns and prostheses)?",
-        subtitle:
-          "For bridges, count all relevant teeth separately including anchor/pillar teeth.",
+        label: "Do you have dentures (replaced or crowned teeth, including implants, bridges, crowns and prostheses)?",
+        subtitle: "For bridges, count all relevant teeth separately including anchor/pillar teeth.",
         countKey: "denturesCount",
         countLabel: "Number of teeth with dentures",
         redirectOnYes: false,
@@ -554,11 +502,7 @@ const GROUPED_STEPS = [
 
 const POST_STEPS = [
   { key: "documents", title: "Upload supporting documents", type: "documents" },
-  {
-    key: "signature",
-    title: "Provide your digital signature",
-    type: "signature",
-  },
+  { key: "signature", title: "Provide your digital signature", type: "signature" },
   { key: "sepa", title: "Set up your SEPA direct debit mandate", type: "sepa" },
 ] as const;
 
@@ -586,9 +530,7 @@ export default function MedicalPage() {
 
   const [stepIndex, setStepIndex] = useState(0);
   const [postStepIndex, setPostStepIndex] = useState(0);
-  const [form, setForm] = useState<Form>({
-    sepaPaymentFrequency: "monthly",
-  });
+  const [form, setForm] = useState<Form>({ sepaPaymentFrequency: "monthly" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -596,11 +538,9 @@ export default function MedicalPage() {
   const [dragOver, setDragOver] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
 
-  // ── NEW: modal state ────────────────────────────────────────────────────
   const [showGuidanceModal, setShowGuidanceModal] = useState(false);
-  const [pendingNext, setPendingNext] = useState(false); // tracks if we should proceed after modal dismiss
+  const [pendingNext, setPendingNext] = useState(false);
 
-  // ── Loader / result state ───────────────────────────────────────────────
   const [showLoader, setShowLoader] = useState(false);
   const [loaderStep, setLoaderStep] = useState(0);
   const [loaderDone, setLoaderDone] = useState(false);
@@ -617,20 +557,17 @@ export default function MedicalPage() {
   console.log("🧾 APPLICATION DATA:", application);
   console.log("🎯 TARIFF IDS:", application?.tariffIds);
 
-  // init from store once
   useEffect(() => {
     if (!application?.healthAnswers || hasInitialized.current) return;
     setForm(application.healthAnswers || {});
     hasInitialized.current = true;
   }, [application]);
 
-  // sync to store on every change
   useEffect(() => {
     if (!form || Object.keys(form).length === 0) return;
     updateStep("healthAnswers", form);
   }, [form]);
 
-  // auto-save debounce
   useEffect(() => {
     if (!id || Object.keys(form).length === 0) return;
     const t = setTimeout(async () => {
@@ -671,7 +608,6 @@ export default function MedicalPage() {
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
-
   const startTouch = (e: React.TouchEvent) => {
     const t = e.touches[0];
     isDrawing.current = true;
@@ -682,7 +618,6 @@ export default function MedicalPage() {
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
-
   const moveTouch = (e: React.TouchEvent) => {
     if (!isDrawing.current) return;
     const t = e.touches[0];
@@ -694,7 +629,6 @@ export default function MedicalPage() {
     ctx.stroke();
     setHasDrawn(true);
   };
-
   const endTouch = () => {
     isDrawing.current = false;
     getCtx().ctx.beginPath();
@@ -713,7 +647,6 @@ export default function MedicalPage() {
     ctx.moveTo(x, y);
     setHasDrawn(true);
   };
-
   const clearCanvas = () => {
     const { canvas, ctx } = getCtx();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -730,8 +663,7 @@ export default function MedicalPage() {
         (f) =>
           new Promise<any>((res, rej) => {
             const r = new FileReader();
-            r.onload = () =>
-              res({ name: f.name, size: f.size, base64: r.result });
+            r.onload = () => res({ name: f.name, size: f.size, base64: r.result });
             r.onerror = rej;
             r.readAsDataURL(f);
           }),
@@ -779,39 +711,7 @@ export default function MedicalPage() {
     return null;
   };
 
-  const validateWithData = (data: Form): string | null => {
-    const s = current as any;
-    if (s.type === "consent1" && !data.consent1)
-      return "Please accept the terms to continue.";
-    if (s.type === "consent2" && !data.consent2)
-      return "Please accept the terms to continue.";
-    if (s.type === "measurements") {
-      for (const f of s.fields) {
-        if (!data[f.key]?.toString().trim())
-          return `Please enter your ${f.label.toLowerCase()}.`;
-        if (isNaN(Number(data[f.key])) || Number(data[f.key]) <= 0)
-          return `Please enter a valid ${f.label.toLowerCase()}.`;
-      }
-    }
-    if (s.type === "multi-yesno" || s.type === "multi-yesno-count") {
-      for (const q of s.questions) {
-        if (!data[q.key])
-          return "Please answer all questions before continuing.";
-        if (
-          s.type === "multi-yesno-count" &&
-          data[q.key] === "Yes" &&
-          !data[q.countKey]?.toString().trim()
-        )
-          return `Please enter the ${q.countLabel.toLowerCase()}.`;
-      }
-    }
-    if (s.type === "spectacles" && !data.spectacles)
-      return "Please select an option.";
-    return null;
-  };
-
   // ── Check if any redirectOnYes question was answered Yes ───────────────
-  // Only triggers for questions where redirectOnYes === true
   const checkRedirect = (): boolean => {
     const s = current as any;
     if (s.type === "multi-yesno" || s.type === "multi-yesno-count") {
@@ -822,7 +722,7 @@ export default function MedicalPage() {
     return false;
   };
 
-  // ── handleNext: show modal instead of navigating away ──────────────────
+  // ── handleNext: just validate and advance — modal only shows at submit ──
   const handleNext = () => {
     const err = validate();
     if (err) {
@@ -830,60 +730,34 @@ export default function MedicalPage() {
       return;
     }
     setError(null);
-
-    // If any redirectOnYes question answered Yes → show guidance modal
-    if (checkRedirect()) {
-      setShowGuidanceModal(true);
-      setPendingNext(true);
-      return;
-    }
-
-    // Normal flow
     isLast ? setScreen("summary") : setStepIndex((p) => p + 1);
   };
 
-  // ── Modal: user clicks "Continue without booking" ──────────────────────
   const handleModalContinue = () => {
     setShowGuidanceModal(false);
     setPendingNext(false);
-    isLast ? setScreen("summary") : setStepIndex((p) => p + 1);
   };
 
-  // ── Modal: user clicks × to dismiss (stay on same step) ───────────────
   const handleModalClose = () => {
     setShowGuidanceModal(false);
     setPendingNext(false);
+    setShowLoader(false); // return to form
   };
 
   const getPendingDocs = () => {
     const employmentStatus =
       form?.employmentStatus || application?.financialHistory?.employmentStatus;
-
     const required: string[] = [];
-    const optional: string[] = [
-      "Blue Card",
-      "Residence Permit (RP)",
-      "Passport",
-    ];
-
-    if (employmentStatus === "employee") {
-      required.push("Signed work contract");
-    }
-
-    if (employmentStatus === "self-employed") {
-      required.push("Last 3 months bank statements");
-    }
-
+    const optional: string[] = ["Blue Card", "Residence Permit (RP)", "Passport"];
+    if (employmentStatus === "employee") required.push("Signed work contract");
+    if (employmentStatus === "self-employed") required.push("Last 3 months bank statements");
     return { required, optional };
   };
 
   useEffect(() => {
     const financial = application?.financialHistory;
     if (financial?.documents && !form.documents) {
-      setForm((prev: any) => ({
-        ...prev,
-        documents: [financial.documents],
-      }));
+      setForm((prev: any) => ({ ...prev, documents: [financial.documents] }));
     }
   }, [application]);
 
@@ -891,27 +765,21 @@ export default function MedicalPage() {
     const s = POST_STEPS[postStepIndex];
     if (s.type === "documents") {
       const { required } = getPendingDocs();
-      if (
-        required.length > 0 &&
-        (!form.documents || form.documents.length === 0)
-      ) {
+      if (required.length > 0 && (!form.documents || form.documents.length === 0)) {
         return "Please upload required document to continue.";
       }
     }
     if (s.type === "signature" && !form.signature && !hasDrawn)
       return "Please draw your signature before continuing.";
     if (s.type === "sepa") {
-      if (!form.sepaName?.trim())
-        return "Please enter your account holder name.";
+      if (!form.sepaName?.trim()) return "Please enter your account holder name.";
       if (!form.sepaIban?.trim()) return "Please enter your IBAN.";
       if (!validateIBAN(form.sepaIban))
         return "Please enter a valid IBAN (e.g., DE89 3704 0044 0532 0130 00).";
       if (form.sepaBic?.trim() && !validateBIC(form.sepaBic))
         return "Please enter a valid BIC/SWIFT code (e.g., DEUTDEFF).";
-      if (!form.sepaPaymentFrequency)
-        return "Please select a payment frequency.";
-      if (!form.sepaMandateAccepted)
-        return "Please accept the SEPA mandate to continue.";
+      if (!form.sepaPaymentFrequency) return "Please select a payment frequency.";
+      if (!form.sepaMandateAccepted) return "Please accept the SEPA mandate to continue.";
     }
     return null;
   };
@@ -923,8 +791,7 @@ export default function MedicalPage() {
       return;
     }
     setError(null);
-    if (POST_STEPS[postStepIndex].type === "signature" && hasDrawn)
-      captureSignature();
+    if (POST_STEPS[postStepIndex].type === "signature" && hasDrawn) captureSignature();
     postStepIndex < POST_STEPS.length - 1
       ? setPostStepIndex((p) => p + 1)
       : handleSubmit();
@@ -932,24 +799,45 @@ export default function MedicalPage() {
 
   const getLocation = async () => {
     return new Promise<{ lat: number; lng: number } | null>((resolve) => {
-      if (!navigator.geolocation) {
-        resolve(null);
-        return;
-      }
+      if (!navigator.geolocation) { resolve(null); return; }
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          resolve({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          });
-        },
+        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         () => resolve(null),
         { enableHighAccuracy: true, timeout: 5000 },
       );
     });
   };
 
+  // ════════════════════════════════════════════════════════════════════════
+  // ── HANDLE SUBMIT — checks flagged answers FIRST, shows modal over
+  //    loader if any redirectOnYes field is "Yes". API never called.
+  // ════════════════════════════════════════════════════════════════════════
   const handleSubmit = async () => {
+    const redirectFields = [
+      "outpatient3y", "inpatient5y", "psychotherapy10y", "sterility3y",
+      "plannedTreatment", "untreatedDisease", "chronicDisease", "hiv",
+      "handicap", "regularMedication",
+    ];
+    const hasFlaggedAnswers = redirectFields.some((k) => form[k] === "Yes");
+
+    if (hasFlaggedAnswers) {
+      // Show loader UI, animate through steps, then show modal — never call API
+      setShowLoader(true);
+      setLoaderStep(0);
+      setLoaderDone(false);
+
+      await new Promise((r) => setTimeout(r, 900));
+      setLoaderStep(1);
+      await new Promise((r) => setTimeout(r, 700));
+      setLoaderStep(2);
+      await new Promise((r) => setTimeout(r, 600));
+
+      // Show guidance modal on top of loader screen
+      setShowGuidanceModal(true);
+      return; // ← stop here, API is never called
+    }
+
+    // ── No flagged answers: proceed with normal API flow ─────────────────
     setLoading(true);
     setShowLoader(true);
     setLoaderStep(0);
@@ -958,10 +846,7 @@ export default function MedicalPage() {
 
     const advanceLoader = (step: number, ms: number) =>
       new Promise<void>((res) =>
-        setTimeout(() => {
-          setLoaderStep(step);
-          res();
-        }, ms),
+        setTimeout(() => { setLoaderStep(step); res(); }, ms),
       );
 
     try {
@@ -1000,10 +885,7 @@ export default function MedicalPage() {
       const completeRes = await fetch(`/api/application/${id}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          signature: form.signature || null,
-          location: coords,
-        }),
+        body: JSON.stringify({ signature: form.signature || null, location: coords }),
       });
       console.log("📍 LOCATION:", coords);
       if (!completeRes.ok) throw new Error("Complete API failed");
@@ -1011,16 +893,9 @@ export default function MedicalPage() {
       await advanceLoader(3, 600);
 
       const healthCheckFields = [
-        "outpatient3y",
-        "inpatient5y",
-        "psychotherapy10y",
-        "sterility3y",
-        "plannedTreatment",
-        "untreatedDisease",
-        "chronicDisease",
-        "hiv",
-        "handicap",
-        "regularMedication",
+        "outpatient3y", "inpatient5y", "psychotherapy10y", "sterility3y",
+        "plannedTreatment", "untreatedDisease", "chronicDisease", "hiv",
+        "handicap", "regularMedication",
       ];
       const flagged = healthCheckFields.some((k) => cleanForm[k] === "Yes");
       setNeedsHealthCheck(flagged);
@@ -1052,80 +927,96 @@ export default function MedicalPage() {
 
     if (!loaderDone) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-slate-50 via-blue-50/50 to-purple-50/30 px-6">
-          <div className="w-24 h-24 rounded-2xl bg-white border border-purple/[0.08] flex items-center justify-center mb-8 shadow-sm">
-            <svg
-              className="w-12 h-12 text-purple-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-              />
-            </svg>
-          </div>
+        <>
+          {/* ── Modal renders on top of loader when flagged answers detected ── */}
+          {showGuidanceModal && (
+            <HealthGuidanceModal
+              onClose={() => {
+                setShowGuidanceModal(false);
+                setShowLoader(false); // send back to form
+              }}
+              onContinue={() => {
+                setShowGuidanceModal(false);
+                setShowLoader(false); // send back to form — no API call
+              }}
+            />
+          )}
 
-          <h1 className="text-3xl font-bold text-purple-700 mb-2 text-center">
-            Checking your answers
-          </h1>
-          <p className="text-slate-500 text-base mb-12 text-center">
-            We're reviewing your data to assess your eligibility
-          </p>
+          <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-slate-50 via-blue-50/50 to-purple-50/30 px-6">
+            <div className="w-24 h-24 rounded-2xl bg-white border border-purple/[0.08] flex items-center justify-center mb-8 shadow-sm">
+              <svg
+                className="w-12 h-12 text-purple-600"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                />
+              </svg>
+            </div>
 
-          <div className="w-full max-w-lg space-y-6">
-            {LOADER_ROWS.map((row, i) => {
-              const isActive = i === loaderStep;
-              const isComplete = i < loaderStep;
-              return (
-                <div key={row.label} className="flex items-center gap-6">
-                  <span
-                    className={`text-sm font-medium w-52 flex-shrink-0 transition-colors duration-300 ${isActive || isComplete ? "text-slate-800" : "text-slate-400"}`}
-                  >
-                    {row.label}
-                  </span>
-                  <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden relative">
-                    {isComplete && (
-                      <div className="absolute inset-0 bg-slate-800 rounded-full" />
-                    )}
+            <h1 className="text-3xl font-bold text-purple-700 mb-2 text-center">
+              Checking your answers
+            </h1>
+            <p className="text-slate-500 text-base mb-12 text-center">
+              We're reviewing your data to assess your eligibility
+            </p>
+
+            <div className="w-full max-w-lg space-y-6">
+              {LOADER_ROWS.map((row, i) => {
+                const isActive = i === loaderStep;
+                const isComplete = i < loaderStep;
+                return (
+                  <div key={row.label} className="flex items-center gap-6">
+                    <span
+                      className={`text-sm font-medium w-52 flex-shrink-0 transition-colors duration-300 ${isActive || isComplete ? "text-slate-800" : "text-slate-400"}`}
+                    >
+                      {row.label}
+                    </span>
+                    <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden relative">
+                      {isComplete && (
+                        <div className="absolute inset-0 bg-slate-800 rounded-full" />
+                      )}
+                      {isActive && (
+                        <motion.div
+                          className="absolute inset-y-0 left-0 bg-slate-800 rounded-full"
+                          initial={{ width: "0%" }}
+                          animate={{ width: "92%" }}
+                          transition={{ duration: 0.8, ease: "easeInOut" }}
+                        />
+                      )}
+                    </div>
                     {isActive && (
-                      <motion.div
-                        className="absolute inset-y-0 left-0 bg-slate-800 rounded-full"
-                        initial={{ width: "0%" }}
-                        animate={{ width: "92%" }}
-                        transition={{ duration: 0.8, ease: "easeInOut" }}
-                      />
+                      <svg
+                        className="w-5 h-5 text-slate-500 animate-spin flex-shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        />
+                      </svg>
                     )}
                   </div>
-                  {isActive && (
-                    <svg
-                      className="w-5 h-5 text-slate-500 animate-spin flex-shrink-0"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                      />
-                    </svg>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </>
       );
     }
 
@@ -1137,32 +1028,12 @@ export default function MedicalPage() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 px-6">
         <div className="w-24 h-24 rounded-2xl bg-white border border-purple/[0.08] flex items-center justify-center mb-8 shadow-sm">
           {needsHealthCheck ? (
-            <svg
-              className="w-12 h-12 text-purple-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h.01"
-              />
+            <svg className="w-12 h-12 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h.01" />
             </svg>
           ) : (
-            <svg
-              className="w-12 h-12 text-purple-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-              />
+            <svg className="w-12 h-12 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
           )}
         </div>
@@ -1172,9 +1043,7 @@ export default function MedicalPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-3xl font-bold text-slate-900 mb-3 text-center"
         >
-          {needsHealthCheck
-            ? "You might need a health check"
-            : "Application submitted!"}
+          {needsHealthCheck ? "You might need a health check" : "Application submitted!"}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 8 }}
@@ -1199,14 +1068,8 @@ export default function MedicalPage() {
               <span className="text-sm font-medium w-52 flex-shrink-0 text-slate-800">
                 {row.label}
               </span>
-              <div
-                className="flex-1 h-1.5 rounded-full overflow-hidden"
-                style={{ background: "#e2e8f0" }}
-              >
-                <div
-                  className="h-full rounded-full"
-                  style={{ width: "100%", background: rowColors[i] }}
-                />
+              <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "#e2e8f0" }}>
+                <div className="h-full rounded-full" style={{ width: "100%", background: rowColors[i] }} />
               </div>
               {needsHealthCheck && i === 2 && (
                 <div className="w-5 h-5 rounded-full border-2 border-amber-400 flex items-center justify-center flex-shrink-0">
@@ -1233,46 +1096,18 @@ export default function MedicalPage() {
   // ════════════════════════════════════════════════════════════════════════
   if (screen === "summary") {
     const summaryRows = [
-      {
-        label: "Height",
-        value: form.height ? `${form.height} cm` : "",
-        step: 2,
-      },
-      {
-        label: "Weight",
-        value: form.weight ? `${form.weight} kg` : "",
-        step: 2,
-      },
+      { label: "Height", value: form.height ? `${form.height} cm` : "", step: 2 },
+      { label: "Weight", value: form.weight ? `${form.weight} kg` : "", step: 2 },
       { label: "Out-patient (3y)", value: form.outpatient3y || "", step: 3 },
       { label: "In-patient (5y)", value: form.inpatient5y || "", step: 3 },
-      {
-        label: "Psychotherapy (10y)",
-        value: form.psychotherapy10y || "",
-        step: 4,
-      },
-      {
-        label: "Sterility treatment (3y)",
-        value: form.sterility3y || "",
-        step: 4,
-      },
-      {
-        label: "Planned treatment",
-        value: form.plannedTreatment || "",
-        step: 5,
-      },
-      {
-        label: "Untreated disease (3y)",
-        value: form.untreatedDisease || "",
-        step: 5,
-      },
+      { label: "Psychotherapy (10y)", value: form.psychotherapy10y || "", step: 4 },
+      { label: "Sterility treatment (3y)", value: form.sterility3y || "", step: 4 },
+      { label: "Planned treatment", value: form.plannedTreatment || "", step: 5 },
+      { label: "Untreated disease (3y)", value: form.untreatedDisease || "", step: 5 },
       { label: "Chronic disease", value: form.chronicDisease || "", step: 6 },
       { label: "HIV diagnosis", value: form.hiv || "", step: 6 },
       { label: "Recognized handicap", value: form.handicap || "", step: 7 },
-      {
-        label: "Regular medication (3y)",
-        value: form.regularMedication || "",
-        step: 7,
-      },
+      { label: "Regular medication (3y)", value: form.regularMedication || "", step: 7 },
       {
         label: "Spectacles",
         value:
@@ -1282,11 +1117,7 @@ export default function MedicalPage() {
         step: 8,
       },
       { label: "Dental exam (3y)", value: form.dentalExam3y || "", step: 9 },
-      {
-        label: "Ongoing dental treatment",
-        value: form.dentalOngoing || "",
-        step: 9,
-      },
+      { label: "Ongoing dental treatment", value: form.dentalOngoing || "", step: 9 },
       { label: "Gum disease", value: form.gumDisease || "", step: 9 },
       {
         label: "Missing teeth",
@@ -1310,10 +1141,7 @@ export default function MedicalPage() {
       try {
         const res = await fetch(`/api/application/${id}`);
         const data = await res.json();
-        if (!data?.pdfBase64) {
-          alert("PDF not ready yet");
-          return;
-        }
+        if (!data?.pdfBase64) { alert("PDF not ready yet"); return; }
         const link = document.createElement("a");
         link.href = `data:application/pdf;base64,${data.pdfBase64}`;
         link.download = "Hallesche_Application.pdf";
@@ -1360,10 +1188,7 @@ export default function MedicalPage() {
                   <SummaryRow
                     label={row.label}
                     value={row.value}
-                    onEdit={() => {
-                      setScreen("steps");
-                      setStepIndex(row.step);
-                    }}
+                    onEdit={() => { setScreen("steps"); setStepIndex(row.step); }}
                   />
                 </motion.div>
               ))}
@@ -1393,18 +1218,11 @@ export default function MedicalPage() {
             </motion.button>
             <div className="flex items-center gap-3 mt-6">
               <button
-                onClick={() => {
-                  setScreen("steps");
-                  setStepIndex(totalSteps - 1);
-                }}
+                onClick={() => { setScreen("steps"); setStepIndex(totalSteps - 1); }}
                 className="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0 p-1"
               >
                 <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
-                    clipRule="evenodd"
-                  />
+                  <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
                 </svg>
               </button>
               <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
@@ -1457,9 +1275,7 @@ export default function MedicalPage() {
               animate="show"
               variants={{
                 hidden: {},
-                show: {
-                  transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-                },
+                show: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
               }}
             >
               {[
@@ -1471,43 +1287,27 @@ export default function MedicalPage() {
                   key={s.num}
                   variants={{
                     hidden: { opacity: 0, y: 20 },
-                    show: {
-                      opacity: 1,
-                      y: 0,
-                      transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
-                    },
+                    show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
                   }}
                   className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-2xl p-6 flex flex-col items-center text-center shadow-sm shadow-black/[0.04]"
                 >
-                  <span className="text-xs font-bold text-violet-400 mb-3">
-                    {s.num}
-                  </span>
+                  <span className="text-xs font-bold text-violet-400 mb-3">{s.num}</span>
                   <div className="w-16 h-16 rounded-2xl bg-violet-50 border border-violet-100 flex items-center justify-center text-3xl mb-4">
                     {s.icon}
                   </div>
-                  <p className="text-sm font-semibold text-slate-800 leading-snug">
-                    {s.label}
-                  </p>
+                  <p className="text-sm font-semibold text-slate-800 leading-snug">{s.label}</p>
                 </motion.div>
               ))}
             </motion.div>
             <motion.button
-              onClick={() => {
-                setScreen("post-summary");
-                setPostStepIndex(0);
-                setError(null);
-              }}
+              onClick={() => { setScreen("post-summary"); setPostStepIndex(0); setError(null); }}
               whileHover={{ y: -2, scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
               className="w-full sm:w-auto px-10 py-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-bold shadow-lg shadow-slate-900/20 transition-colors flex items-center gap-2"
             >
               Continue{" "}
               <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
+                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </motion.button>
             <div className="flex items-center gap-3 mt-8">
@@ -1516,19 +1316,13 @@ export default function MedicalPage() {
                 className="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0 p-1"
               >
                 <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
-                    clipRule="evenodd"
-                  />
+                  <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
                 </svg>
               </button>
               <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
                 <div className="h-full w-full bg-violet-600 rounded-full" />
               </div>
-              <span className="text-xs text-slate-400 font-medium flex-shrink-0">
-                11/11
-              </span>
+              <span className="text-xs text-slate-400 font-medium flex-shrink-0">11/11</span>
             </div>
           </motion.div>
         </div>
@@ -1552,107 +1346,52 @@ export default function MedicalPage() {
           <>
             {required.length > 0 && (
               <div className="mb-5 p-4 rounded-xl bg-red-50 border border-red-200">
-                <p className="text-sm font-semibold text-red-700">
-                  Required document
-                </p>
-                <p className="text-xs text-red-600 mt-1">
-                  {required.join(", ")}
-                </p>
+                <p className="text-sm font-semibold text-red-700">Required document</p>
+                <p className="text-xs text-red-600 mt-1">{required.join(", ")}</p>
               </div>
             )}
-
             <div className="mb-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
-              <p className="text-sm font-semibold text-slate-700">
-                Optional documents
-              </p>
-              <p className="text-xs text-slate-500 mt-1">
-                {optional.join(", ")}
-              </p>
+              <p className="text-sm font-semibold text-slate-700">Optional documents</p>
+              <p className="text-xs text-slate-500 mt-1">{optional.join(", ")}</p>
             </div>
-
             {docs.length > 0 && (
               <div className="mb-5 p-4 rounded-xl bg-green-50 border border-green-200">
-                <p className="text-sm font-semibold text-green-700">
-                  Document uploaded
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  {docs.length} file(s) uploaded
-                </p>
+                <p className="text-sm font-semibold text-green-700">Document uploaded</p>
+                <p className="text-xs text-green-600 mt-1">{docs.length} file(s) uploaded</p>
               </div>
             )}
-
             <motion.div
               onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragOver(true);
-              }}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragOver(false);
-                handleFileChange(e.dataTransfer.files);
-              }}
+              onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFileChange(e.dataTransfer.files); }}
               animate={
                 dragOver
-                  ? {
-                      borderColor: "rgba(139,92,246,0.6)",
-                      backgroundColor: "rgba(139,92,246,0.04)",
-                      scale: 1.01,
-                    }
-                  : {
-                      borderColor: "rgba(0,0,0,0.08)",
-                      backgroundColor: "rgba(248,250,252,1)",
-                      scale: 1,
-                    }
+                  ? { borderColor: "rgba(139,92,246,0.6)", backgroundColor: "rgba(139,92,246,0.04)", scale: 1.01 }
+                  : { borderColor: "rgba(0,0,0,0.08)", backgroundColor: "rgba(248,250,252,1)", scale: 1 }
               }
-              className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center gap-3 text-center cursor-pointer mb-4 ${
-                error && docs.length === 0 ? "border-red-400 bg-red-50" : ""
-              }`}
+              className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center gap-3 text-center cursor-pointer mb-4 ${error && docs.length === 0 ? "border-red-400 bg-red-50" : ""}`}
             >
-              <div className="w-12 h-12 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center">
-                ⬆️
-              </div>
+              <div className="w-12 h-12 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center">⬆️</div>
               <div>
                 <p className="text-sm font-medium text-slate-600">
                   {dragOver ? "Drop files here" : "Choose file or drag & drop"}
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Supports images, PDFs and documents
-                </p>
+                <p className="text-xs text-slate-400 mt-0.5">Supports images, PDFs and documents</p>
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={(e) => handleFileChange(e.target.files)}
-              />
+              <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => handleFileChange(e.target.files)} />
             </motion.div>
-
             {docs.length > 0 && (
               <div className="space-y-2">
                 {docs.map((doc, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 bg-slate-50 border border-black/[0.07] rounded-xl px-3.5 py-2.5"
-                  >
+                  <div key={i} className="flex items-center gap-3 bg-slate-50 border border-black/[0.07] rounded-xl px-3.5 py-2.5">
                     <span>📄</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-700 truncate">
-                        {doc.name}
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {(doc.size / 1024).toFixed(1)} KB
-                      </p>
+                      <p className="text-sm text-slate-700 truncate">{doc.name}</p>
+                      <p className="text-xs text-slate-400">{(doc.size / 1024).toFixed(1)} KB</p>
                     </div>
                     <button
-                      onClick={() =>
-                        handleChange(
-                          "documents",
-                          docs.filter((_: any, j: number) => j !== i),
-                        )
-                      }
+                      onClick={() => handleChange("documents", docs.filter((_: any, j: number) => j !== i))}
                       className="text-red-500 text-xs"
                     >
                       Remove
@@ -1674,10 +1413,7 @@ export default function MedicalPage() {
             <motion.div
               animate={
                 hasDrawn
-                  ? {
-                      borderColor: "rgba(139,92,246,0.4)",
-                      boxShadow: "0 0 0 3px rgba(139,92,246,0.08)",
-                    }
+                  ? { borderColor: "rgba(139,92,246,0.4)", boxShadow: "0 0 0 3px rgba(139,92,246,0.08)" }
                   : { borderColor: "rgba(0,0,0,0.1)", boxShadow: "none" }
               }
               transition={{ duration: 0.25 }}
@@ -1691,29 +1427,15 @@ export default function MedicalPage() {
                     exit={{ opacity: 0 }}
                     className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2"
                   >
-                    <svg
-                      className="w-7 h-7 text-slate-300"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
-                      />
+                    <svg className="w-7 h-7 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
                     </svg>
-                    <p className="text-slate-300 text-xs font-light">
-                      Sign here
-                    </p>
+                    <p className="text-slate-300 text-xs font-light">Sign here</p>
                   </motion.div>
                 )}
               </AnimatePresence>
               <div className="absolute bottom-[28px] left-8 right-8 h-px bg-black/[0.06]" />
-              <p className="absolute bottom-[10px] left-8 text-[10px] text-slate-400 font-light">
-                Signature
-              </p>
+              <p className="absolute bottom-[10px] left-8 text-[10px] text-slate-400 font-light">Signature</p>
               <canvas
                 ref={canvasRef}
                 width={520}
@@ -1739,11 +1461,7 @@ export default function MedicalPage() {
                 className="flex items-center gap-1.5 text-[11px] text-slate-400 hover:text-slate-600 transition-colors px-2 py-1 rounded-lg hover:bg-black/[0.04]"
               >
                 <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
-                    clipRule="evenodd"
-                  />
+                  <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                 </svg>
                 Clear signature
               </button>
@@ -1760,121 +1478,58 @@ export default function MedicalPage() {
             </p>
             <div className="space-y-3 mb-4">
               {[
-                {
-                  key: "sepaName",
-                  label: "Account holder name",
-                  placeholder: "Full name as on bank account",
-                  mono: false,
-                  validate: undefined as ((v: string) => boolean) | undefined,
-                },
-                {
-                  key: "sepaIban",
-                  label: "IBAN",
-                  placeholder: "DE00 0000 0000 0000 0000 00",
-                  mono: true,
-                  validate: validateIBAN as
-                    | ((v: string) => boolean)
-                    | undefined,
-                },
-                {
-                  key: "sepaBic",
-                  label: "BIC / SWIFT (optional)",
-                  placeholder: "e.g. DEUTDEFF",
-                  mono: true,
-                  validate: validateBIC as ((v: string) => boolean) | undefined,
-                },
+                { key: "sepaName", label: "Account holder name", placeholder: "Full name as on bank account", mono: false, validate: undefined as ((v: string) => boolean) | undefined },
+                { key: "sepaIban", label: "IBAN", placeholder: "DE00 0000 0000 0000 0000 00", mono: true, validate: validateIBAN as ((v: string) => boolean) | undefined },
+                { key: "sepaBic", label: "BIC / SWIFT (optional)", placeholder: "e.g. DEUTDEFF", mono: true, validate: validateBIC as ((v: string) => boolean) | undefined },
               ].map((f) => (
                 <div key={f.key}>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">
-                    {f.label}
-                  </label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">{f.label}</label>
                   <input
                     type="text"
                     placeholder={f.placeholder}
                     value={form[f.key] || ""}
                     onChange={(e) => {
-                      const value = f.mono
-                        ? e.target.value.toUpperCase()
-                        : e.target.value;
+                      const value = f.mono ? e.target.value.toUpperCase() : e.target.value;
                       handleChange(f.key, value);
                     }}
                     onBlur={() => {
                       if (f.validate && form[f.key]?.trim()) {
                         const isValid = f.validate(form[f.key]);
                         if (!isValid) {
-                          setError(
-                            f.key === "sepaIban"
-                              ? "Invalid IBAN format"
-                              : "Invalid BIC format",
-                          );
+                          setError(f.key === "sepaIban" ? "Invalid IBAN format" : "Invalid BIC format");
                         }
                       }
                     }}
-                    className={`w-full bg-slate-50 border ${
-                      f.validate &&
-                      form[f.key]?.trim() &&
-                      !f.validate(form[f.key])
-                        ? "border-red-300"
-                        : "border-black/[0.08]"
-                    } rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all ${f.mono ? "font-mono" : ""}`}
+                    className={`w-full bg-slate-50 border ${f.validate && form[f.key]?.trim() && !f.validate(form[f.key]) ? "border-red-300" : "border-black/[0.08]"} rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all ${f.mono ? "font-mono" : ""}`}
                   />
-                  {f.validate &&
-                    form[f.key]?.trim() &&
-                    !f.validate(form[f.key]) && (
-                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                        <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Invalid format
-                      </p>
-                    )}
+                  {f.validate && form[f.key]?.trim() && !f.validate(form[f.key]) && (
+                    <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                      <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      Invalid format
+                    </p>
+                  )}
                 </div>
               ))}
 
               <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">
-                  Payment Frequency *
-                </label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Payment Frequency *</label>
                 <div className="space-y-2">
                   {[{ value: "monthly", label: "Monthly" }].map((option) => {
-                    const isSelected =
-                      form.sepaPaymentFrequency === option.value;
+                    const isSelected = form.sepaPaymentFrequency === option.value;
                     return (
                       <motion.button
                         key={option.value}
-                        onClick={() =>
-                          handleChange("sepaPaymentFrequency", option.value)
-                        }
+                        onClick={() => handleChange("sepaPaymentFrequency", option.value)}
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
-                        className={`w-full px-4 py-3 rounded-xl border flex items-center gap-3 transition-all duration-150 ${
-                          isSelected
-                            ? "border-violet-400/60 bg-violet-50"
-                            : "border-black/[0.07] bg-white hover:border-black/20"
-                        }`}
+                        className={`w-full px-4 py-3 rounded-xl border flex items-center gap-3 transition-all duration-150 ${isSelected ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-white hover:border-black/20"}`}
                       >
-                        <div
-                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                            isSelected
-                              ? "border-violet-600 bg-violet-600"
-                              : "border-slate-300"
-                          }`}
-                        >
-                          {isSelected && (
-                            <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                          )}
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}>
+                          {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                         </div>
-                        <span
-                          className={`text-sm font-medium ${
-                            isSelected ? "text-violet-800" : "text-slate-600"
-                          }`}
-                        >
-                          {option.label}
-                        </span>
+                        <span className={`text-sm font-medium ${isSelected ? "text-violet-800" : "text-slate-600"}`}>{option.label}</span>
                       </motion.button>
                     );
                   })}
@@ -1891,39 +1546,19 @@ export default function MedicalPage() {
                 mandate is for recurring payments (SEPA Core Direct Debit).
               </p>
               <motion.button
-                onClick={() =>
-                  handleChange("sepaMandateAccepted", !form.sepaMandateAccepted)
-                }
+                onClick={() => handleChange("sepaMandateAccepted", !form.sepaMandateAccepted)}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className={`w-full px-4 py-3 rounded-xl border flex items-center gap-3 transition-all duration-150 ${
-                  form.sepaMandateAccepted
-                    ? "border-violet-400/60 bg-violet-50"
-                    : "border-black/[0.07] bg-white hover:border-black/20"
-                }`}
+                className={`w-full px-4 py-3 rounded-xl border flex items-center gap-3 transition-all duration-150 ${form.sepaMandateAccepted ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-white hover:border-black/20"}`}
               >
-                <div
-                  className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                    form.sepaMandateAccepted
-                      ? "border-violet-600 bg-violet-600"
-                      : "border-slate-300"
-                  }`}
-                >
+                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${form.sepaMandateAccepted ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}>
                   {form.sepaMandateAccepted && (
                     <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}
                 </div>
-                <span
-                  className={`text-sm font-medium ${
-                    form.sepaMandateAccepted ? "text-violet-800" : "text-slate-600"
-                  }`}
-                >
+                <span className={`text-sm font-medium ${form.sepaMandateAccepted ? "text-violet-800" : "text-slate-600"}`}>
                   I accept the SEPA direct debit mandate
                 </span>
               </motion.button>
@@ -1956,12 +1591,8 @@ export default function MedicalPage() {
             ))}
           </div>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs text-slate-400">
-              Step {postStepIndex + 1} of {POST_STEPS.length}
-            </span>
-            <span className="text-xs font-semibold text-violet-600">
-              {postProgress}%
-            </span>
+            <span className="text-xs text-slate-400">Step {postStepIndex + 1} of {POST_STEPS.length}</span>
+            <span className="text-xs font-semibold text-violet-600">{postProgress}%</span>
           </div>
           <AnimatePresence mode="wait">
             <motion.div
@@ -1983,16 +1614,10 @@ export default function MedicalPage() {
               <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 py-1 mb-4">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
                 <span className="text-violet-700 text-[10px] font-semibold tracking-[0.12em] uppercase">
-                  {postStepIndex === 0
-                    ? "Documents"
-                    : postStepIndex === 1
-                      ? "Signature"
-                      : "Payment"}
+                  {postStepIndex === 0 ? "Documents" : postStepIndex === 1 ? "Signature" : "Payment"}
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-1">
-                {ps.title}
-              </h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-1">{ps.title}</h1>
               <div className="mb-4" />
               {renderPostContent()}
               <AnimatePresence>
@@ -2004,11 +1629,7 @@ export default function MedicalPage() {
                     className="mt-4 flex items-center gap-2 text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5"
                   >
                     <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     <span className="text-xs font-medium">{error}</span>
                   </motion.div>
@@ -2017,10 +1638,7 @@ export default function MedicalPage() {
               <div className="mt-6 flex gap-3">
                 {postStepIndex > 0 && (
                   <motion.button
-                    onClick={() => {
-                      setPostStepIndex((p) => p - 1);
-                      setError(null);
-                    }}
+                    onClick={() => { setPostStepIndex((p) => p - 1); setError(null); }}
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     className="px-5 py-3 rounded-xl border border-black/[0.08] text-slate-600 text-sm font-semibold bg-slate-50 hover:bg-slate-100 transition-colors flex-shrink-0"
@@ -2110,9 +1728,7 @@ export default function MedicalPage() {
         <div className="grid grid-cols-2 gap-4">
           {s.fields.map((f: any) => (
             <div key={f.key} className="relative">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">
-                {f.label}
-              </label>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">{f.label}</label>
               <input
                 type="number"
                 placeholder={f.placeholder}
@@ -2120,9 +1736,7 @@ export default function MedicalPage() {
                 onChange={(e) => handleChange(f.key, e.target.value)}
                 className="w-full bg-slate-50 border border-black/[0.08] rounded-xl px-4 py-3 pr-12 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/10 transition-all"
               />
-              <span className="absolute right-4 bottom-3 text-slate-400 text-sm font-medium">
-                {f.unit}
-              </span>
+              <span className="absolute right-4 bottom-3 text-slate-400 text-sm font-medium">{f.unit}</span>
             </div>
           ))}
         </div>
@@ -2168,9 +1782,7 @@ export default function MedicalPage() {
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden mt-2"
                   >
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">
-                      {q.countLabel}
-                    </label>
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">{q.countLabel}</label>
                     <input
                       type="number"
                       placeholder="Enter number"
@@ -2190,9 +1802,7 @@ export default function MedicalPage() {
       return (
         <>
           {s.subtitle && (
-            <p className="text-sm text-slate-400 font-light leading-relaxed mb-4">
-              {s.subtitle}
-            </p>
+            <p className="text-sm text-slate-400 font-light leading-relaxed mb-4">{s.subtitle}</p>
           )}
           <YesNoQuestion
             questionKey="spectacles"
@@ -2218,9 +1828,7 @@ export default function MedicalPage() {
                     { key: "dioptreRight", label: "Right eye" },
                   ].map((eye) => (
                     <div key={eye.key}>
-                      <label className="text-[11px] text-slate-400 mb-1 block">
-                        {eye.label}
-                      </label>
+                      <label className="text-[11px] text-slate-400 mb-1 block">{eye.label}</label>
                       <input
                         type="number"
                         step="0.25"
@@ -2243,7 +1851,6 @@ export default function MedicalPage() {
 
   return (
     <>
-      {/* ── Health Guidance Modal (portal-style, renders on top of everything) ── */}
       {showGuidanceModal && (
         <HealthGuidanceModal
           onClose={handleModalClose}
@@ -2267,12 +1874,8 @@ export default function MedicalPage() {
           <ApplicationStepper currentStep="healthAnswers" />
           <div className="mt-6 mb-3">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-slate-400">
-                Step {stepIndex + 1} of {totalSteps}
-              </span>
-              <span className="text-xs font-semibold text-violet-600">
-                {progress}%
-              </span>
+              <span className="text-xs text-slate-400">Step {stepIndex + 1} of {totalSteps}</span>
+              <span className="text-xs font-semibold text-violet-600">{progress}%</span>
             </div>
             <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
               <motion.div
@@ -2305,9 +1908,7 @@ export default function MedicalPage() {
                   Medical Info · {stepIndex + 1}/{totalSteps}
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-1">
-                {current.title}
-              </h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-1">{current.title}</h1>
               <div className="mb-4" />
               {renderContent()}
               <AnimatePresence>
@@ -2319,11 +1920,7 @@ export default function MedicalPage() {
                     className="mt-4 flex items-center gap-2 text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5"
                   >
                     <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     <span className="text-xs font-medium">{error}</span>
                   </motion.div>
@@ -2332,10 +1929,7 @@ export default function MedicalPage() {
               <div className="mt-6 flex gap-3">
                 {stepIndex > 0 && (
                   <motion.button
-                    onClick={() => {
-                      setStepIndex((p) => p - 1);
-                      setError(null);
-                    }}
+                    onClick={() => { setStepIndex((p) => p - 1); setError(null); }}
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     className="px-5 py-3 rounded-xl border border-black/[0.08] text-slate-600 text-sm font-semibold bg-slate-50 hover:bg-slate-100 transition-colors flex-shrink-0"
@@ -2351,11 +1945,7 @@ export default function MedicalPage() {
                 >
                   {isLast ? "Review & Continue" : "Continue"}
                   <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path
-                      fillRule="evenodd"
-                      d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
+                    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>
                 </motion.button>
               </div>

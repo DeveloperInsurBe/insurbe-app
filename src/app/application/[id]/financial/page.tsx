@@ -37,7 +37,7 @@ function validateStep(stepIndex: number, form: Form): string | null {
       return null;
     case 6:
       if (form.hasGermanTaxId === "Yes" && !form.germanTaxIdNumber?.trim()) {
-        return "Please enter your German Tax ID.";
+        return null;
       }
       return null;
 
@@ -751,13 +751,22 @@ export default function FinancialPage() {
 
                 {/* ── TEXT ── */}
                 {current.type === "text" && (
-                  <input
-                    type="text"
-                    placeholder={current.placeholder}
-                    value={form[current.key] || ""}
-                    onChange={(e) => handleChange(current.key, e.target.value)}
-                    className={getInputClasses(current.key)}
-                  />
+                  <div>
+                    <input
+                      type="text"
+                      placeholder={current.placeholder}
+                      value={form[current.key] || ""}
+                      onChange={(e) =>
+                        handleChange(current.key, e.target.value)
+                      }
+                      className={getInputClasses(current.key)}
+                    />
+
+                    {/* ✅ Show optional only for Tax ID field */}
+                    {current.key === "germanTaxIdNumber" && (
+                      <p className="text-xs text-slate-400 mt-1">Optional </p>
+                    )}
+                  </div>
                 )}
 
                 {/* ── CURRENCY ── */}
