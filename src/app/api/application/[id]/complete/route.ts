@@ -56,7 +56,7 @@ export async function POST(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        tariffIds: ["35653", "24449", "24332", "1803"],
+        tariffIds: ["35659", "24449", "24332", "1803"],
         vorname: personal?.firstName,
         name: personal?.lastName,
         geburtsdatum: `${personal?.year}-${personal?.month}-${personal?.day}`,
