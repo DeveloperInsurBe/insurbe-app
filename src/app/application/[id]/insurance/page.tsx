@@ -151,7 +151,7 @@ function EmployerWarningScreen({
             whileTap={{ scale: 0.98 }}
             className="w-full py-3.5 rounded-xl border border-black/[0.08] text-slate-600 text-sm font-semibold bg-slate-50 hover:bg-slate-100 transition-colors"
           >
-            Book an appointment 
+            Book an appointment
           </motion.button>
         </div>
       </div>
@@ -220,7 +220,7 @@ export default function InsurancePage() {
   const buildSteps = (f: Form): string[] => {
     const germanInsurance12m = normalizeYesNo(f.germanInsurance12m);
     const permanentContract = normalizeYesNo(f.permanentContract);
-    const s: string[] = ["alwaysInsured"];
+    const s: string[] = [];
 
     // After alwaysInsured, ask about past 12 months insurance
     s.push("germanInsurance12m");
@@ -254,16 +254,13 @@ export default function InsurancePage() {
     if (isPublicOrPrivate) {
       s.push("insuranceEndDate");
       s.push("coverageStart");
-      if (ins === "Public insurance") {
-        s.push("providerName");
-      }
     }
 
     return s;
   };
 
   const steps = buildSteps(form);
-  const [stepKey, setStepKey] = useState("alwaysInsured");
+  const [stepKey, setStepKey] = useState("germanInsurance12m");
   const stepIndex = steps.indexOf(stepKey);
   const totalSteps = steps.length;
   const progress = Math.round(
@@ -334,9 +331,6 @@ export default function InsurancePage() {
           ? null
           : "Please select a coverage start date.";
 
-      case "alwaysInsured":
-        return form.alwaysInsured ? null : "Please select an option.";
-
       default:
         return null;
     }
@@ -363,10 +357,6 @@ export default function InsurancePage() {
       delete updated.appointmentRequired;
       delete updated.germanProvider;
       delete updated.livingInGermany;
-
-      if (normalized === "No") {
-        delete updated.providerName;
-      }
     }
 
     if (name === "permanentContract") {
@@ -490,7 +480,7 @@ export default function InsurancePage() {
         handleChange("proofDocumentRequired", true); // ask upload later
       } else {
         handleChange("proofDocumentRequired", false);
-       // appointment at the end
+        // appointment at the end
       }
 
       goNext();
@@ -542,10 +532,10 @@ export default function InsurancePage() {
       return;
     }
 
-    if (stepKey === "providerName") {
-      goNext();
-      return;
-    }
+    // if (stepKey === "providerName") {
+    //   goNext();
+    //   return;
+    // }
 
     if (stepKey === "alwaysInsured") {
       if (!form.alwaysInsured) {
@@ -580,10 +570,10 @@ export default function InsurancePage() {
         setApplication(updated);
       }
 
-     if (form.appointmentRequired === true && form.proofOfInsurance === "No") {
-  router.push("/book-appointment");
-  return;
-}
+      if (form.appointmentRequired === true && form.proofOfInsurance === "No") {
+        router.push("/book-appointment");
+        return;
+      }
 
       router.push(`/application/${id}/health`);
     } catch (err) {
@@ -696,24 +686,15 @@ export default function InsurancePage() {
             },
           ]
         : []),
-      ...(form.providerName !== undefined
-        ? [
-            {
-              label: "Provider name",
-              value: form.providerName || "I don't know",
-              key: "providerName",
-            },
-          ]
-        : []),
-      ...(form.alwaysInsured
-        ? [
-            {
-              label: "Always insured since 2025",
-              value: form.alwaysInsured || "",
-              key: "alwaysInsured",
-            },
-          ]
-        : []),
+      // ...(form.providerName !== undefined
+      //   ? [
+      //       {
+      //         label: "Provider name",
+      //         value: form.providerName || "I don't know",
+      //         key: "providerName",
+      //       },
+      //     ]
+      //   : []),
     ];
 
     const handleDownloadPDF = () => {
@@ -1162,11 +1143,18 @@ export default function InsurancePage() {
                 <input
                   type="number"
                   placeholder={placeholder}
-                  value={stillActive ? "" : form[field] || ""}
-                  disabled={stillActive}
+                  value={form[field] || ""}
                   onChange={(e) => {
-                    handleChange("insuranceEndDate", "manual");
-                    handleChange(field, e.target.value);
+                    const value = e.target.value;
+
+                    const updated = {
+                      ...form,
+                      insuranceEndDate: "manual",
+                      [field]: value,
+                    };
+
+                    setForm(updated);
+                    updateStep("insuranceHistory", updated);
                   }}
                   className={getInputClasses(field) + " text-center"}
                 />
@@ -1175,13 +1163,25 @@ export default function InsurancePage() {
           </div>
           <motion.button
             onClick={() => {
-              handleChange(
-                "insuranceEndDate",
-                stillActive ? null : "still-active",
-              );
-              handleChange("endDay", "");
-              handleChange("endMonth", "");
-              handleChange("endYear", "");
+              setForm((prev) => {
+                const isActive = prev.insuranceEndDate === "still-active";
+
+                const updated = isActive
+                  ? {
+                      ...prev,
+                      insuranceEndDate: null,
+                    }
+                  : {
+                      ...prev,
+                      insuranceEndDate: "still-active",
+                      endDay: "",
+                      endMonth: "",
+                      endYear: "",
+                    };
+
+                updateStep("insuranceHistory", updated);
+                return updated;
+              });
             }}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
@@ -1250,99 +1250,99 @@ export default function InsurancePage() {
     }
 
     // ── Provider name ──
-    if (stepKey === "providerName") {
-      const dontKnow = form.providerName === "i-dont-know";
-      return (
-        <>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-5">
-            What was the name of your most recent provider?
-          </h1>
-          <input
-            type="text"
-            placeholder="Provider name"
-            value={dontKnow ? "" : form.providerName || ""}
-            disabled={dontKnow}
-            onChange={(e) => handleChange("providerName", e.target.value)}
-            className={
-              getInputClasses("providerName") + " mb-3 disabled:opacity-40"
-            }
-          />
-          <motion.button
-            onClick={() =>
-              handleChange("providerName", dontKnow ? "" : "i-dont-know")
-            }
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            className={`w-full px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${dontKnow ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
-          >
-            <div
-              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${dontKnow ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}
-            >
-              {dontKnow && (
-                <div className="w-1.5 h-1.5 rounded-full bg-white" />
-              )}
-            </div>
-            <span
-              className={`text-sm font-medium ${dontKnow ? "text-slate-900" : "text-slate-600"}`}
-            >
-              I don't know
-            </span>
-          </motion.button>
-        </>
-      );
-    }
+    // if (stepKey === "providerName") {
+    //   const dontKnow = form.providerName === "i-dont-know";
+    //   return (
+    //     <>
+    //       <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-5">
+    //         What was the name of your most recent provider?
+    //       </h1>
+    //       <input
+    //         type="text"
+    //         placeholder="Provider name"
+    //         value={dontKnow ? "" : form.providerName || ""}
+    //         disabled={dontKnow}
+    //         onChange={(e) => handleChange("providerName", e.target.value)}
+    //         className={
+    //           getInputClasses("providerName") + " mb-3 disabled:opacity-40"
+    //         }
+    //       />
+    //       <motion.button
+    //         onClick={() =>
+    //           handleChange("providerName", dontKnow ? "" : "i-dont-know")
+    //         }
+    //         whileHover={{ scale: 1.01 }}
+    //         whileTap={{ scale: 0.99 }}
+    //         className={`w-full px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${dontKnow ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
+    //       >
+    //         <div
+    //           className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${dontKnow ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}
+    //         >
+    //           {dontKnow && (
+    //             <div className="w-1.5 h-1.5 rounded-full bg-white" />
+    //           )}
+    //         </div>
+    //         <span
+    //           className={`text-sm font-medium ${dontKnow ? "text-slate-900" : "text-slate-600"}`}
+    //         >
+    //           I don't know
+    //         </span>
+    //       </motion.button>
+    //     </>
+    //   );
+    // }
 
     // ── Always insured ──
-    if (stepKey === "alwaysInsured") {
-      const today = new Date();
-      const oneYearAgo = new Date(
-        today.getFullYear() - 1,
-        today.getMonth(),
-        today.getDate(),
-      );
-      const dateStr = oneYearAgo.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-      return (
-        <>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-5">
-            Have you been health insured at all times since {dateStr}?
-          </h1>
-          <div className="space-y-2">
-            {["Yes", "No"].map((opt) => {
-              const sel = form.alwaysInsured === opt;
-              return (
-                <motion.button
-                  key={opt}
-                  onClick={() => {
-                    handleChange("alwaysInsured", opt);
-                    setTouched((prev) => ({ ...prev, alwaysInsured: true }));
-                  }}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${sel ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}
-                  >
-                    {sel && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                    )}
-                  </div>
-                  <span
-                    className={`text-sm font-medium ${sel ? "text-slate-900" : "text-slate-600"}`}
-                  >
-                    {opt}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </>
-      );
-    }
+    // if (stepKey === "alwaysInsured") {
+    //   const today = new Date();
+    //   const oneYearAgo = new Date(
+    //     today.getFullYear() - 1,
+    //     today.getMonth(),
+    //     today.getDate(),
+    //   );
+    //   const dateStr = oneYearAgo.toLocaleDateString("en-GB", {
+    //     day: "numeric",
+    //     month: "long",
+    //     year: "numeric",
+    //   });
+    //   return (
+    //     <>
+    //       <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-5">
+    //         Have you been health insured at all times since {dateStr}?
+    //       </h1>
+    //       <div className="space-y-2">
+    //         {["Yes", "No"].map((opt) => {
+    //           const sel = form.alwaysInsured === opt;
+    //           return (
+    //             <motion.button
+    //               key={opt}
+    //               onClick={() => {
+    //                 handleChange("alwaysInsured", opt);
+    //                 setTouched((prev) => ({ ...prev, alwaysInsured: true }));
+    //               }}
+    //               whileHover={{ scale: 1.01 }}
+    //               whileTap={{ scale: 0.99 }}
+    //               className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
+    //             >
+    //               <div
+    //                 className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${sel ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}
+    //               >
+    //                 {sel && (
+    //                   <div className="w-1.5 h-1.5 rounded-full bg-white" />
+    //                 )}
+    //               </div>
+    //               <span
+    //                 className={`text-sm font-medium ${sel ? "text-slate-900" : "text-slate-600"}`}
+    //               >
+    //                 {opt}
+    //               </span>
+    //             </motion.button>
+    //           );
+    //         })}
+    //       </div>
+    //     </>
+    //   );
+    // }
 
     return null;
   };
