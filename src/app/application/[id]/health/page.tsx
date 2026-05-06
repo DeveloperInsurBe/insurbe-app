@@ -70,7 +70,7 @@ function ConsentCard({
     <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
       <p className="text-xs text-slate-500 font-light leading-relaxed mb-3">
         {part === 1
-          ? `By selecting "Continue", I agree my health data may be processed, transferred, and used by Feather and the underwriting provider Hallesche Krankenversicherung a.G. according to their health data protection policies. I agree to the terms about the release from confidentiality to both Feather and Hallesche Krankenversicherung a.G. My health data may be collected, stored, and shared with third parties only where absolutely necessary.`
+          ? `By selecting "Continue", I agree my health data may be processed, transferred, and used by InsurBe and the underwriting provider Hallesche Krankenversicherung a.G. according to their health data protection policies. I agree to the terms about the release from confidentiality to both InsurBe and Hallesche Krankenversicherung a.G. My health data may be collected, stored, and shared with third parties only where absolutely necessary.`
           : `By selecting "Continue", I confirm and understand according to § 19 Abs. 5 VVG (insurance law) it is important to answer the next set of questions truthfully and not to leave out any information. I understand omitting any relevant detail shall leave the insurer entitled to rescind the contract retroactively. I have taken note of the information regarding disclosure obligations.`}
       </p>
       <motion.button

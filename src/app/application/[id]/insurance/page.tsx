@@ -42,7 +42,7 @@ function getNextMonths(count: number): { label: string; value: string }[] {
   for (let i = 1; i <= count; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
     result.push({
-      label: `1st ${months[d.getMonth()]} ${d.getFullYear()}`,
+      label: `1<sup>st</sup> ${months[d.getMonth()]} ${d.getFullYear()}`,
       value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`,
     });
   }
@@ -71,7 +71,9 @@ function SummaryRow({
       <div className="min-w-0 flex-1">
         <p className="text-[11px] text-slate-400 font-medium mb-0.5">{label}</p>
         <p className="text-sm text-slate-900 font-medium truncate">
-          {value || (
+          {value ? (
+            <span dangerouslySetInnerHTML={{ __html: value }} />
+          ) : (
             <span className="text-slate-400 italic text-sm font-normal">
               Not provided
             </span>
@@ -615,87 +617,46 @@ export default function InsurancePage() {
 
   // ── SUMMARY ───────────────────────────────────────────────────────────────
   if (screen === "summary") {
-    const rows = [
-      {
-        label: "German insurance (12 months)",
-        value: form.germanInsurance12m || "",
-        key: "germanInsurance12m",
-      },
-      ...(form.initialProviderName
-        ? [
-            {
-              label: "Provider (past 12 months)",
-              value: form.initialProviderName || "",
-              key: "initialProviderName",
-            },
-          ]
-        : []),
-      ...(form.permanentContract !== undefined
-        ? [
-            {
-              label: "Permanent job contract",
-              value: form.permanentContract || "",
-              key: "permanentContract",
-            },
-          ]
-        : []),
-      ...(form.otherInsurance12m
-        ? [
-            {
-              label: "Other insurance (12 months)",
-              value: form.otherInsurance12m || "",
-              key: "otherInsurance12m",
-            },
-          ]
-        : []),
-      ...(form.proofOfInsurance
-        ? [
-            {
-              label: "Proof of insurance",
-              value: form.proofOfInsurance || "",
-              key: "proofOfInsurance",
-            },
-          ]
-        : []),
-      {
-        label: "Most recent insurance",
-        value: form.recentInsurance || "",
-        key: "recentInsurance",
-      },
+    const stepLabels: Record<string, string> = {
+      germanInsurance12m: "German insurance (12 months)",
+      initialProviderName: "Provider (past 12 months)",
+      permanentContract: "Permanent job contract",
+      otherInsurance12m: "Other insurance (12 months)",
+      proofOfInsurance: "Proof of insurance",
+      recentInsurance: "Most recent insurance",
+      insuranceEndDate: "Insurance end date",
+      coverageStart: "Coverage start",
+    };
 
-      ...(form.insuranceEndDate
-        ? [
-            {
-              label: "Insurance end date",
-              value:
-                form.insuranceEndDate === "still-active"
-                  ? "Still active"
-                  : form.endDay
-                    ? `${form.endYear}-${String(form.endMonth).padStart(2, "0")}-${String(form.endDay).padStart(2, "0")}`
-                    : "",
-              key: "insuranceEndDate",
-            },
-          ]
-        : []),
-      ...(form.coverageStart
-        ? [
-            {
-              label: "Coverage start",
-              value: coverageLabel,
-              key: "coverageStart",
-            },
-          ]
-        : []),
-      // ...(form.providerName !== undefined
-      //   ? [
-      //       {
-      //         label: "Provider name",
-      //         value: form.providerName || "I don't know",
-      //         key: "providerName",
-      //       },
-      //     ]
-      //   : []),
-    ];
+    const rows = steps
+      .map((step) => {
+        let value = "";
+
+        switch (step) {
+          case "insuranceEndDate":
+            value =
+              form.insuranceEndDate === "still-active"
+                ? "Still active"
+                : form.endDay
+                  ? `${form.endYear}-${String(form.endMonth).padStart(2, "0")}-${String(form.endDay).padStart(2, "0")}`
+                  : "";
+            break;
+
+          case "coverageStart":
+            value = coverageLabel;
+            break;
+
+          default:
+            value = form[step] || "";
+        }
+
+        return {
+          label: stepLabels[step],
+          value,
+          key: step,
+        };
+      })
+      .filter((row) => row.label);
 
     const handleDownloadPDF = () => {
       const link = document.createElement("a");
@@ -1214,17 +1175,32 @@ export default function InsurancePage() {
             When would you like your coverage to begin?
           </h1>
           <p className="text-sm text-slate-400 font-light leading-relaxed mb-5">
-            {isPublic && stillActive
-              ? "Public health insurance has a cancellation period of 2 full calendar months. If you have not canceled it yet, select a start date that is at least 2 full months from now. We'll reach out to help with the cancellation process. If you're not sure, don't worry — we can adjust the date later."
-              : "The coverage has to start on the 1st day of the month."}
+            {isPublic && stillActive ? (
+              "Public health insurance has a cancellation period of 2 full calendar months. If you have not canceled it yet, select a start date that is at least 2 full months from now. We'll reach out to help with the cancellation process. If you're not sure, don't worry — we can adjust the date later."
+            ) : (
+              <>
+                The coverage has to start on the 1
+                <sup className="text-[10px] ml-[1px]">st</sup> day of the month.
+              </>
+            )}
           </p>
           <div className="space-y-2">
             {COVERAGE_MONTHS.map((month) => {
-              const sel = form.coverageStart === month.value;
+              const sel =
+                form.coverageStart === month.value && !form.coverageStartCustom;
               return (
                 <motion.button
                   key={month.value}
-                  onClick={() => handleChange("coverageStart", month.value)}
+                  onClick={() => {
+                    const updated = {
+                      ...form,
+                      coverageStart: month.value,
+                      coverageStartCustom: "",
+                    };
+
+                    setForm(updated);
+                    updateStep("insuranceHistory", updated);
+                  }}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
@@ -1239,110 +1215,41 @@ export default function InsurancePage() {
                   <span
                     className={`text-sm font-medium ${sel ? "text-slate-900" : "text-slate-600"}`}
                   >
-                    {month.label}
+                    <span
+                      dangerouslySetInnerHTML={{ __html: month.label }}
+                    />{" "}
                   </span>
                 </motion.button>
               );
             })}
           </div>
+          {/* Custom date input */}
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            <p className="text-xs text-slate-400 mb-2">
+              Or choose your own start date
+            </p>
+
+            <input
+              type="date"
+              value={form.coverageStartCustom || ""}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                const updated = {
+                  ...form,
+                  coverageStart: value,
+                  coverageStartCustom: value,
+                };
+
+                setForm(updated);
+                updateStep("insuranceHistory", updated);
+              }}
+              className={getInputClasses("coverageStart")}
+            />
+          </div>
         </>
       );
     }
-
-    // ── Provider name ──
-    // if (stepKey === "providerName") {
-    //   const dontKnow = form.providerName === "i-dont-know";
-    //   return (
-    //     <>
-    //       <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-5">
-    //         What was the name of your most recent provider?
-    //       </h1>
-    //       <input
-    //         type="text"
-    //         placeholder="Provider name"
-    //         value={dontKnow ? "" : form.providerName || ""}
-    //         disabled={dontKnow}
-    //         onChange={(e) => handleChange("providerName", e.target.value)}
-    //         className={
-    //           getInputClasses("providerName") + " mb-3 disabled:opacity-40"
-    //         }
-    //       />
-    //       <motion.button
-    //         onClick={() =>
-    //           handleChange("providerName", dontKnow ? "" : "i-dont-know")
-    //         }
-    //         whileHover={{ scale: 1.01 }}
-    //         whileTap={{ scale: 0.99 }}
-    //         className={`w-full px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${dontKnow ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
-    //       >
-    //         <div
-    //           className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${dontKnow ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}
-    //         >
-    //           {dontKnow && (
-    //             <div className="w-1.5 h-1.5 rounded-full bg-white" />
-    //           )}
-    //         </div>
-    //         <span
-    //           className={`text-sm font-medium ${dontKnow ? "text-slate-900" : "text-slate-600"}`}
-    //         >
-    //           I don't know
-    //         </span>
-    //       </motion.button>
-    //     </>
-    //   );
-    // }
-
-    // ── Always insured ──
-    // if (stepKey === "alwaysInsured") {
-    //   const today = new Date();
-    //   const oneYearAgo = new Date(
-    //     today.getFullYear() - 1,
-    //     today.getMonth(),
-    //     today.getDate(),
-    //   );
-    //   const dateStr = oneYearAgo.toLocaleDateString("en-GB", {
-    //     day: "numeric",
-    //     month: "long",
-    //     year: "numeric",
-    //   });
-    //   return (
-    //     <>
-    //       <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-5">
-    //         Have you been health insured at all times since {dateStr}?
-    //       </h1>
-    //       <div className="space-y-2">
-    //         {["Yes", "No"].map((opt) => {
-    //           const sel = form.alwaysInsured === opt;
-    //           return (
-    //             <motion.button
-    //               key={opt}
-    //               onClick={() => {
-    //                 handleChange("alwaysInsured", opt);
-    //                 setTouched((prev) => ({ ...prev, alwaysInsured: true }));
-    //               }}
-    //               whileHover={{ scale: 1.01 }}
-    //               whileTap={{ scale: 0.99 }}
-    //               className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-center gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20"}`}
-    //             >
-    //               <div
-    //                 className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${sel ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}
-    //               >
-    //                 {sel && (
-    //                   <div className="w-1.5 h-1.5 rounded-full bg-white" />
-    //                 )}
-    //               </div>
-    //               <span
-    //                 className={`text-sm font-medium ${sel ? "text-slate-900" : "text-slate-600"}`}
-    //               >
-    //                 {opt}
-    //               </span>
-    //             </motion.button>
-    //           );
-    //         })}
-    //       </div>
-    //     </>
-    //   );
-    // }
 
     return null;
   };
