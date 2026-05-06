@@ -764,7 +764,7 @@ export default function FinancialPage() {
 
                     {/* ✅ Show optional only for Tax ID field */}
                     {current.key === "germanTaxIdNumber" && (
-                      <p className="text-xs text-slate-400 mt-1">Optional </p>
+                      <p className="text-xs text-slate-400 mt-1">Provide later </p>
                     )}
                   </div>
                 )}
