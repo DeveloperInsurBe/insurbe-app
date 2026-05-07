@@ -11,26 +11,28 @@ import { TK_CONFIG } from "@/app/constants/insurance";
 /* -------------------------------------------------------------------------- */
 
 const providers = [
-  {
-    id: "dak",
-    name: "DAK",
-    logo: "/partners_asset/DAK_logo.avif",
-    english: 3,
-    digital: 2,
-    speed: 3,
-    highlight: "Excellent coverage for families",
-    bonus: "Up to €500",
-  },
+ 
   {
     id: "tk",
     name: "TK",
     logo: "/icons/tk.png",
     english: 3,
-    digital: 3,
+    digital: 2, // reduced from 3 → 2
     speed: 3,
     highlight: "Best service for expats, students, and families",
     bonus: `Bonus up to €${TK_CONFIG.bonus}*`,
-    featured: true,
+    // removed featured: true
+  },
+   {
+    id: "dak",
+    name: "DAK",
+    logo: "/partners_asset/DAK_logo.avif",
+    english: 3,
+    digital: 3, // changed from 2 → 3
+    speed: 3,
+    highlight: "Excellent coverage for families",
+    bonus: "Up to €500",
+    featured: true, // added here
   },
   {
     id: "aok",
