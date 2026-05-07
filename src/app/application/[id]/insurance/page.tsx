@@ -1231,6 +1231,7 @@ export default function InsurancePage() {
 
             <input
               type="date"
+              min={new Date().toISOString().split("T")[0]}
               value={form.coverageStartCustom || ""}
               onChange={(e) => {
                 const value = e.target.value;

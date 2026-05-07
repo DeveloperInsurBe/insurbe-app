@@ -764,7 +764,9 @@ export default function FinancialPage() {
 
                     {/* ✅ Show optional only for Tax ID field */}
                     {current.key === "germanTaxIdNumber" && (
-                      <p className="text-xs text-slate-400 mt-1">Provide later </p>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Provide later{" "}
+                      </p>
                     )}
                   </div>
                 )}
@@ -1133,8 +1135,15 @@ export default function FinancialPage() {
                   {stepIndex > 0 && (
                     <motion.button
                       onClick={() => {
-                        setStepIndex((p) => p - 1);
                         setError(null);
+
+                        // Skip tax ID input step when user selected "No"
+                        if (stepIndex === 7 && form.hasGermanTaxId !== "Yes") {
+                          setStepIndex(5);
+                          return;
+                        }
+
+                        setStepIndex((p) => p - 1);
                       }}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.98 }}
