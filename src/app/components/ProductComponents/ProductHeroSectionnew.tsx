@@ -21,7 +21,6 @@ export default function ProductHeroSectionnew() {
     <section className="relative py-10 md:py-10 px-4 sm:px-8 lg:px-18 overflow-hidden">
       <div className="max-w-7xl mx-auto ">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
-
           {/* LEFT CONTENT */}
           <motion.div
             initial="hidden"
@@ -37,7 +36,10 @@ export default function ProductHeroSectionnew() {
           >
             {/* Badge */}
             <motion.span
-              variants={{ hidden: { y: 10, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
+              variants={{
+                hidden: { y: 10, opacity: 0 },
+                visible: { y: 0, opacity: 1 },
+              }}
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium bg-primary/10 text-primary w-fit"
             >
               <ShieldCheck className="w-4 h-4 text-primary" />
@@ -46,19 +48,25 @@ export default function ProductHeroSectionnew() {
 
             {/* Heading (UNCHANGED TEXT) */}
             <motion.h1
-              variants={{ hidden: { y: 16, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
+              variants={{
+                hidden: { y: 16, opacity: 0 },
+                visible: { y: 0, opacity: 1 },
+              }}
               className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight"
             >
               You work hard.
               <br />
-         <span className="block text-transparent bg-clip-text bg-linear-to-r from-primary to-purple-600">
-  Your health insurance should too.
-</span>
+              <span className="block text-transparent bg-clip-text bg-linear-to-r from-primary to-purple-600">
+                Your health insurance should too.
+              </span>
             </motion.h1>
 
             {/* Paragraph (UNCHANGED TEXT) */}
             <motion.p
-              variants={{ hidden: { y: 12, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
+              variants={{
+                hidden: { y: 12, opacity: 0 },
+                visible: { y: 0, opacity: 1 },
+              }}
               className="text-base sm:text-lg text-gray-600 max-w-xl"
             >
               We help professionals unlock better care, smarter coverage, and
@@ -85,12 +93,15 @@ export default function ProductHeroSectionnew() {
 
             {/* CTA */}
             <motion.div
-              variants={{ hidden: { y: 10, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
+              variants={{
+                hidden: { y: 10, opacity: 0 },
+                visible: { y: 0, opacity: 1 },
+              }}
               className="flex flex-col sm:flex-row gap-4 max-w-md pt-4"
             >
               <button
                 onClick={() => router.push("/products/insuranceJourney")}
-                className="flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-primary to-purple-600 text-white font-semibold shadow-lg hover:opacity-90 transition"
+                className="flex items-center cursor-pointer justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-primary to-purple-600 text-white font-semibold shadow-lg hover:opacity-90 transition"
               >
                 Get a Quote
                 <ArrowRight className="w-4 h-4" />
@@ -98,7 +109,7 @@ export default function ProductHeroSectionnew() {
 
               <button
                 onClick={handleScroll}
-                className="px-8 py-4 rounded-full border border-gray-300 text-gray-700 font-semibold hover:border-primary hover:text-primary transition"
+                className="px-8 py-4 rounded-full cursor-pointer border border-gray-300 text-gray-700 font-semibold hover:border-primary hover:text-primary transition"
               >
                 Learn More
               </button>
@@ -127,7 +138,6 @@ export default function ProductHeroSectionnew() {
               />
             </div>
           </motion.div>
-
         </div>
       </div>
     </section>

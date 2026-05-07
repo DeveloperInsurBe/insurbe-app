@@ -61,7 +61,7 @@ export default function VisaSeekersHero() {
               className="flex flex-col sm:flex-row gap-4 max-w-md"
             >
               <button
-                onClick={() => router.push("/products/insuranceJourney")}
+                onClick={() => router.push("#")}
                 className="flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-primary to-purple-600 text-white font-semibold shadow-lg hover:opacity-90 transition"
               >
                 Take the Questionnaire
@@ -69,7 +69,7 @@ export default function VisaSeekersHero() {
               </button>
 
               <button
-                onClick={() => router.push("/learn-more")}
+                onClick={() => router.push("#")}
                 className="px-8 py-4 rounded-full border border-gray-300 text-gray-700 font-semibold hover:border-primary hover:text-primary transition"
               >
                 Learn More
