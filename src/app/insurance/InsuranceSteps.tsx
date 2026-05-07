@@ -105,13 +105,13 @@ export default function InsuranceSteps() {
           transition={{ duration: 0.6 }}
         >
           <Link
-            href="/products/insuranceJourney"
+            href="/insuranceSignupFlow?provider=dak"
             className="inline-flex items-center justify-center
-    px-10 py-4 rounded-full font-semibold cursor-pointer text-white
-    bg-gradient-to-r from-purple-600 to-primary
-    hover:opacity-90 transition shadow-lg"
+  px-10 py-4 rounded-full font-semibold cursor-pointer text-white
+  bg-gradient-to-r from-purple-600 to-primary
+  hover:opacity-90 transition shadow-lg"
           >
-            Sign up for Public Insurance 
+            Sign up for Public Insurance
           </Link>
         </motion.div>
       </div>

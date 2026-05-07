@@ -105,11 +105,11 @@ export default function PrivateInsuranceSteps() {
           transition={{ duration: 0.6 }}
         >
           <Link
-            href="/products/insuranceJourney"
+            href="/insuranceSignupFlow?provider=dak"
             className="inline-flex items-center justify-center
-    px-10 py-4 rounded-full font-semibold cursor-pointer text-white
-    bg-gradient-to-r from-purple-600 to-primary
-    hover:opacity-90 transition shadow-lg"
+  px-10 py-4 rounded-full font-semibold cursor-pointer text-white
+  bg-gradient-to-r from-purple-600 to-primary
+  hover:opacity-90 transition shadow-lg"
           >
             Sign up for Private Insurance
           </Link>

@@ -204,7 +204,14 @@ export default function ComparePlans() {
         textColor = "text-gray-700";
         buttonColor =
           "bg-gradient-to-r from-purple-600 to-purple-700 text-white";
-        available = false; // TK coming soon
+        available = false;
+      } else if (product.id === "dak") {
+        // ✅ DAK Styling
+        logo = "/icons/dak.svg";
+        bgColor = "bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50";
+        textColor = "text-gray-800";
+        buttonColor = "bg-gradient-to-r from-cyan-600 to-teal-600 text-white";
+        available = false;
       } else if (product.id === "hallesche-premium") {
         logo = "/icons/H.svg";
         bgColor =
@@ -277,6 +284,10 @@ export default function ComparePlans() {
 
   // Determine which card should be highlighted initially
   const getRecommendedPlanId = () => {
+    // Check if DAK is available
+    const dakExists = plans.some((p) => p.id === "dak");
+    if (dakExists) return "dak";
+
     if (incomeRange === ">77400") {
       return "hallesche-premium";
     }
@@ -428,7 +439,13 @@ export default function ComparePlans() {
 
   const handleChoosePlan = (plan: (typeof plans)[0]) => {
     if (plan.id === "tk") {
-      router.push("/insuranceSignupFlow");
+      router.push("/insuranceSignupFlow?provider=tk");
+      return;
+    }
+
+    // ✅ Handle DAK routing
+    if (plan.id === "dak") {
+      router.push("/insuranceSignupFlow?provider=dak");
       return;
     }
 
@@ -648,8 +665,22 @@ export default function ComparePlans() {
                  
                 `}
               >
+                {/* Most Popular Badge for DAK */}
+                {plan.id === "dak" && (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.6, type: "spring" }}
+                    className="absolute -top-3 sm:-top-4 -right-3 sm:-right-4 bg-gradient-to-r from-cyan-400 to-teal-400 text-white text-xs font-bold px-4 py-2 rounded-full shadow-xl z-10 border-2 border-white"
+                  >
+                    <span className="flex gap-1 items-center">
+                      <Star className="w-3 h-3 fill-current" />
+                      Most Popular
+                    </span>
+                  </motion.div>
+                )}
                 {/* Recommended Badge */}
-                {isRecommended && (
+                {isRecommended && plan.id !== "dak" && (
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
