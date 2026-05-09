@@ -1034,43 +1034,80 @@ export default function InsurancePage() {
         { value: "Expat/incoming insurance", desc: "" },
         { value: "Travel health insurance", desc: "" },
         { value: "Private insurance", desc: "" },
-        { value: "None", desc: "" },
+
+        // separate UI value
+        {
+          value: "i-dont-know",
+          label: "I Don't Know",
+          backendValue: "Private insurance",
+          desc: "",
+        },
       ];
+
       return (
         <>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-5">
             What was your most recent health insurance?
           </h1>
+
           <div className="space-y-2">
-            {opts.map(({ value, desc }) => {
-              const sel = form.recentInsurance === value;
+            {opts.map((item) => {
+              const selected = form.recentInsuranceUI === item.value;
+
               return (
                 <motion.button
-                  key={value}
+                  key={item.value}
                   onClick={() => {
-                    handleChange("recentInsurance", value);
-                    setTouched((prev) => ({ ...prev, recentInsurance: true }));
+                    const updated = {
+                      ...form,
+
+                      // UI state
+                      recentInsuranceUI: item.value,
+
+                      // backend/logic state
+                      recentInsurance: item.backendValue || item.value,
+                    };
+
+                    setForm(updated);
+                    updateStep("insuranceHistory", updated);
+
+                    setTouched((prev) => ({
+                      ...prev,
+                      recentInsurance: true,
+                    }));
                   }}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
-                  className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-start gap-3 transition-all duration-150 ${sel ? "border-violet-400/60 bg-violet-50" : "border-black/[0.07] bg-slate-50/60 hover:border-black/20 hover:bg-slate-50"}`}
+                  className={`w-full text-left px-4 py-3.5 rounded-xl border flex items-start gap-3 transition-all duration-150 ${
+                    selected
+                      ? "border-violet-400/60 bg-violet-50"
+                      : "border-black/[0.07] bg-slate-50/60 hover:border-black/20 hover:bg-slate-50"
+                  }`}
                 >
                   <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${sel ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+                      selected
+                        ? "border-violet-600 bg-violet-600"
+                        : "border-slate-300"
+                    }`}
                   >
-                    {sel && (
+                    {selected && (
                       <div className="w-1.5 h-1.5 rounded-full bg-white" />
                     )}
                   </div>
+
                   <div>
                     <p
-                      className={`text-sm font-medium ${sel ? "text-slate-900" : "text-slate-600"}`}
+                      className={`text-sm font-medium ${
+                        selected ? "text-slate-900" : "text-slate-600"
+                      }`}
                     >
-                      {value}
+                      {item.label || item.value}
                     </p>
-                    {desc && (
+
+                    {item.desc && (
                       <p className="text-xs text-slate-400 font-light mt-0.5">
-                        {desc}
+                        {item.desc}
                       </p>
                     )}
                   </div>
@@ -1124,25 +1161,26 @@ export default function InsurancePage() {
           </div>
           <motion.button
             onClick={() => {
-              setForm((prev) => {
-                const isActive = prev.insuranceEndDate === "still-active";
+              const isActive = form.insuranceEndDate === "still-active";
 
-                const updated = isActive
-                  ? {
-                      ...prev,
-                      insuranceEndDate: null,
-                    }
-                  : {
-                      ...prev,
-                      insuranceEndDate: "still-active",
-                      endDay: "",
-                      endMonth: "",
-                      endYear: "",
-                    };
+              const updated = isActive
+                ? {
+                    ...form,
+                    insuranceEndDate: null,
+                  }
+                : {
+                    ...form,
+                    insuranceEndDate: "still-active",
+                    endDay: "",
+                    endMonth: "",
+                    endYear: "",
+                  };
 
+              setForm(updated);
+
+              setTimeout(() => {
                 updateStep("insuranceHistory", updated);
-                return updated;
-              });
+              }, 0);
             }}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
@@ -1231,7 +1269,6 @@ export default function InsurancePage() {
 
             <input
               type="date"
-              min={new Date().toISOString().split("T")[0]}
               value={form.coverageStartCustom || ""}
               onChange={(e) => {
                 const value = e.target.value;
