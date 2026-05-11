@@ -3,24 +3,33 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+
 import { getCookieConsent, setCookieConsent } from "../../lib/cookieConsent";
+import { initGoogleAnalytics } from "../../lib/initGoogleAnalytics";
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const consent = getCookieConsent();
+
     if (!consent) {
       setVisible(true);
+    }
+
+    // Initialize GA only if user already accepted
+    if (consent === "accepted") {
+      initGoogleAnalytics();
     }
   }, []);
 
   const handleAccept = () => {
     setCookieConsent("accepted");
-    setVisible(false);
 
-    // 🔥 Place analytics init here later if needed
-    // initGoogleAnalytics();
+    // Initialize Google Analytics after consent
+    initGoogleAnalytics();
+
+    setVisible(false);
   };
 
   const handleReject = () => {
@@ -51,7 +60,7 @@ export default function CookieBanner() {
             <p className="text-sm text-gray-700 leading-relaxed">
               We use cookies to ensure essential website functionality and to
               improve your experience. You can accept all cookies or reject
-              non-essential ones.  
+              non-essential ones.
               <Link
                 href="/privacypolicy"
                 className="ml-1 text-purple-600 font-semibold hover:underline"
