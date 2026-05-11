@@ -12,6 +12,8 @@ import {
   Check,
 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { validateTkForm } from "../providers/tk/validator";
+import { submitTkApplication } from "../providers/tk/submit";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -52,7 +54,7 @@ interface City {
 export default function InsuranceSignupFlow() {
   const router = useRouter();
   const [providerFromUrl, setProviderFromUrl] = useState<string | null>(null);
-  
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setProviderFromUrl(params.get("provider"));
@@ -412,74 +414,103 @@ export default function InsuranceSignupFlow() {
 
   const back = () => setStep((s) => (s - 1) as Step);
 
-  //  const handleSubmitApplication = async () => {
-  //   try {
-  //     const orderId = `INS-${Date.now()}`;
-
-  //     await fetch("/api/sendAcknowledgement", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         email: personal.email,
-  //         name: personal.firstName,
-  //         orderId,
-  //       }),
-  //     });
-
-  //     setShowSuccessModal(true);
-
-  //     setTimeout(() => {
-  //       router.push("/");
-  //     }, 2500);
-
-  //   } catch (error) {
-  //     console.error("Submission failed:", error);
-  //   }
-  // };
-
   const handleSubmitApplication = async () => {
     try {
       setLoading(true);
 
-      const orderId = `INS-${Date.now()}`;
+      /**
+       * PREPARE FORM DATA
+       */
+      const formData = {
+        personal,
+        selectPlan,
+        documents,
+      };
 
-      const res = await fetch("/api/sendAcknowledgement", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: personal.email,
-          name: personal.firstName,
-          orderId,
-          formType: "public", 
-        }),
-      });
+      /**
+       * VALIDATE TK FORM
+       */
+      const validation = validateTkForm(formData);
 
-      const data = await res.json();
-
-      if (!data.success) {
-        console.error("Email failed but continuing");
+      if (!validation.isValid) {
+        console.log(validation.errors);
+        return;
       }
 
-      // show success popup
-      setShowSuccessModal(true);
+      /**
+       * CHECK PROVIDER
+       */
+      if (providerFromUrl === "tk") {
+        const result = await fetch("/api/tk/submit", {
+          method: "POST",
 
-      // redirect after popup
-      setTimeout(() => {
-        router.push("/");
-      }, 2500);
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify(formData),
+        });
+
+        const data = await result.json();
+
+        console.log("TK RESPONSE:", JSON.stringify(data, null, 2));
+
+        /**
+         * SUCCESS
+         */
+        if (data?.antragId || data?.status === "200") {
+          await fetch("/api/sendAcknowledgement", {
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json",
+            },
+
+            body: JSON.stringify({
+              email: personal.email,
+
+              name: personal.firstName,
+
+              orderId: data?.antragId || `TK-${Date.now()}`,
+
+              provider: "TK",
+
+              formType: "public",
+            }),
+          });
+
+          setShowSuccessModal(true);
+
+          setTimeout(() => {
+            router.push("/");
+          }, 2500);
+        } else {
+console.error(
+  "TK submission failed:",
+  JSON.stringify(data, null, 2)
+);
+          setErrors((prev) => ({
+            ...prev,
+            submit:
+              "We couldn't submit your application right now. Please check your details or try again shortly.",
+          }));
+          
+          return;
+        }
+      }
+
+      /**
+       * DAK FLOW
+       */
+      if (providerFromUrl === "dak") {
+        console.log("DAK FLOW");
+
+        // later:
+        // send email to admin
+        // save form in db
+      }
     } catch (error) {
       console.error("Submission failed:", error);
-
-      // still show success to user
-      setShowSuccessModal(true);
-
-      setTimeout(() => {
-        router.push("/");
-      }, 2500);
     } finally {
       setLoading(false);
     }
@@ -774,7 +805,7 @@ export default function InsuranceSignupFlow() {
                 <button
                   disabled={!canProceedPlan}
                   onClick={next}
-                  className={`w-full py-3 rounded-lg font-semibold transition-all
+                  className={`w-full py-3 cursor-pointer rounded-lg font-semibold transition-all
                     ${
                       canProceedPlan
                         ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md hover:shadow-lg"
@@ -1105,24 +1136,39 @@ export default function InsuranceSignupFlow() {
 
                   {/* Country Code & Phone Number */}
                   <div className="grid sm:grid-cols-2 gap-4">
+                    {/* Country Code */}
                     <div>
                       <label className="block font-medium mb-2 text-sm">
                         Country code *
                       </label>
-                      <input
-                        type="text"
-                        value={personal.countryCode}
-                        onChange={(e) =>
-                          handlePersonalChange("countryCode", e.target.value)
-                        }
-                        onBlur={() => handleBlur("countryCode")}
-                        className={`w-full border-2 rounded-lg px-4 py-3 focus:ring-2 transition-all ${
+
+                      <div
+                        className={`flex items-center rounded-xl border-2 overflow-hidden transition-all ${
                           touched.countryCode && errors.countryCode
-                            ? "border-red-500 focus:border-red-500 focus:ring-red-100"
-                            : "border-gray-300 focus:border-purple-500 focus:ring-purple-100"
+                            ? "border-red-500 focus-within:ring-2 focus-within:ring-red-100"
+                            : "border-gray-300 focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-100"
                         }`}
-                        placeholder="+49"
-                      />
+                      >
+                        <span className="px-4 py-3 bg-gray-50 border-r text-gray-600 font-medium">
+                          +
+                        </span>
+
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={personal.countryCode.replace("+", "")}
+                          onChange={(e) =>
+                            handlePersonalChange(
+                              "countryCode",
+                              `+${e.target.value.replace(/\D/g, "")}`,
+                            )
+                          }
+                          onBlur={() => handleBlur("countryCode")}
+                          className="w-full px-4 py-3 outline-none bg-white"
+                          placeholder="49"
+                        />
+                      </div>
+
                       {touched.countryCode && errors.countryCode && (
                         <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                           <AlertCircle className="w-3 h-3" />
@@ -1130,24 +1176,36 @@ export default function InsuranceSignupFlow() {
                         </p>
                       )}
                     </div>
+
+                    {/* Phone Number */}
                     <div>
                       <label className="block font-medium mb-2 text-sm">
                         Phone number *
                       </label>
-                      <input
-                        type="tel"
-                        value={personal.phoneNumber}
-                        onChange={(e) =>
-                          handlePersonalChange("phoneNumber", e.target.value)
-                        }
-                        onBlur={() => handleBlur("phoneNumber")}
-                        className={`w-full border-2 rounded-lg px-4 py-3 focus:ring-2 transition-all ${
+
+                      <div
+                        className={`flex items-center rounded-xl border-2 transition-all ${
                           touched.phoneNumber && errors.phoneNumber
-                            ? "border-red-500 focus:border-red-500 focus:ring-red-100"
-                            : "border-gray-300 focus:border-purple-500 focus:ring-purple-100"
+                            ? "border-red-500 focus-within:ring-2 focus-within:ring-red-100"
+                            : "border-gray-300 focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-100"
                         }`}
-                        placeholder="123 456 7890"
-                      />
+                      >
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          value={personal.phoneNumber}
+                          onChange={(e) =>
+                            handlePersonalChange(
+                              "phoneNumber",
+                              e.target.value.replace(/[^\d\s]/g, ""),
+                            )
+                          }
+                          onBlur={() => handleBlur("phoneNumber")}
+                          className="w-full px-4 py-3 outline-none rounded-xl"
+                          placeholder="123 456 7890"
+                        />
+                      </div>
+
                       {touched.phoneNumber && errors.phoneNumber && (
                         <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                           <AlertCircle className="w-3 h-3" />
@@ -1465,7 +1523,7 @@ export default function InsuranceSignupFlow() {
                   <button
                     type="button"
                     onClick={next}
-                    className="flex-1 py-3 rounded-lg font-semibold shadow-md transition-all bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-lg"
+                    className="flex-1 py-3 cursor-pointer rounded-lg font-semibold shadow-md transition-all bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-lg"
                   >
                     Review →
                   </button>
@@ -1545,11 +1603,31 @@ export default function InsuranceSignupFlow() {
                     value={selectPlan.previousProviderName}
                   />
                 </div>
+                {errors.submit && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 rounded-xl mt-6 border border-red-200 bg-red-50 px-4 py-3"
+                  >
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
 
+                      <div>
+                        <p className="font-semibold text-red-700">
+                          Submission failed
+                        </p>
+
+                        <p className="text-sm text-red-600 mt-1 break-words">
+                          {errors.submit}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
                 <div className="flex gap-4 mt-8">
                   <button
                     onClick={back}
-                    className="flex-1 border-2 border-gray-300 rounded-lg py-3 font-medium hover:border-purple-400 hover:bg-purple-50 transition-all"
+                    className="flex-1 border-2 cursor-pointer border-gray-300 rounded-lg py-3 font-medium hover:border-purple-400 hover:bg-purple-50 transition-all"
                   >
                     Back
                   </button>
