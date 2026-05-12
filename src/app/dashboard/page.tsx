@@ -566,7 +566,7 @@ export default function DashboardPage() {
                             <div className="flex items-center gap-3 flex-wrap">
                               <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
                                 <span className="text-blue-600 font-bold text-sm">
-                                  H
+                                  {policy.name?.charAt(0).toUpperCase()}
                                 </span>
                               </div>
                               <div className="flex-1 min-w-0">
