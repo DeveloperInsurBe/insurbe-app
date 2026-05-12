@@ -1,88 +1,98 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { PiggyBank, BedDouble, BadgePercent } from "lucide-react";
+import {
+  Shield,
+  CalendarDays,
+  BadgeDollarSign,
+  ArrowRight,
+} from "lucide-react";
 
 const benefits = [
   {
     title: "Premium relief in old age",
-    desc: "We offer guaranteed premium relief in old age. Think of it as a savings pot where capital is set aside to reduce premiums later. Best of all, your employer contributes up to 50% of these additional savings.",
+    desc: "We offer guaranteed premium relief in old age. Think of it as a savings pot when capital is set aside to reduce premiums later. Best of all, your employer contributes up to 50% of those additional savings.",
     cta: "More information about premium relief",
-    icon: PiggyBank,
+    icon: Shield,
   },
   {
     title: "Daily sickness benefits",
     desc: "Employees are usually covered by their employer for 42 days. To secure yourself against long-term illness, daily sickness benefits step in and compensate for income loss.",
     cta: "More information on daily sickness benefits",
-    icon: BedDouble,
+    icon: CalendarDays,
   },
   {
     title: "No-claim bonus",
     desc: "First Class Pro+ and Business Class Pro tariffs include a no-claim bonus if no benefits are claimed (except dental cleanings, check-ups, and vaccinations) for one year.",
     cta: "More information about no-claim bonus",
-    icon: BadgePercent,
+    icon: BadgeDollarSign,
   },
 ];
 
 export default function PrivatePublicInsuranceBenefits() {
   return (
-    <section id="learnmore" className="relative py-16 sm:py-10 px-4 sm:px-8 lg:px-18 overflow-hidden">
-      <div className="max-w-7xl mx-auto">
-        {/* Heading */}
+    <section className="bg-[#faf9fc] py-16">
+      <div className="mx-auto max-w-[1320px] px-5">
+        {/* HEADING */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.5 }}
+          className="mb-14 text-center"
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-            More control over your private<br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-primary">
-               health insurance
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-[-1px] text-[#0c1533] sm:text-[42px] lg:text-[58px]">
+            More control over your private{" "}
+            <span className="bg-gradient-to-r from-[#8d2bff] to-[#5b61ff] bg-clip-text text-transparent">
+              health insurance
             </span>
           </h2>
 
-          <p className="mt-5 text-gray-600 max-w-3xl mx-auto text-base sm:text-lg">
+          <p className="mt-4 text-[15px] font-medium text-[#7d8396] sm:text-[16px]">
             Personalize your coverage with smart add-ons and future-proof
             benefits.
           </p>
         </motion.div>
 
-        {/* Cards */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {/* CARDS */}
+        <div className="grid gap-7 lg:grid-cols-3">
           {benefits.map((item, idx) => {
             const Icon = item.icon;
 
             return (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 25 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: idx * 0.15 }}
-                className="group relative bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all duration-300"
+                transition={{ delay: idx * 0.1 }}
+                className="flex min-h-[390px] flex-col rounded-[26px] border border-[#ebe7f3] bg-white px-7 py-7"
               >
-                {/* Icon */}
-                <div className="w-14 h-14 mb-6 rounded-xl bg-purple-50 flex items-center justify-center">
-                  <Icon className="w-7 h-7 text-purple-600" />
+                <div className="flex items-center gap-4">
+                  {/* ICON */}
+                  <div className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-full bg-[#f3ebff]">
+                    <Icon className="h-7 w-7 text-[#7d3cff]" strokeWidth={2} />
+                  </div>
+
+                  {/* TITLE */}
+                  <h3 className="max-w-[240px] text-[18px] font-black leading-[1.15] tracking-[-0.5px] text-[#0d1635]">
+                    {item.title}
+                  </h3>
                 </div>
 
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">
-                  {item.title}
-                </h3>
-
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-6">
+                {/* DESC */}
+                <p className="mt-7 text-[16px] leading-[2] text-[#6f7688]">
                   {item.desc}
                 </p>
 
                 {/* CTA */}
-                <button className="w-full rounded-lg py-3 text-sm font-semibold text-purple-600 border border-purple-300 hover:bg-purple-50 transition">
-                  {item.cta}
-                </button>
+                <button className="mt-auto flex items-center justify-between pt-5 text-left">
+                  <span className="max-w-full text-[16px] font-bold leading-[1.5] text-[#7c3aed]">
+                    {item.cta}
+                  </span>
 
-                {/* Hover glow */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-100/40 to-pink-100/40 opacity-0 group-hover:opacity-100 transition pointer-events-none" />
+                  <ArrowRight className="h-5 w-5 shrink-0 text-[#7c3aed]" />
+                </button>
               </motion.div>
             );
           })}
