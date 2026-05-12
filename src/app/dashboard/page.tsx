@@ -30,6 +30,7 @@ interface Policy {
   name: string;
   status: string;
   startDate: string;
+  isDak?: boolean;
 }
 
 interface Document {
@@ -226,9 +227,17 @@ export default function DashboardPage() {
         setPolicies(
           apps.map((a: any) => ({
             id: a.id,
-            name: "Hallesche Private Insurance",
-            status: a.status || "pending",
+
+            name:
+              a.provider === "DAK"
+                ? "DAK Health Insurance"
+                : "Hallesche Private Insurance",
+
+            status: a.provider === "DAK" ? "completed" : a.status || "pending",
+
             startDate: new Date(a.createdAt).toDateString(),
+
+            isDak: a.isDak || false,
           })),
         );
         setDocuments(
@@ -579,7 +588,7 @@ export default function DashboardPage() {
 
                               {/* Desktop buttons */}
                               <div className="hidden sm:flex items-center gap-2">
-                                {isCompleted ? (
+                                {policy.isDak ? null : isCompleted ? (
                                   <>
                                     <motion.button
                                       whileHover={{ y: -1 }}
@@ -664,7 +673,7 @@ export default function DashboardPage() {
 
                             {/* Mobile buttons */}
                             <div className="flex gap-2 mt-4 sm:hidden">
-                              {isCompleted ? (
+                              {policy.isDak ? null : isCompleted ? (
                                 <>
                                   <motion.button
                                     whileTap={{ scale: 0.97 }}
@@ -707,7 +716,6 @@ export default function DashboardPage() {
             </motion.div>
           )}
 
-        
           {/* Documents */}
           {activePage === "Documents" && documents.length > 0 && (
             <motion.div

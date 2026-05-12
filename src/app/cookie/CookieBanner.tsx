@@ -5,7 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 import { getCookieConsent, setCookieConsent } from "../../lib/cookieConsent";
-import { initGoogleAnalytics } from "../../lib/initGoogleAnalytics";
+
+declare global {
+  interface Window {
+    gtag: (...args: any[]) => void;
+  }
+}
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
@@ -17,23 +22,33 @@ export default function CookieBanner() {
       setVisible(true);
     }
 
-    // Initialize GA only if user already accepted
+    // If already accepted earlier
     if (consent === "accepted") {
-      initGoogleAnalytics();
+      window.gtag?.("consent", "update", {
+        analytics_storage: "granted",
+      });
     }
   }, []);
 
   const handleAccept = () => {
     setCookieConsent("accepted");
 
-    // Initialize Google Analytics after consent
-    initGoogleAnalytics();
+    // Grant analytics consent
+    window.gtag?.("consent", "update", {
+      analytics_storage: "granted",
+    });
 
     setVisible(false);
   };
 
   const handleReject = () => {
     setCookieConsent("rejected");
+
+    // Keep denied
+    window.gtag?.("consent", "update", {
+      analytics_storage: "denied",
+    });
+
     setVisible(false);
   };
 

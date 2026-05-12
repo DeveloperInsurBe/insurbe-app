@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -10,30 +10,87 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 🔥 get user by email
+    /**
+     * USER
+     */
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: {
+        email: session.user.email,
+      },
     });
 
-    if (!user) {
-      return NextResponse.json([]);
-    }
+    /**
+     * HALLESCHE APPLICATIONS
+     */
+    const applications = user
+      ? await prisma.application.findMany({
+          where: {
+            userId: user.id,
+          },
 
-    const applications = await prisma.application.findMany({
+          orderBy: {
+            createdAt: "desc",
+          },
+        })
+      : [];
+
+    /**
+     * DAK APPLICATIONS
+     */
+    const allDakApplications = await prisma.insuranceApplication.findMany({
       where: {
-        userId: user.id,
+        provider: "DAK",
       },
+
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    return NextResponse.json(applications);
+    const dakApplications = allDakApplications.filter(
+      (app: any) =>
+        (app.payload as any)?.personal?.email === session?.user?.email,
+    );
+
+    /**
+     * FORMAT DAK APPS
+     */
+    const formattedDakApps = dakApplications.map((app) => ({
+      id: app.id,
+
+      orderId: app.id,
+
+      provider: "DAK",
+
+      status: "submitted",
+
+      createdAt: app.createdAt,
+
+      isDak: true,
+    }));
+
+    /**
+     * MERGE BOTH
+     */
+const mergedApplications = [
+  ...applications,
+  ...formattedDakApps,
+].sort(
+  (a: any, b: any) =>
+    new Date(b.createdAt).getTime() -
+    new Date(a.createdAt).getTime()
+);
+    return NextResponse.json(mergedApplications);
   } catch (error) {
     console.error(error);
+
     return NextResponse.json(
-      { error: "Failed to fetch applications" },
-      { status: 500 }
+      {
+        error: "Failed to fetch applications",
+      },
+      {
+        status: 500,
+      },
     );
   }
 }

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono, Jost, Lexend } from "next/font/google";
+
 import "./globals.css";
+
 import Header from "./components/Header";
 import Footernew from "./components/footernew";
 import CookieBanner from "./cookie/CookieBanner";
@@ -41,17 +44,52 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${jost.variable} ${lexend.variable}`} suppressHydrationWarning>
-      <body
-        className={`font-jost ${geistSans.variable} ${geistMono.variable} antialiased gradient-to-br from-white to-[#fdf3ff] min-h-screen`} suppressHydrationWarning
-    
-    ><Providers>
-        <Header/>
-         {children}
-        <Footernew/>
+    <html
+      lang="en"
+      className={`${jost.variable} ${lexend.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-67FRT0NP1T"
+          strategy="afterInteractive"
+        />
 
-         <CookieBanner />
-         </Providers>
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+
+            gtag('js', new Date());
+
+            // Default denied until user accepts cookies
+            gtag('consent', 'default', {
+              analytics_storage: 'denied'
+            });
+
+            gtag('config', 'G-67FRT0NP1T', {
+              send_page_view: true
+            });
+          `}
+        </Script>
+      </head>
+
+      <body
+        className={`font-jost ${geistSans.variable} ${geistMono.variable} antialiased gradient-to-br from-white to-[#fdf3ff] min-h-screen`}
+        suppressHydrationWarning
+      >
+        <Providers>
+          <Header />
+
+          {children}
+
+          <Footernew />
+
+          <CookieBanner />
+        </Providers>
       </body>
     </html>
   );
