@@ -265,18 +265,19 @@ function HealthGuidanceModal({
             </div>
 
             <h2 className="text-[22px] font-extrabold text-slate-900 leading-tight tracking-tight mb-3">
-              A little personalised
+              Let&apos;s make sure the cover
               <br />
-              guidance goes a long way
+              fits your situation
             </h2>
 
             <p className="text-[13.5px] text-slate-500 leading-relaxed mb-5 font-light">
-              Thank you for sharing your health details. Based on your response,
-              we recommend speaking with one of our{" "}
-              <span className="text-slate-700 font-semibold">
-                specialist advisors
-              </span>{" "}
-              who can help find the most suitable coverage for your situation.
+              Thank you for sharing your health details. Based on your
+              responses, we&apos;d like to review your profile a little more
+              carefully before recommending suitable coverage options.
+              <br />
+              <br />A short consultation will help us better understand your
+              needs and guide you towards plans that are more appropriate for
+              your situation.
             </p>
 
             <div
@@ -302,13 +303,16 @@ function HealthGuidanceModal({
                   <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
               </div>
+
               <div>
                 <p className="text-[13px] font-bold text-slate-800 mb-0.5">
-                  Free 20-min consultation
+                  Free 20-minute consultation
                 </p>
+
                 <p className="text-xs text-slate-500 leading-relaxed font-light">
-                  Our advisors will review your profile and ensure you get the
-                  right level of cover — with no obligation.
+                  Our advisors will review your profile carefully and help you
+                  explore coverage options that best match your personal health
+                  situation — with no obligation.
                 </p>
               </div>
             </div>

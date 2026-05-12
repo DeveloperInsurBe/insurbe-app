@@ -36,3 +36,15 @@ model Application {
   insuranceHistory Json?
   signature       String? 
 }
+
+model InsuranceApplication {
+  id          String   @id @default(cuid())
+
+  provider    String
+
+  status      String   @default("PENDING")
+
+  payload     Json
+
+  createdAt   DateTime @default(now())
+}

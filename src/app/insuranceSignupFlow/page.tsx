@@ -485,16 +485,13 @@ export default function InsuranceSignupFlow() {
             router.push("/");
           }, 2500);
         } else {
-console.error(
-  "TK submission failed:",
-  JSON.stringify(data, null, 2)
-);
+          console.error("TK submission failed:", JSON.stringify(data, null, 2));
           setErrors((prev) => ({
             ...prev,
             submit:
               "We couldn't submit your application right now. Please check your details or try again shortly.",
           }));
-          
+
           return;
         }
       }
@@ -503,11 +500,37 @@ console.error(
        * DAK FLOW
        */
       if (providerFromUrl === "dak") {
-        console.log("DAK FLOW");
+        const response = await fetch("/api/dak/submit", {
+          method: "POST",
 
-        // later:
-        // send email to admin
-        // save form in db
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify(formData),
+        });
+
+        const data = await response.json();
+
+        console.log("DAK RESPONSE:", data);
+
+        /**
+         * SUCCESS
+         */
+        if (data.success) {
+          setShowSuccessModal(true);
+
+          setTimeout(() => {
+            router.push("/");
+          }, 2500);
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+
+            submit:
+              "We couldn't submit your DAK application right now. Please try again shortly.",
+          }));
+        }
       }
     } catch (error) {
       console.error("Submission failed:", error);
