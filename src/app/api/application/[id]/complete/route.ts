@@ -57,6 +57,7 @@ export async function POST(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         tariffIds: ["35659", "24449", "24332", "1803"],
+        ktgValue: String(insurance?.dailyBenefits || "150").replace(/\D/g, ""),
         vorname: personal?.firstName,
         name: personal?.lastName,
         geburtsdatum: `${personal?.year}-${personal?.month}-${personal?.day}`,

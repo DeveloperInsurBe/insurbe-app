@@ -231,6 +231,7 @@ export default function SubmitApplication() {
 
     const payload = {
       tariffIds: plan?.tariffIds || ["35659", "24449", "24332", "1803"],
+      ktgValue: "150",
       vorname: firstName,
       name: lastName,
       geburtsdatum: dob,
@@ -973,7 +974,7 @@ export default function SubmitApplication() {
             disabled={loading}
             whileHover={!loading ? { scale: 1.02, y: -2 } : {}}
             whileTap={!loading ? { scale: 0.98 } : {}}
-            className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all shadow-lg ${
+            className={`w-full py-4 cursor-pointer rounded-xl font-bold text-lg text-white transition-all shadow-lg ${
               loading
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-linear-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-700 hover:via-indigo-700 hover:to-blue-700 shadow-violet-300/50"
