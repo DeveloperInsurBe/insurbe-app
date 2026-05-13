@@ -231,13 +231,20 @@ export default function DashboardPage() {
             name:
               a.provider === "DAK"
                 ? "DAK Health Insurance"
-                : "Hallesche Private Insurance",
+                : a.provider === "TK"
+                  ? "TK Health Insurance"
+                  : "Hallesche Private Insurance",
 
-            status: a.provider === "DAK" ? "completed" : a.status || "pending",
+            status:
+              a.status === "SUBMITTED"
+                ? "completed"
+                : a.status === "PENDING"
+                  ? "incomplete"
+                  : "pending",
 
             startDate: new Date(a.createdAt).toDateString(),
 
-            isDak: a.isDak || false,
+            isDak: a.provider === "DAK" || a.provider === "TK",
           })),
         );
         setDocuments(

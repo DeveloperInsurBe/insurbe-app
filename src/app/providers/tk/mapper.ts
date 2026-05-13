@@ -21,8 +21,7 @@ export const buildTkPayload = (formData: any) => {
     Trainee: "AUSZUBILDENDE",
   };
 
-  const kundengruppe =
-    kundengruppeMap[selectPlan.reason] || "STUDIERENDE";
+  const kundengruppe = kundengruppeMap[selectPlan.reason] || "STUDIERENDE";
 
   /**
    * COUNTRY ISO MAP
@@ -50,11 +49,9 @@ export const buildTkPayload = (formData: any) => {
     Nigeria: "NG",
   };
 
-  const geburtsland =
-    countryCodeMap[personal.countryOfBirth] || "IN";
+  const geburtsland = countryCodeMap[personal.countryOfBirth] || "IN";
 
-  const staatsangehoerigkeit =
-    countryCodeMap[personal.nationality] || "IN";
+  const staatsangehoerigkeit = countryCodeMap[personal.nationality] || "IN";
 
   /**
    * INSURANCE TYPE MAP
@@ -93,18 +90,14 @@ export const buildTkPayload = (formData: any) => {
 
       pflichtversichert: false,
 
-      imAuslandGelebt:
-        selectPlan.insuredBefore === "Abroad",
+      imAuslandGelebt: selectPlan.insuredBefore === "Abroad",
 
       landLetzteVersicherung: "IN",
 
-      krankenversicherungName:
-        selectPlan.previousProviderName || "TK",
+      krankenversicherungName: selectPlan.previousProviderName || "TK",
 
       versicherungsart:
-        versicherungsartMap[
-          selectPlan.previousInsuranceType
-        ] || "GESETZLICH",
+        versicherungsartMap[selectPlan.previousInsuranceType] || "GESETZLICH",
     },
 
     /**
@@ -112,25 +105,18 @@ export const buildTkPayload = (formData: any) => {
      */
     persDaten: {
       name: {
-        anrede:
-  personal.gender === "Male"
-    ? "Herr"
-    : "Frau",
+        anrede: personal.gender === "Male" ? "Herr" : "Frau",
 
         vorname: personal.firstName || "",
 
         nachname: personal.lastName || "",
       },
 
-      geburtsdatum: formatDate(
-        selectPlan.dob || "",
-      ),
+      geburtsdatum: formatDate(selectPlan.dob || ""),
 
-      geburtsname:
-        personal.lastName || "",
+      geburtsname: personal.lastName || "",
 
-      geburtsort:
-        personal.placeOfBirth || "",
+      geburtsort: personal.placeOfBirth || "",
 
       geburtsland,
 
@@ -138,27 +124,21 @@ export const buildTkPayload = (formData: any) => {
 
       email: personal.email || "",
 
-      telefon: `${
-        personal.countryCode || ""
-      }${personal.phoneNumber || ""}`,
+      telefon: `${personal.countryCode || ""}${personal.phoneNumber || ""}`,
 
       adresse: {
         strasse: personal.streetNo || "",
 
-        hausnummer:
-          personal.houseNumber || "1",
+        hausnummer: personal.houseNumber || "1",
 
-        plz: String(
-          personal.postalCode || "",
-        ).slice(0, 5),
+        plz: String(personal.postalCode || "").slice(0, 5),
 
         ort: personal.city || "",
 
         land: "DE",
       },
 
-      mitversicherungVonAngehoerigen:
-        personal.includeFamilyMembers === "Yes",
+      mitversicherungVonAngehoerigen: personal.includeFamilyMembers === "Yes",
 
       versorgungsbezuege: false,
 
@@ -170,14 +150,13 @@ export const buildTkPayload = (formData: any) => {
     /**
      * SEPA MANDATE
      */
-  sepaMandat: {
+   sepaMandat: {
   iban: "DE89370400440532013000",
 
   bic: "COBADEFFXXX",
 
- kontoinhaber: {
-    value: "VERSICHERTER",
-  },
+  kontoinhaber: "VERSICHERUNGSNEHMER",
+
   einwilligungBankeinzug: true,
 },
 
@@ -192,8 +171,7 @@ export const buildTkPayload = (formData: any) => {
    */
   if (kundengruppe === "STUDIERENDE") {
     payload.studierende = {
-      hochschule:
-        selectPlan.institutionName || "",
+      hochschule: selectPlan.institutionName || "",
 
       studienbeginn: "01.10.2024",
 
@@ -236,29 +214,23 @@ export const buildTkPayload = (formData: any) => {
    */
   if (kundengruppe === "BERUFSTAETIGE") {
     payload.beschaeftigte = {
-      arbeitgeber:
-        selectPlan.institutionName || "",
+      arbeitgeber: selectPlan.institutionName || "",
 
       arbeitgeberAdresse: {
         strasse: personal.streetNo || "",
 
         hausnummer: "1",
 
-        plz: String(
-          personal.postalCode || "",
-        ).slice(0, 5),
+        plz: String(personal.postalCode || "").slice(0, 5),
 
         ort: personal.city || "",
 
         land: "DE",
       },
 
-      beschaeftigtSeitAb: formatDate(
-        selectPlan.dob || "",
-      ),
+      beschaeftigtSeitAb: formatDate(selectPlan.dob || ""),
 
-      entgeltklasse:
-        "versicherungspflichtig",
+      entgeltklasse: "versicherungspflichtig",
 
       entgeltArbeitnehmer: 0,
 
@@ -273,29 +245,23 @@ export const buildTkPayload = (formData: any) => {
    */
   if (kundengruppe === "AUSZUBILDENDE") {
     payload.auszubildende = {
-      arbeitgeber:
-        selectPlan.institutionName || "",
+      arbeitgeber: selectPlan.institutionName || "",
 
       arbeitgeberAdresse: {
         strasse: personal.streetNo || "",
 
         hausnummer: "1",
 
-        plz: String(
-          personal.postalCode || "",
-        ).slice(0, 5),
+        plz: String(personal.postalCode || "").slice(0, 5),
 
         ort: personal.city || "",
 
         land: "DE",
       },
 
-      ausbildungsbeginn: formatDate(
-        selectPlan.dob || "",
-      ),
+      ausbildungsbeginn: formatDate(selectPlan.dob || ""),
 
-      entgeltklasse:
-        "versicherungspflichtig",
+      entgeltklasse: "versicherungspflichtig",
 
       rechtsbelehrung: true,
     };

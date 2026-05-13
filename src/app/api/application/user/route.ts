@@ -37,44 +37,55 @@ export async function GET() {
     /**
      * DAK APPLICATIONS
      */
-    const allDakApplications = await prisma.insuranceApplication.findMany({
-      where: {
-        provider: "DAK",
+const insuranceApplications =
+  await prisma.insuranceApplication.findMany({
+    where: {
+      provider: {
+        in: ["DAK", "TK"],
       },
+    },
 
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
-    const dakApplications = allDakApplications.filter(
-      (app: any) =>
-        (app.payload as any)?.personal?.email === session?.user?.email,
-    );
+const filteredInsuranceApplications =
+  insuranceApplications.filter(
+    (app: any) =>
+      (app.payload as any)?.personal
+        ?.email === session?.user?.email,
+  );
 
-    /**
-     * FORMAT DAK APPS
-     */
-    const formattedDakApps = dakApplications.map((app) => ({
+/**
+ * FORMAT INSURANCE APPS
+ */
+const formattedInsuranceApps =
+  filteredInsuranceApplications.map(
+    (app) => ({
       id: app.id,
 
       orderId: app.id,
 
-      provider: "DAK",
+      provider: app.provider,
 
-      status: "submitted",
+      status:
+        app.status?.toLowerCase() ||
+        "submitted",
 
       createdAt: app.createdAt,
 
-      isDak: true,
-    }));
+      isDak:
+        app.provider === "DAK",
+    }),
+  );
 
     /**
      * MERGE BOTH
      */
 const mergedApplications = [
   ...applications,
-  ...formattedDakApps,
+  ...formattedInsuranceApps,
 ].sort(
   (a: any, b: any) =>
     new Date(b.createdAt).getTime() -
