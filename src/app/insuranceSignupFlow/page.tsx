@@ -458,26 +458,26 @@ export default function InsuranceSignupFlow() {
         /**
          * SUCCESS
          */
-        if (data?.antragId || data?.status === "200") {
-          await fetch("/api/sendAcknowledgement", {
-            method: "POST",
+       if (data?.success) {
+          // await fetch("/api/sendAcknowledgement", {
+          //   method: "POST",
 
-            headers: {
-              "Content-Type": "application/json",
-            },
+          //   headers: {
+          //     "Content-Type": "application/json",
+          //   },
 
-            body: JSON.stringify({
-              email: personal.email,
+          //   body: JSON.stringify({
+          //     email: personal.email,
 
-              name: personal.firstName,
+          //     name: personal.firstName,
 
-              orderId: data?.antragId || `TK-${Date.now()}`,
+          //     orderId: data?.antragId || `TK-${Date.now()}`,
 
-              provider: "TK",
+          //     provider: "TK",
 
-              formType: "public",
-            }),
-          });
+          //     formType: "public",
+          //   }),
+          // });
 
           setShowSuccessModal(true);
 
