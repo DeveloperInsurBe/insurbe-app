@@ -1,47 +1,82 @@
 export function buildGetOrderXML(data: any) {
-  const { tariffIds, vorname, name, geburtsdatum, geschlecht, anrede, beginn } =
+  const { tariffIds, vorname, name, geburtsdatum, geschlecht, anrede, beginn, ktgValue, } =
     data;
 
   const germanDob = geburtsdatum.split("-").reverse().join(".");
   const germanBeginn = beginn.split("-").reverse().join(".");
 
-  const tariffXML = tariffIds
-    .map(
-      (id: string) => `
-            <a:CT_Elementarprodukt i:type="a:CT_Tarif">
-              <a:erweiterungField i:nil="true"/>
-              <a:ablaufField i:nil="true"/>
-              <a:bedingungenField i:nil="true"/>
-              <a:beginnField i:nil="true"/>
-              <a:beitragField i:nil="true"/>
-              <a:bezeichnungField i:nil="true"/>
-              <a:bezugsrechtField i:nil="true"/>
-              <a:dauerField i:nil="true"/>
-              <a:gewuenschteZahlungsweiseField i:nil="true"/>
-              <a:gewuenschteZahlungsweiseFieldSpecified>false</a:gewuenschteZahlungsweiseFieldSpecified>
-              <a:konditionField i:nil="true"/>
-              <a:kurzbeschreibungField i:nil="true"/>
-              <a:tarifgenerationField i:nil="true"/>
-              <a:varianteField i:nil="true"/>
-              <a:versicherungsunternehmenField i:nil="true"/>
-              <a:dynamikField i:nil="true"/>
-              <a:fondsPortfolioField i:nil="true"/>
-              <a:leistungsausschlussField i:nil="true"/>
-              <a:versicherungssummeOderLeistungField i:nil="true"/>
-              <a:anwartschaftIDField i:nil="true"/>
-              <a:anwartschaftIDFieldSpecified>false</a:anwartschaftIDFieldSpecified>
-              <a:berechnungsgrundlageField i:nil="true"/>
-              <a:berechnungsgrundlageFieldSpecified>false</a:berechnungsgrundlageFieldSpecified>
-              <a:einzeltarifField i:nil="true"/>
-              <a:einzeltarifFieldSpecified>false</a:einzeltarifFieldSpecified>
-              <a:prozentstufeField i:nil="true"/>
-              <a:prozentstufeFieldSpecified>false</a:prozentstufeFieldSpecified>
-              <a:tarifIDField>${id}</a:tarifIDField>
-              <a:wartezeiterlassField i:nil="true"/>
-              <a:wartezeiterlassFieldSpecified>false</a:wartezeiterlassFieldSpecified>
-            </a:CT_Elementarprodukt>`,
-    )
-    .join("");
+ const KTG_TARIFF_IDS = ["1803"]; // add more if needed
+
+const tariffXML = tariffIds
+  .map((id: string) => {
+    const isKTG = KTG_TARIFF_IDS.includes(id);
+
+    return `
+      <a:CT_Elementarprodukt i:type="a:CT_Tarif">
+        <a:erweiterungField i:nil="true"/>
+        <a:ablaufField i:nil="true"/>
+        <a:bedingungenField i:nil="true"/>
+        <a:beginnField i:nil="true"/>
+        <a:beitragField i:nil="true"/>
+        <a:bezeichnungField i:nil="true"/>
+        <a:bezugsrechtField i:nil="true"/>
+        <a:dauerField i:nil="true"/>
+        <a:gewuenschteZahlungsweiseField i:nil="true"/>
+        <a:gewuenschteZahlungsweiseFieldSpecified>false</a:gewuenschteZahlungsweiseFieldSpecified>
+        <a:konditionField i:nil="true"/>
+        <a:kurzbeschreibungField i:nil="true"/>
+        <a:tarifgenerationField i:nil="true"/>
+        <a:varianteField i:nil="true"/>
+        <a:versicherungsunternehmenField i:nil="true"/>
+        <a:dynamikField i:nil="true"/>
+        <a:fondsPortfolioField i:nil="true"/>
+        <a:leistungsausschlussField i:nil="true"/>
+
+        ${
+          isKTG && ktgValue
+            ? `
+        <a:versicherungssummeOderLeistungField>
+          <a:CT_VersicherungssummeOderLeistung>
+            <a:erweiterungField i:nil="true"/>
+            <a:artIDField i:nil="true"/>
+            <a:auszahlungsweiseField i:nil="true"/>
+            <a:auszahlungsweiseFieldSpecified>false</a:auszahlungsweiseFieldSpecified>
+            <a:dauerField i:nil="true"/>
+            <a:garantierteErhoehungField i:nil="true"/>
+            <a:waehrungField i:nil="true"/>
+            <a:waehrungFieldSpecified>false</a:waehrungFieldSpecified>
+
+            <a:wertField>${ktgValue}</a:wertField>
+            <a:wertFieldSpecified>true</a:wertFieldSpecified>
+
+            <a:werteinheitField i:nil="true"/>
+            <a:werteinheitFieldSpecified>false</a:werteinheitFieldSpecified>
+            <a:wertschluesselField i:nil="true"/>
+          </a:CT_VersicherungssummeOderLeistung>
+        </a:versicherungssummeOderLeistungField>
+        `
+            : `
+        <a:versicherungssummeOderLeistungField i:nil="true"/>
+        `
+        }
+
+        <a:anwartschaftIDField i:nil="true"/>
+        <a:anwartschaftIDFieldSpecified>false</a:anwartschaftIDFieldSpecified>
+        <a:berechnungsgrundlageField i:nil="true"/>
+        <a:berechnungsgrundlageFieldSpecified>false</a:berechnungsgrundlageFieldSpecified>
+        <a:einzeltarifField i:nil="true"/>
+        <a:einzeltarifFieldSpecified>false</a:einzeltarifFieldSpecified>
+        <a:prozentstufeField i:nil="true"/>
+        <a:prozentstufeFieldSpecified>false</a:prozentstufeFieldSpecified>
+
+        <a:tarifIDField>${id}</a:tarifIDField>
+
+        <a:wartezeiterlassField i:nil="true"/>
+        <a:wartezeiterlassFieldSpecified>false</a:wartezeiterlassFieldSpecified>
+      </a:CT_Elementarprodukt>
+    `;
+  })
+  .join("");
 
   return `
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">

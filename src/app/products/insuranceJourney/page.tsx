@@ -1122,125 +1122,138 @@ export default function InsuranceJourney() {
     );
 
   /* Step 5 — Country */
-  if (step === 5)
-    return (
-      <Shell stepNum={5}>
-        <StepLabel n={5} />
-        <motion.h2
-          variants={itemVariants}
-          className="text-2xl font-bold text-gray-900 mb-1"
-        >
-          Where are you from?
-        </motion.h2>
-        <motion.p
-          variants={itemVariants}
-          className="text-sm text-gray-400 mb-6"
-        >
-          Your country determines available plan types.
-        </motion.p>
+if (step === 5)
+  return (
+    <Shell stepNum={5}>
+      <StepLabel n={5} />
 
-        <div className="flex flex-col gap-3">
-          <motion.div
-            variants={itemVariants}
-            className="relative"
-            ref={dropdownRef}
+      <motion.h2
+        variants={itemVariants}
+        className="text-2xl font-bold text-gray-900 mb-1"
+      >
+        Where are you from?
+      </motion.h2>
+
+      <motion.p
+        variants={itemVariants}
+        className="text-sm text-gray-400 mb-6"
+      >
+        Your country determines available plan types.
+      </motion.p>
+
+      <div className="flex flex-col gap-3">
+        <motion.div
+          variants={itemVariants}
+          className="relative"
+          ref={dropdownRef}
+        >
+          {/* SELECT BUTTON */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDropdownOpen((prev) => !prev);
+            }}
+            className="w-full border border-gray-200 rounded-2xl px-4 py-3.5 text-sm flex items-center justify-between bg-white hover:border-[#820ad1] focus:outline-none focus:border-[#820ad1] focus:ring-2 focus:ring-[#820ad1]/20 transition-all duration-200 cursor-pointer"
           >
-            <button
-              type="button"
-              onClick={() => setIsDropdownOpen((p) => !p)}
-              className="w-full border border-gray-200 rounded-2xl px-4 py-3.5 text-sm flex items-center justify-between bg-white hover:border-[#820ad1] focus:outline-none focus:border-[#820ad1] focus:ring-2 focus:ring-[#820ad1]/20 transition cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                {selectedCountryData ? (
-                  <>
-                    <Image
-                      src={selectedCountryData.flag}
-                      alt={selectedCountryData.name}
-                      width={22}
-                      height={14}
-                      className="rounded"
-                    />
-                    <span className="text-gray-800">
-                      {selectedCountryData.name}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-gray-400">Select your country</span>
-                )}
-              </div>
-              <motion.svg
-                animate={{ rotate: isDropdownOpen ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-                className="w-4 h-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </motion.svg>
-            </button>
+            <div className="flex items-center gap-3">
+              {selectedCountryData ? (
+                <>
+                  <Image
+                    src={selectedCountryData.flag}
+                    alt={selectedCountryData.name}
+                    width={22}
+                    height={14}
+                    className="rounded object-cover"
+                  />
 
-            <AnimatePresence>
-              {isDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute z-30 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-64 overflow-hidden"
-                >
-                  <div className="p-2.5 border-b border-gray-100 sticky top-0 bg-white">
-                    <input
-                      type="text"
-                      placeholder="Search country…"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#820ad1] transition"
-                    />
-                  </div>
-                  <div className="overflow-y-auto max-h-48">
-                    {filteredCountries.length > 0 ? (
-                      filteredCountries.map((country) => (
-                        <button
-                          key={country.code}
-                          onClick={() => handleCountrySelect(country.name)}
-                          className="w-full px-4 py-2.5 flex items-center gap-3 text-sm text-left hover:bg-[#f8f5ff] transition cursor-pointer"
-                        >
-                          <Image
-                            src={country.flag}
-                            alt={country.name}
-                            width={22}
-                            height={14}
-                            className="rounded"
-                          />
-                          <span>{country.name}</span>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="p-4 text-center text-sm text-gray-400">
-                        No countries found
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
+                  <span className="text-gray-800 font-medium">
+                    {selectedCountryData.name}
+                  </span>
+                </>
+              ) : (
+                <span className="text-gray-400">
+                  Select your country
+                </span>
               )}
-            </AnimatePresence>
-          </motion.div>
-        </div>
+            </div>
 
-        <NextButton
-          label={isNavigating ? "Loading…" : "See my recommendations"}
-          onClick={handleCountrySubmit}
-          disabled={!selectedCountry || isNavigating}
-        />
-        <BackButton onClick={handleBack} />
-      </Shell>
-    );
+            <motion.svg
+              animate={{ rotate: isDropdownOpen ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-4 h-4 text-gray-400 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </motion.svg>
+          </button>
+
+          {/* DROPDOWN */}
+          <AnimatePresence>
+            {isDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                transition={{ duration: 0.18 }}
+                className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden"
+              >
+                <div className="max-h-72 overflow-y-auto py-1">
+                  {countries.map((country) => (
+                    <button
+                      key={country.code}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        handleCountrySelect(country.name);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full px-4 py-3 flex items-center gap-3 text-sm text-left transition-all duration-150 cursor-pointer
+                      ${
+                        selectedCountry === country.name
+                          ? "bg-[#f3e8ff]"
+                          : "hover:bg-[#faf5ff]"
+                      }`}
+                    >
+                      <Image
+                        src={country.flag}
+                        alt={country.name}
+                        width={22}
+                        height={14}
+                        className="rounded object-cover shrink-0"
+                      />
+
+                      <span className="text-gray-700 font-medium">
+                        {country.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+
+      <NextButton
+        label={isNavigating ? "Loading…" : "See my recommendations"}
+        onClick={handleCountrySubmit}
+        disabled={!selectedCountry || isNavigating}
+      />
+
+      <BackButton onClick={handleBack} />
+    </Shell>
+  );
 
   return null;
 }
