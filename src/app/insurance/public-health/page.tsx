@@ -15,7 +15,6 @@ import { trackEvent } from "@/lib/gtag";
 import PrivateInsuranceSteps from "../private-health/PrivateInsuranceSteps";
 
 export default function PublicHealthPage() {
-
   useEffect(() => {
     trackEvent("public_health_page_view");
   }, []);
@@ -33,13 +32,10 @@ export default function PublicHealthPage() {
     <section className="">
       <PublicInsuranceHeroSection />
       <PublicInsuranceBenefits />
-      <InsuranceCalculatorPrivate
-        setPremium={setPremium}
-        premium={premium}
-      />
+      <InsuranceCalculatorPrivate setPremium={setPremium} premium={premium} />
       <ProviderComparison premium={premium} />
       <FirstExpatHero />
-        <PrivateInsuranceSteps />
+      <PrivateInsuranceSteps />
       <PublicInsuranceFAQ />
     </section>
   );
