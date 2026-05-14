@@ -5,7 +5,7 @@ export function buildGetOrderXML(data: any) {
   const germanDob = geburtsdatum.split("-").reverse().join(".");
   const germanBeginn = beginn.split("-").reverse().join(".");
 
- const KTG_TARIFF_IDS = ["1803"]; // add more if needed
+ const KTG_TARIFF_IDS = ["24332"]; 
 
 const tariffXML = tariffIds
   .map((id: string) => {
