@@ -6,7 +6,7 @@ function SupportPage() {
   return (
     <div>
       <SupportHeroPage/>
-      <FAQ/>
+      {/* <FAQ/> */}
     </div>
   )
 }

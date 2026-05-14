@@ -12,6 +12,7 @@ import PublicInsuranceFAQ from "./PublicFaq";
 import InsuranceCalculatorPrivate from "../InsuranceCalculatorPrivate";
 
 import { trackEvent } from "@/lib/gtag";
+import PrivateInsuranceSteps from "../private-health/PrivateInsuranceSteps";
 
 export default function PublicHealthPage() {
 
@@ -38,7 +39,7 @@ export default function PublicHealthPage() {
       />
       <ProviderComparison premium={premium} />
       <FirstExpatHero />
-      <InsuranceSteps />
+        <PrivateInsuranceSteps />
       <PublicInsuranceFAQ />
     </section>
   );
