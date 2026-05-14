@@ -1,16 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { LucideIcon } from "lucide-react";
 import {
-  Users,
-  Car,
   ShieldCheck,
-  PersonStanding,
   TrendingUp,
   Plane,
+  ChevronLeft,
+  ChevronRight,
+  HeartPulse,
+  Scale,
+  Gavel,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import { useRef } from "react";
 
 interface CardItem {
   title: string;
@@ -26,245 +30,255 @@ interface CardItem {
 
 const cards: CardItem[] = [
   {
-    title: "Retirement Provision",
-    subtitle: "Our solutions for you",
-    badge: "Private customers",
-    badgeColor: "#22c55e",
-    icon: Users,
-    features: [
-      "Products related to your retirement savings",
-      "Individual insurance",
-      "Survivor's benefits",
-    ],
-    cta: "Learn more now →",
-    href: "/products/pensionProducts",
-    image:
-      "hero_assets/Retirement.avif",
-  },
-  {
-    title: "Car Insurance for Private Customers",
-    subtitle: "Switch to HDI car insurance now",
-    badge: "Private customers",
-    badgeColor: "#22c55e",
-    icon: Car,
-    features: [
-      "Fair prices",
-      "24-hour telephone service in case of damage",
-      "Over 100 years of experience",
-    ],
-    cta: "Calculate now →",
-    href: "/insurance/car",
-    image:
-      "hero_assets/car.avif",
-  },
-  {
-    title: "Liability Insurance",
-    subtitle: "Our insurance solutions for liability insurance",
-    badge: "Private & Business customers",
-    badgeColor: "#22c55e",
+    title: "Public Health Insurance",
+    subtitle: "Essential coverage for Germany",
+    badge: "Most Popular",
+    badgeColor: "#820ad1",
     icon: ShieldCheck,
     features: [
-      "Private liability insurance",
-      "Pet owner's liability insurance",
-      "Special liability insurance",
-    ],
-    cta: "Calculate now →",
-    href: "/products/privateProducts",
-    image:
-      "hero_assets/home.avif",
-  },
-  {
-    title: "Accident Insurance",
-    subtitle: "It secures everyday life. And other adventures.",
-    badge: "Private customers",
-    badgeColor: "#22c55e",
-    icon: PersonStanding,
-    features: [
-      "Flexible package solutions",
-      "Worldwide insurance coverage",
-      "One-time capital payment",
+      "Legally compliant coverage",
+      "Meets residency requirements",
+      "Trusted public healthcare access",
     ],
     cta: "Learn more now →",
-    href: "/products/privateProducts",
-    image:
-      "hero_assets/privateProducts.avif",
+    href: "/insurance/public-health",
+    image: "/hero_assets/pensionProducts.avif",
   },
   {
-    title: "Unit-linked Pension",
-    subtitle: "CleverInvest – The solution for your retirement savings",
+    title: "Private Health Insurance",
+    subtitle: "Tailored premium protection",
     badge: "Private customers",
-    badgeColor: "#22c55e",
-    icon: TrendingUp,
+    badgeColor: "#820ad1",
+    icon: HeartPulse,
     features: [
-      "Products related to your retirement savings",
-      "Individual insurance",
-      "Flexible building blocks",
+      "Enhanced medical benefits",
+      "Personalized coverage options",
+      "Faster healthcare access",
     ],
-    cta: "Request product →",
-    href: "/products/pensionProducts",
-    image:
-      "hero_assets/pensionProducts.avif",
+    cta: "Explore plans →",
+    href: "/insurance/private-health",
+    image: "/hero_assets/privateProducts.avif",
   },
   {
     title: "Travel Insurance",
-    subtitle: "Protection that moves with you, wherever your journey takes you.",
-    badge: "Private customers",
-    badgeColor: "#22c55e",
+    subtitle: "Protection wherever you go",
+    badge: "Worldwide coverage",
+    badgeColor: "#820ad1",
     icon: Plane,
     features: [
-      "Worldwide coverage",
-      "Trip protection",
-      "24/7 assistance",
+      "Worldwide travel protection",
+      "Emergency assistance",
+      "Stress-free journeys",
     ],
-    cta: "Learn more now →",
+    cta: "Explore plans →",
     href: "/products/visaSeakers",
-    image:
-      "hero_assets/visaSeakers.avif",
+    image: "/hero_assets/visaSeakers.avif",
+  },
+  {
+    title: "Private Pension Scheme",
+    subtitle: "Plan your future smarter",
+    badge: "Long-term security",
+    badgeColor: "#820ad1",
+    icon: TrendingUp,
+    features: [
+      "Build retirement savings",
+      "Long-term financial security",
+      "Flexible contribution plans",
+    ],
+    cta: "Start planning →",
+    href: "/products/pensionProducts",
+    image: "/hero_assets/retirement.avif",
+  },
+  {
+    title: "Liability Insurance",
+    subtitle: "Protection for everyday life",
+    badge: "Personal protection",
+    badgeColor: "#820ad1",
+    icon: Scale,
+    features: [
+      "Personal liability protection",
+      "Coverage against claims",
+      "Peace of mind every day",
+    ],
+    cta: "View coverage →",
+    href: "/products/privateProducts",
+    image: "/hero_assets/home.avif",
+  },
+  {
+    title: "Legal Insurance",
+    subtitle: "Expert legal support",
+    badge: "Legal assistance",
+    badgeColor: "#820ad1",
+    icon: Gavel,
+    features: [
+      "Professional legal guidance",
+      "Coverage for legal costs",
+      "Support when it matters most",
+    ],
+    cta: "Learn more →",
+    href: "/products/privateProducts",
+    image: "/hero_assets/car.avif",
   },
 ];
 
-const container = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
-};
-
-const cardVariant = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
-  },
-};
-
 export default function ChooseUs() {
-  return (
-    <section className="py-16 px-4 sm:px-8 lg:px-16">
-      <div className="max-w-7xl mx-auto">
+  const sliderRef = useRef<HTMLDivElement>(null);
 
-        {/* Trust badge */}
-        <div className="flex justify-center mb-6">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span className="text-indigo-600">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                aria-hidden="true"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+  const scrollLeft = () => {
+    sliderRef.current?.scrollBy({
+      left: -380,
+      behavior: "smooth",
+    });
+  };
+
+  const scrollRight = () => {
+    sliderRef.current?.scrollBy({
+      left: 380,
+      behavior: "smooth",
+    });
+  };
+
+  return (
+    <section className="relative overflow-hidden bg-[#faf9ff] pb-16 px-4 sm:px-8 lg:px-16 ">
+      {/* background blur */}
+      <div className="absolute left-0 top-0 h-[260px] w-[260px] rounded-full bg-[#820ad1]/20 blur-3xl" />
+      <div className="absolute bottom-0 right-0 h-[260px] w-[260px] rounded-full bg-[#820ad1]/15 blur-3xl" />
+
+      <div className="relative mx-auto max-w-7xl ">
+        {/* badge */}
+        <div className="mb-5 flex justify-center">
+          <div className="rounded-full border border-[#820ad1]/10 bg-white/80 px-4 py-2 backdrop-blur-xl">
+            <span className="text-xs font-semibold text-[#820ad1]">
+              Trusted • Compliant • Reliable
             </span>
-            Trusted. Compliant. Reliable.
           </div>
         </div>
 
-        {/* Heading */}
+        {/* heading */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="mb-10 text-center"
         >
-          <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight">
+          <h2 className="text-[30px] font-black leading-tight tracking-[-1px] text-[#0f172a] sm:text-[42px] lg:text-[52px]">
             Insurance solutions{" "}
-            <span className="text-indigo-600">for every stage of life</span>
+            <span className="bg-gradient-to-r from-[#820ad1] to-[#9f3cff] bg-clip-text text-transparent">
+              for every stage of life
+            </span>
           </h2>
-          <p className="mt-4 text-gray-500 text-base sm:text-lg">
-            Comprehensive coverage. Legally compliant. Trusted by millions in Germany.
+
+          <p className="mx-auto mt-4 max-w-[680px] text-[16px] leading-relaxed text-[#667085]">
+            Comprehensive coverage. Legally compliant. Trusted by millions in
+            Germany.
           </p>
         </motion.div>
 
-        {/* Cards Grid */}
-        <motion.div
-          variants={container}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.15 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {cards.map((item: CardItem, idx: number) => {
-            const Icon = item.icon;
-            return (
-              <motion.div key={idx} variants={cardVariant}>
-                <Link href={item.href} className="block h-full">
-                  <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
+        {/* arrows */}
+        <div className="mb-6 flex justify-end gap-3">
+          <button
+            onClick={scrollLeft}
+            className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-white/40 bg-white/80 shadow-[0_8px_30px_rgba(130,10,209,0.12)] backdrop-blur-xl transition-all duration-300 hover:scale-105"
+          >
+            <ChevronLeft className="h-5 w-5 text-[#820ad1]" />
+          </button>
 
-                    {/* Image */}
-                    <div className="relative h-44 overflow-hidden">
-                      <img
+          <button
+            onClick={scrollRight}
+            className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-white/40 bg-white/80 shadow-[0_8px_30px_rgba(130,10,209,0.12)] backdrop-blur-xl transition-all duration-300 hover:scale-105"
+          >
+            <ChevronRight className="h-5 w-5 text-[#820ad1]" />
+          </button>
+        </div>
+
+        {/* slider */}
+        <div
+          ref={sliderRef}
+          className="flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth pb-4 scrollbar-hide"
+        >
+          {cards.map((item, idx) => {
+            const Icon = item.icon;
+
+            return (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.05 }}
+                className="min-w-[85%] snap-start sm:min-w-[45%] lg:min-w-[30%]"
+              >
+                <Link href={item.href} className="block h-full">
+                  <div className="group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-white/40 bg-white/80 shadow-[0_10px_40px_rgba(130,10,209,0.08)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_18px_60px_rgba(130,10,209,0.18)]">
+                    {/* image */}
+                    <div className="relative h-[210px] overflow-hidden">
+                      <Image
                         src={item.image}
                         alt={item.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
                       />
-                      <div className="absolute bottom-3 left-3">
+
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+
+                      <div className="absolute left-4 top-4">
                         <span
-                          className="text-xs font-semibold text-white px-3 py-1 rounded-full"
-                          style={{ backgroundColor: item.badgeColor }}
+                          className="rounded-full px-3 py-1.5 text-[11px] font-bold text-white shadow-lg"
+                          style={{
+                            backgroundColor: item.badgeColor,
+                          }}
                         >
                           {item.badge}
                         </span>
                       </div>
                     </div>
 
-                    {/* Body */}
-                    <div className="p-5 flex flex-col flex-1">
-                      {/* Icon + Title */}
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-                          <Icon className="w-5 h-5 text-indigo-600" aria-hidden="true" />
+                    {/* content */}
+                    <div className="flex flex-1 flex-col p-5">
+                      {/* title */}
+                      <div className="mb-4 flex items-start gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#f3e8ff] to-[#f8f1ff]">
+                          <Icon className="h-5 w-5 text-[#820ad1]" />
                         </div>
+
                         <div>
-                          <h3 className="text-base font-bold text-gray-900 leading-snug">
+                          <h3 className="text-[20px] font-black leading-tight text-[#0f172a]">
                             {item.title}
                           </h3>
-                          <p className="text-xs text-gray-500 mt-0.5">
+
+                          <p className="mt-1 text-[13px] text-[#667085]">
                             {item.subtitle}
                           </p>
                         </div>
                       </div>
 
-                      {/* Features */}
-                      <ul className="space-y-1.5 mb-4 flex-1">
-                        {item.features.map((feature: string, i: number) => (
+                      {/* features */}
+                      <ul className="mb-6 space-y-2">
+                        {item.features.map((feature, i) => (
                           <li
                             key={i}
-                            className="flex items-start gap-2 text-sm text-gray-600"
+                            className="flex items-start gap-2 text-[14px] leading-relaxed text-[#475467]"
                           >
-                            <svg
-                              className="flex-shrink-0 w-4 h-4 text-indigo-500 mt-0.5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2.5}
-                              aria-hidden="true"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
+                            <div className="mt-1.5 h-2 w-2 rounded-full bg-[#820ad1]" />
                             {feature}
                           </li>
                         ))}
                       </ul>
 
-                      {/* CTA */}
-                      <span className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
-                        {item.cta}
-                      </span>
+                      {/* button */}
+                      <div className="mt-auto">
+                        <div className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#820ad1] to-[#9f3cff] px-4 py-2.5 text-[14px] font-bold text-white shadow-lg transition-all duration-300 group-hover:gap-3">
+                          {item.cta}
+                          <ChevronRight className="h-4 w-4" />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </Link>
               </motion.div>
             );
           })}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
