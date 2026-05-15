@@ -83,7 +83,7 @@ export default function HeroInsurancenew1() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-white py-8 sm:py-12 lg:py-16 xl:py-20">
+      <section className="relative overflow-hidden py-14 sm:py-16 px-4 sm:px-8 lg:px-16">
         <div className="max-w-7xl mx-auto   ">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 xl:gap-16 items-stretch">
             {/* LEFT CONTENT */}
@@ -122,33 +122,38 @@ export default function HeroInsurancenew1() {
               {/* CTAs */}
               <div className="flex flex-col xs:flex-row gap-3 pt-2 max-w-md mx-auto lg:mx-0 px-2 sm:px-4">
                 <motion.button
-                  onClick={handleScroll1}
+                  onClick={() => router.push("/insurance/public-health")}
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
                   className="
-    w-full xs:flex-1
-    flex items-center justify-between
-    rounded-2xl lg:rounded-3xl
-    cursor-pointer
-    bg-linear-to-r from-primary to-purple-600
-    text-white
-    text-sm sm:text-base font-bold
-    py-3 sm:py-4
-    px-5 sm:px-7 md:px-10
-    shadow-xl hover:shadow-2xl
-    transition-all duration-300
-    focus:outline-none focus:ring-4 focus:ring-purple-300/50
-  "
+      w-full xs:flex-1
+      flex items-center justify-between
+      rounded-2xl lg:rounded-3xl
+      cursor-pointer
+      bg-linear-to-r from-primary to-purple-600
+      text-white
+      text-sm sm:text-base font-bold
+      py-3 sm:py-4
+      px-5 sm:px-7 md:px-10
+      shadow-xl hover:shadow-2xl
+      transition-all duration-300
+      focus:outline-none focus:ring-4 focus:ring-purple-300/50
+    "
                 >
+                  {/* LEFT ICON */}
                   <div className="flex h-6 w-6 items-center justify-center shrink-0">
                     <Shield
                       className="h-5 w-5 sm:h-6 sm:w-6 text-white"
                       strokeWidth={2.2}
                     />
                   </div>
+
+                  {/* TEXT */}
                   <span className="flex-1 text-center whitespace-nowrap">
                     Explore Our Policies
                   </span>
+
+                  {/* RIGHT ICON */}
                   <div className="flex items-center justify-center shrink-0">
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
