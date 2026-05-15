@@ -2,16 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
+  CheckCircle,
   Star,
   Sparkles,
   ChevronDown,
   ChevronUp,
-  CheckCircle,
+  Diamond,
+  Crown,
+  ShieldCheck,
+  Users,
+  Award,
+  Lock,
+  Heart,
+  ArrowRight,
 } from "lucide-react";
-import { NEW_CARD_BG } from "@/app/constants/styles";
 import { useJourneyStore } from "@/app/stores/journeyStore";
 
 /* ------------------------------------------------------------------ */
@@ -128,6 +134,55 @@ const comparisonData: Array<{ label: string } & Record<ComparisonKey, string>> =
     },
   ];
 
+const PLANS: {
+  key: ComparisonKey;
+  title: string;
+  price: string;
+  icon: React.ReactNode;
+}[] = [
+  {
+    key: "standard",
+    title: "Standard",
+    price: "€331.73",
+    icon: <Diamond className="w-5 h-5" />,
+  },
+  {
+    key: "plus",
+    title: "Plus",
+    price: "€526.57",
+    icon: <Crown className="w-5 h-5" />,
+  },
+  {
+    key: "premium",
+    title: "Premium",
+    price: "€636.00",
+    icon: <ShieldCheck className="w-5 h-5" />,
+  },
+];
+
+const TRUST_ITEMS = [
+  {
+    icon: <Users className="w-5 h-5" />,
+    title: "For employees",
+    desc: "Designed for you and your needs",
+  },
+  {
+    icon: <Award className="w-5 h-5" />,
+    title: "Top-rated",
+    desc: "95% customer recommendation",
+  },
+  {
+    icon: <Lock className="w-5 h-5" />,
+    title: "Secure & reliable",
+    desc: "Stable premiums you can count on",
+  },
+  {
+    icon: <Heart className="w-5 h-5" />,
+    title: "Better together",
+    desc: "Employer contribution up to 50%",
+  },
+];
+
 /* ------------------------------------------------------------------ */
 /* MAIN COMPONENT */
 /* ------------------------------------------------------------------ */
@@ -135,12 +190,14 @@ const comparisonData: Array<{ label: string } & Record<ComparisonKey, string>> =
 export default function PrivateInsuranceTariffs() {
   const router = useRouter();
   const [showCompare, setShowCompare] = useState(false);
-  const journeyStore = useJourneyStore();
   const setSelectedPlan = useJourneyStore((s) => s.setSelectedPlan);
 
-  const handlePlanSelect = (key: ComparisonKey, title: string, price: string) => {
+  const handlePlanSelect = (
+    key: ComparisonKey,
+    title: string,
+    price: string
+  ) => {
     const cfg = PLAN_CONFIG[key];
-
     const planData = {
       id: cfg.id,
       name: cfg.name || title,
@@ -157,7 +214,6 @@ export default function PrivateInsuranceTariffs() {
       period: "/ Month",
       category: "Private",
     };
-
     sessionStorage.setItem("selectedPlan", JSON.stringify(planData));
     setSelectedPlan(planData as any);
     router.push("/calculator/submitApplication");
@@ -166,210 +222,190 @@ export default function PrivateInsuranceTariffs() {
   return (
     <section className="relative py-16 px-4 overflow-hidden">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
         <div className="text-center mb-14">
           <span className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
             <Sparkles className="w-4 h-4" />
             Choose Your Coverage
           </span>
-
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">
             Which{" "}
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-primary">
-              tariff suits
-            </span>{" "}
+            <span className="text-purple-600">tariff suits</span>{" "}
             you best
           </h2>
-
-          <p className="mt-4 text-gray-600 max-w-xl mx-auto">
+          <p className="mt-4 text-gray-500 max-w-xl mx-auto text-base">
             Maximum freedom of choice with first-class medical care.
           </p>
         </div>
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {(["standard", "plus", "premium"] as const).map((key) => {
-            const title =
-              key === "standard"
-                ? "Standard"
-                : key === "plus"
-                  ? "Plus"
-                  : "Premium";
-
-            const price =
-              key === "standard"
-                ? "€331.73"
-                : key === "plus"
-                  ? "€526.57"
-                  : "€636.00";
-
+          {PLANS.map(({ key, title, price, icon }) => {
+            const isPlus = key === "plus";
+            const cfg = PLAN_CONFIG[key];
             return (
-              <TariffColumn
+              <div
                 key={key}
-                title={title}
-                price={price}
-                period="per month"
-                badge={
-                  key === "plus"
-                    ? "Most Popular"
-                    : key === "premium"
-                      ? "Ultimate"
-                      : "Essential"
-                }
-                highlighted={key === "plus"}
-                onSelect={() => handlePlanSelect(key, title, price)}
-              />
+                className={`relative rounded-3xl p-8 flex flex-col ${
+                  isPlus
+                    ? "bg-purple-600 text-white shadow-2xl"
+                    : "bg-white border border-gray-200 shadow-lg"
+                }`}
+              >
+                {/* Most Popular badge */}
+                {isPlus && (
+                  <div
+                    className="absolute -top-4 left-1/2 -translate-x-1/2 bg-purple-400 text-white text-xs font-bold px-4 py-1.5 rounded-full flex items-center gap-1 whitespace-nowrap"
+                  >
+                    <Star className="w-3 h-3 fill-white" />
+                    Most Popular
+                  </div>
+                )}
+
+                {/* Icon */}
+                <div
+                  className={`w-11 h-11 rounded-full flex items-center justify-center mb-4 ${
+                    isPlus
+                      ? "bg-white/20 text-white"
+                      : "bg-purple-100 text-purple-600"
+                  }`}
+                >
+                  {icon}
+                </div>
+
+                {/* Title */}
+                <h3
+                  className={`text-2xl font-bold mb-1 ${
+                    isPlus ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  {title}
+                </h3>
+
+                {/* Price */}
+                <div className="flex items-baseline gap-2 mb-6">
+                  <span
+                    className={`text-3xl font-bold ${
+                      isPlus ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    {price}
+                  </span>
+                  <span
+                    className={`text-sm ${
+                      isPlus ? "text-white/75" : "text-gray-400"
+                    }`}
+                  >
+                    per month
+                  </span>
+                </div>
+
+                {/* Features */}
+                <ul className="space-y-3 mb-8 flex-1">
+                  {cfg.features.map((f) => (
+                    <li
+                      key={f}
+                      className={`flex items-center gap-2 text-sm ${
+                        isPlus ? "text-white/90" : "text-gray-500"
+                      }`}
+                    >
+                      <CheckCircle
+                        className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                          isPlus ? "text-white/90" : "text-primary"
+                        }`}
+                      />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                {/* CTA */}
+                <button
+                  onClick={() => handlePlanSelect(key, title, price)}
+                  className={`w-full py-3.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-opacity hover:opacity-90 ${
+                    isPlus
+                      ? "bg-white text-purple-600"
+                      : "bg-purple-600 text-white"
+                  }`}
+                >
+                  Select Plan
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
             );
           })}
         </div>
 
-        {/* Compare Button */}
-        {/* <div className="text-center mt-8">
-          <button
-            onClick={() => setShowCompare(!showCompare)}
-            className="px-10 py-4 rounded-full bg-linear-to-r from-purple-600 to-primary text-white font-semibold shadow-lg inline-flex items-center gap-2"
-          >
-            {showCompare ? "Hide" : "Compare"} tariffs
-            {showCompare ? <ChevronUp /> : <ChevronDown />}
-          </button>
-        </div> */}
-
-        {/* Button (Above Table Only When Closed) */}
+        {/* Compare Button (top — hidden when open) */}
         {!showCompare && (
           <div className="text-center mt-8">
             <button
               onClick={() => setShowCompare(true)}
-              className="px-10 py-4 rounded-full bg-linear-to-r from-purple-600 to-primary text-white font-semibold shadow-lg inline-flex items-center gap-2"
+              className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-white font-semibold shadow-lg transition-opacity hover:opacity-90 bg-purple-600"
             >
               Compare tariffs
-              <ChevronDown />
+              <ChevronDown className="w-5 h-5" />
             </button>
           </div>
         )}
 
-        {/* ================= SIMPLE FEATURE COMPARISON ================= */}
+        {/* Comparison Table */}
+        {showCompare && (
+          <div className="mt-4">
+            <div className="space-y-0 px-8 py-4">
+              {comparisonData.map((item) => (
+                <div
+                  key={item.label}
+                  className="border-b border-gray-300"
+                >
+                  <h3 className="text-sm font-semibold pl-8 pt-4 pb-2 text-gray-800">
+                    {item.label}
+                  </h3>
+                  <div className="grid grid-cols-3 text-sm font-medium text-gray-700 text-center py-4 rounded-lg bg-purple-50">
+                    <div>{item.standard}</div>
+                    <div>{item.plus}</div>
+                    <div>{item.premium}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-        <AnimatePresence>
-          {showCompare && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="mt-4"
-            >
-              {/* Scrollable Content */}
-              <div className="h-full space-y-8 px-8 py-4 ">
-                {comparisonData.map((item, index) => (
-                  <motion.div
-                    key={item.label}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="border-b border-gray-400"
-                  >
-                    {/* Heading */}
-                    <h3 className="text-md font-semibold pl-12 pt-4 text-gray-800">
-                      {item.label}
-                    </h3>
-
-                    {/* Values Row */}
-                    <div
-                      className="grid grid-cols-3 text-sm font-medium text-gray-700 text-center py-4 
-                bg-linear-to-r from-white/20 via-gray-100/60 to-purple-100/40"
-                    >
-                      {" "}
-                      <div>{item.standard}</div>
-                      <div>{item.plus}</div>
-                      <div>{item.premium}</div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Button (Below Table When Open) */}
+        {/* Hide Button (bottom — shown when open) */}
         {showCompare && (
           <div className="text-center mt-10">
             <button
               onClick={() => setShowCompare(false)}
-              className="px-10 py-4 rounded-full bg-linear-to-r from-purple-600 to-primary text-white font-semibold shadow-lg inline-flex items-center gap-2"
+              className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-white font-semibold shadow-lg transition-opacity hover:opacity-90 bg-purple-600"
             >
               Hide tariffs
-              <ChevronUp />
+              <ChevronUp className="w-5 h-5" />
             </button>
           </div>
         )}
+
+        {/* Trust Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 pt-8 border-t border-gray-200">
+          {TRUST_ITEMS.map((item) => (
+            <div key={item.title} className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 text-purple-600">
+                {item.icon}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-purple-600">
+                  {item.title}
+                </p>
+                <p className="text-xs text-gray-500 leading-snug mt-0.5">
+                  {item.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
       </div>
     </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* CARD COMPONENT */
-/* ------------------------------------------------------------------ */
-
-function TariffColumn({
-  title,
-  price,
-  period,
-  badge,
-  highlighted,
-  onSelect,
-}: {
-  title: string;
-  price: string;
-  period: string;
-  badge: string;
-  highlighted?: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <div
-      className={`relative p-8 rounded-3xl ${
-        highlighted ? `${NEW_CARD_BG}` : "bg-white shadow-xl"
-      }`}
-    >
-      {highlighted && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-linear-to-r from-purple-400 to-blue-400 px-4 py-2 rounded-full text-xs font-bold flex items-center gap-1">
-          <Star className="w-3 h-3 fill-current" />
-          {badge}
-        </div>
-      )}
-
-      <h3 className="text-3xl font-bold mb-4">{title}</h3>
-
-      <div className="mb-6">
-        <span className="text-3xl font-bold">{price}</span>
-        <span className="ml-2 text-sm">{period}</span>
-      </div>
-
-      <ul className="space-y-4 mb-8">
-        <li className="flex gap-3">
-          <Check className="w-4 h-4" />
-          Comprehensive outpatient care
-        </li>
-        <li className="flex gap-3">
-          <Check className="w-4 h-4" />
-          Strong dental benefits
-        </li>
-        <li className="flex gap-3">
-          <Check className="w-4 h-4" />
-          Flexible hospital options
-        </li>
-      </ul>
-
-      <button
-        onClick={onSelect}
-        className={`w-full py-4 rounded-full font-bold ${
-          highlighted
-            ? "bg-white text-purple-600"
-            : "bg-gradient-to-r from-purple-600 to-purple-700 text-white"
-        }`}
-      >
-        Select Plan
-      </button>
-    </div>
   );
 }

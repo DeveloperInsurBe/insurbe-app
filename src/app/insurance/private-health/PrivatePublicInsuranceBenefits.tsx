@@ -43,7 +43,7 @@ export default function PrivatePublicInsuranceBenefits() {
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-[-1px] text-[#0c1533] sm:text-[42px] lg:text-[58px]">
             More control over your private{" "}
-            <span className="bg-gradient-to-r from-[#8d2bff] to-[#5b61ff] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
               health insurance
             </span>
           </h2>
@@ -71,7 +71,7 @@ export default function PrivatePublicInsuranceBenefits() {
                 <div className="flex items-center gap-4">
                   {/* ICON */}
                   <div className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-full bg-[#f3ebff]">
-                    <Icon className="h-7 w-7 text-[#7d3cff]" strokeWidth={2} />
+                    <Icon className="h-7 w-7 text-primary" strokeWidth={2} />
                   </div>
 
                   {/* TITLE */}

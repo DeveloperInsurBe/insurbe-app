@@ -42,7 +42,7 @@ const cards: CardItem[] = [
     ],
     cta: "Learn more now →",
     href: "/insurance/public-health",
-    image: "/hero_assets/pensionProducts.avif",
+    image: "/hero_assets/publici.jpg",
   },
   {
     title: "Private Health Insurance",
@@ -57,7 +57,7 @@ const cards: CardItem[] = [
     ],
     cta: "Explore plans →",
     href: "/insurance/private-health",
-    image: "/hero_assets/privateProducts.avif",
+    image: "/hero_assets/privatei.jpg",
   },
   {
     title: "Travel Insurance",
