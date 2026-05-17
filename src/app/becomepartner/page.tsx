@@ -100,32 +100,30 @@ export default function BecomePartnerPage() {
                   <span className="font-bold text-purple-600">€750/month</span>
                 </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+                <div className="flex flex-col sm:flex-row gap-4 mb-12">
+                  {/* SIGN UP */}
+                  <Link href="/partner/signup">
+                    <motion.button
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-8 py-4 bg-gradient-to-r from-[#820ad1] to-[#820ad1] text-white rounded-full font-bold shadow-xl hover:shadow-2xl hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2"
+                    >
+                      Sign up
+                      <ArrowRight className="w-5 h-5" />
+                    </motion.button>
+                  </Link>
 
-  {/* SIGN UP */}
-  <Link href="/partner/signup">
-    <motion.button
-      whileHover={{ scale: 1.05, y: -2 }}
-      whileTap={{ scale: 0.95 }}
-      className="px-8 py-4 bg-gradient-to-r from-[#820ad1] to-[#820ad1] text-white rounded-full font-bold shadow-xl hover:shadow-2xl hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2"
-    >
-      Sign up
-      <ArrowRight className="w-5 h-5" />
-    </motion.button>
-  </Link>
-
-  {/* LOGIN */}
-  <Link href="/partner/login">
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className="px-8 py-4 bg-white border-2 border-[#820ad1] text-[#820ad1] rounded-full font-bold shadow-lg hover:bg-purple-50 transition-all"
-    >
-      Log in
-    </motion.button>
-  </Link>
-
-</div>
+                  {/* LOGIN */}
+                  <Link href="/partner/login">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-8 py-4 bg-white border-2 border-[#820ad1] text-[#820ad1] rounded-full font-bold shadow-lg hover:bg-purple-50 transition-all"
+                    >
+                      Log in
+                    </motion.button>
+                  </Link>
+                </div>
 
                 {/* Trust Indicators */}
                 <div className="flex flex-wrap items-center gap-8">
@@ -536,7 +534,6 @@ export default function BecomePartnerPage() {
                 >
                   Apply Now
                 </motion.button>
-               
               </div>
             </motion.div>
           </div>

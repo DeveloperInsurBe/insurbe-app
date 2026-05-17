@@ -8,6 +8,7 @@ import Header from "./components/Header";
 import Footernew from "./components/footernew";
 import CookieBanner from "./cookie/CookieBanner";
 import { Providers } from "./providers";
+import LayoutWrapper from "./components/LayoutWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -82,11 +83,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
-          <Header />
-
-          {children}
-
-          <Footernew />
+          <LayoutWrapper>{children}</LayoutWrapper>
 
           <CookieBanner />
         </Providers>
