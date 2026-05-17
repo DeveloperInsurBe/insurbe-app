@@ -24,7 +24,7 @@ export const authOptions: AuthOptions = {
 
         const isValid = await bcrypt.compare(
           credentials.password,
-          user.password
+          user.password,
         );
 
         if (!isValid) return null;
@@ -32,6 +32,7 @@ export const authOptions: AuthOptions = {
         return {
           id: user.id,
           email: user.email,
+          role: user.role,
         };
       },
     }),
@@ -50,19 +51,25 @@ export const authOptions: AuthOptions = {
   pages: {
     signIn: "/login",
   },
-   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.email = user.email;
-      }
-      return token;
-    },
+ callbacks: {
+  async jwt({ token, user }) {
+    if (user) {
+      token.id = user.id;
+      token.email = user.email;
+      token.role = user.role;
+    }
 
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.email = token.email as string;
-      }
-      return session;
-    },
+    return token;
   },
+
+  async session({ session, token }) {
+    if (session.user) {
+      session.user.id = token.id as string;
+      session.user.email = token.email as string;
+      session.user.role = token.role as string;
+    }
+
+    return session;
+  },
+},
 };

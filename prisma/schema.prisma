@@ -12,8 +12,15 @@ model User {
   email             String   @unique
   password          String
    role             String   @default("user") 
-  partnerId         String?
- partnerCode        String? @unique
+
+ // Partner Fields
+  companyName       String?
+  title             String?
+  firstName         String?
+  lastName          String?
+
+  partnerId         String?  @unique
+
   resetToken        String?
   resetTokenExpiry  DateTime?
   createdAt         DateTime @default(now())
@@ -27,7 +34,7 @@ model Application {
   pdfBase64   String    @db.Text
   status      String    // pending_login | incomplete | completed
   createdAt   DateTime  @default(now())
-   tariffIds       Json?     // ✅ ADD THIS
+   tariffIds       Json?     
   startDate       String?
   personalDetails Json?   
   healthAnswers   Json?   
