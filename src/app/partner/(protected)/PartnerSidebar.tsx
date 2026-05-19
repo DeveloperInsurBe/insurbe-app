@@ -131,7 +131,6 @@ export default function PartnerSidebar({ partner }: PartnerSidebarProps) {
       </div>
 
       {/* LOGOUT */}
-      {/* LOGOUT */}
       <div className="p-5 border-t border-gray-100">
         <button
           onClick={() => signOut({ callbackUrl: "/" })}

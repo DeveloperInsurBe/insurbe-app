@@ -17,6 +17,10 @@ import {
   Clock,
   Sparkles,
   Shield,
+  Smartphone,
+  Headphones,
+  Flashlight,
+  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import AppointmentModal from "./modals/AppointmentModal";
@@ -338,25 +342,6 @@ export default function HeroInsurancenew1() {
                 </svg>
               </motion.div>
 
-              {/* ── SPARKLE STARS ── */}
-              {/* Top-left sparkle */}
-              <motion.div
-                animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="absolute top-3 left-12 z-20 pointer-events-none"
-              >
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path
-                    d="M9 1 L10.2 7.8 L17 9 L10.2 10.2 L9 17 L7.8 10.2 L1 9 L7.8 7.8 Z"
-                    fill="rgba(130,10,209,0.55)"
-                  />
-                </svg>
-              </motion.div>
-
               {/* Bottom-right sparkle */}
               <motion.div
                 animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
@@ -494,6 +479,67 @@ export default function HeroInsurancenew1() {
                   <circle cx="22" cy="22" r="2.5" fill="rgba(130,10,209,0.5)" />
                 </svg>
               </motion.div>
+              {/* ── DOUBLE SHADE BACKGROUND LAYERS ── */}
+
+              {/* ── DOUBLE SHADE BACKGROUND LAYERS ── */}
+
+              {/* SHADE LAYER 1 — TOP RIGHT */}
+              <div
+                className="absolute z-[1] pointer-events-none"
+                style={{
+                  width: "92%",
+                  height: "92%",
+                  top: "-14px",
+                  right: "-14px",
+                  borderRadius: "38px",
+                  background:
+                    "linear-gradient(135deg, rgba(130,10,209,0.18), rgba(192,132,252,0.08))",
+                  border: "1px solid rgba(168,85,247,0.18)",
+                  transform: "rotate(6deg)",
+                  boxShadow: "0 25px 50px rgba(130,10,209,0.10)",
+                }}
+              />
+
+              {/* SHADE LAYER 2 — BOTTOM LEFT */}
+              <div
+                className="absolute z-[1] pointer-events-none"
+                style={{
+                  width: "92%",
+                  height: "92%",
+                  bottom: "-16px",
+                  left: "-16px",
+                  borderRadius: "38px",
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.95), rgba(243,232,255,0.78))",
+                  border: "1px solid rgba(255,255,255,0.75)",
+                  transform: "rotate(-5deg)",
+                  boxShadow: "0 20px 45px rgba(130,10,209,0.08)",
+                }}
+              />
+
+              {/* CENTER GLOW */}
+              <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
+                <div
+                  className="w-[80%] h-[80%] rounded-[50px]"
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(130,10,209,0.18) 0%, rgba(168,85,247,0.08) 45%, transparent 75%)",
+                    filter: "blur(60px)",
+                  }}
+                />
+              </div>
+
+              {/* EXTRA BLUR GLOW */}
+              <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
+                <div
+                  className="w-[78%] h-[78%] rounded-[50px]"
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(130,10,209,0.16) 0%, rgba(168,85,247,0.08) 45%, transparent 75%)",
+                    filter: "blur(55px)",
+                  }}
+                />
+              </div>
 
               {/* ── IMAGE CARD — main image with premium border glow ── */}
               <motion.div
@@ -546,6 +592,105 @@ export default function HeroInsurancenew1() {
               />
             </motion.div>
           </div>
+          {/* ───────────────── FEATURES STRIP ───────────────── */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
+            className="mt-10 sm:mt-14"
+          >
+            <div
+              className="
+      relative overflow-hidden
+      rounded-[28px]
+      border border-white/60
+      bg-white/80
+      backdrop-blur-xl
+      shadow-[0_15px_50px_rgba(130,10,209,0.08)]
+      px-4 sm:px-6 lg:px-8
+      py-5 sm:py-6
+    "
+            >
+              {/* SOFT PURPLE GLOW */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div
+                  className="absolute -top-10 left-1/4 w-60 h-60 rounded-full"
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(130,10,209,0.10) 0%, transparent 70%)",
+                    filter: "blur(40px)",
+                  }}
+                />
+              </div>
+
+              {/* GRID */}
+              <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
+                {/* ITEM */}
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20 shrink-0">
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm sm:text-base font-bold text-gray-900">
+                      Instant Coverage
+                    </h4>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                      Get insured in minutes
+                    </p>
+                  </div>
+                </div>
+
+                {/* ITEM */}
+                <div className="flex items-center gap-3 sm:gap-4 md:border-l border-purple-100 md:pl-6">
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20 shrink-0">
+                    <ShieldCheck className="w-5 h-5 text-white" />
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm sm:text-base font-bold text-gray-900">
+                      Secure & Compliant
+                    </h4>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                      Your data is always safe
+                    </p>
+                  </div>
+                </div>
+
+                {/* ITEM */}
+                <div className="flex items-center gap-3 sm:gap-4 md:border-l border-purple-100 md:pl-6">
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20 shrink-0">
+                    <Headphones className="w-5 h-5 text-white" />
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm sm:text-base font-bold text-gray-900">
+                      24/7 Support
+                    </h4>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                      We're here for you
+                    </p>
+                  </div>
+                </div>
+
+                {/* ITEM */}
+                <div className="flex items-center gap-3 sm:gap-4 md:border-l border-purple-100 md:pl-6">
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20 shrink-0">
+                    <Smartphone className="w-5 h-5 text-white" />
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm sm:text-base font-bold text-gray-900">
+                      100% Digital
+                    </h4>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                      No paperwork, no hassle
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
