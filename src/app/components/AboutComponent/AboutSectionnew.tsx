@@ -2,19 +2,12 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import {
-  Timer,
-  ShieldCheck,
-  UserCheck,
-  Building2,
-  SlidersHorizontal,
-} from "lucide-react";
-import { ICON_BG } from "@/app/constants/styles";
+import { Timer, ShieldCheck, UserCheck, Building2, Shield } from "lucide-react";
 
 export default function AboutSectionnew() {
   const features = [
     {
-      icon: SlidersHorizontal,
+      icon: Shield,
       title: "Tailor-made insurance plans",
       description: "Customizable insurance policies",
     },
@@ -62,91 +55,135 @@ export default function AboutSectionnew() {
   };
 
   return (
-    <section className="relative md:pb-16 pb-10 px-4 sm:px-8 lg:px-18 overflow-hidden">
+    <section className="relative md:pb-16 pb-10 px-6 lg:px-20 overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          viewport={{ once: true, amount: 0.2 }}
-          className="mb-6 sm:mb-0"
-        >
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
-            We Actively Strive To Exceed Our <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-purple-600">
-              {" "}
-              Customers' Expectations
-            </span>
-          </h2>
-          <p className="text-gray-700 text-sm sm:text-base lg:text-lg">
-            Best Offers at competitive prices, never seen before
-          </p>
-        </motion.div>
-
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12  items-start lg:items-center">
-          {/* Left Side - Features List */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+          {/* LEFT SIDE - Content */}
           <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="order-2 lg:order-1 "
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="order-2 lg:order-1"
           >
-            <div className="space-y-4 sm:space-y-10">
+            {/* Purple accent line */}
+            <motion.div
+              initial={{ width: 0 }}
+              whileInView={{ width: 60 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="h-1 bg-gradient-to-r from-purple-600 to-purple-400 rounded-full mb-6"
+            />
+
+            {/* Header */}
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
+              We Actively Strive To
+              <br />
+              Exceed Our
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-purple-500 to-purple-700">
+                Customers' Expectations
+              </span>
+            </h2>
+
+            {/* Subtitle */}
+            <p className="text-base sm:text-lg text-gray-600 mb-4">
+              Best Offers at competitive prices, never seen before
+            </p>
+
+            {/* Features List */}
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="space-y-2"
+            >
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
                   <motion.div
                     key={index}
                     variants={itemVariants}
-                    whileHover={{ x: 10, transition: { duration: 0.2 } }}
-                    className="flex items-start gap-3 sm:gap-4 group"
+                    whileHover={{ x: 5 }}
+                    className="group flex items-center gap-4 rounded-[22px] border border-[#ece7f6] bg-white/60 px-4 py-3 shadow-[0_8px_24px_rgba(130,10,209,0.05)] hover:shadow-[0_14px_30px_rgba(130,10,209,0.10)] transition-all duration-300"
                   >
-                    {/* Icon */}
-
-                    <div
-                      className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full ${ICON_BG} shadow-xl flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300`}
-                    >
-                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-100 " />{" "}
+                    {/* Icon Circle */}
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
+                      <Icon className="w-6 h-6 text-white" />
                     </div>
+                    {/* DIVIDER */}
+                    <div className="hidden sm:block h-10 w-[1px] bg-[#ece7f6]" />
 
                     {/* Text */}
-                    <div className="flex-1">
-                      <h3 className="text-base sm:text-[20px] font-medium text-gray-800 mb-0.5 sm:mb-1">
+                    <div className="flex-1 pt-1">
+                      <h3 className="text-md sm:text-lg font-medium text-gray-900 mb-1">
                         {feature.title}
                       </h3>
-                      <p className="text-xs sm:text-[16px] text-gray-500">
+                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
                         {feature.description}
                       </p>
                     </div>
                   </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           </motion.div>
 
-          {/* Right Side - Square Image */}
+          {/* RIGHT IMAGE */}
           <motion.div
-            initial={{ x: 50, opacity: 0 }}
-            whileInView={{ x: 0, opacity: 1 }}
+            initial={{ opacity: 0, x: 60 }}
+            whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="relative w-full order-1 lg:order-2"
+            className="relative flex justify-center lg:justify-end order-1 lg:order-2"
           >
-            <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg aspect-4/4 rounded-3xl overflow-hidden shadow-2xl mx-auto">
-              <Image
-                src="/hero_assets/insurance.jpeg"
-                alt="Team Member"
-                fill
-                className="object-cover object-top"
-                sizes="(max-width: 640px) 90vw, (max-width: 1024px) 60vw, 40vw"
-              />
+            {/* OUTER BLUR SHADE */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-[92%] h-[92%] rounded-[50px] bg-gradient-to-br from-[#820ad1]/25 via-[#c084fc]/20 to-[#f3e8ff]/10 blur-3xl" />
             </div>
 
-            {/* Decorative Element */}
-            <div className="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 w-24 h-24 sm:w-32 sm:h-32 bg-primary/20 rounded-full blur-2xl sm:blur-3xl -z-10" />
+            {/* BACK LAYER */}
+            <div className="absolute top-8 right-0 w-full max-w-[480px] aspect-[4/4.5] rounded-[38px] bg-gradient-to-br from-[#820ad1]/20 to-[#c084fc]/10 border border-[#e9d5ff]/40 rotate-[5deg]" />
+
+            {/* MIDDLE LAYER */}
+            <div className="absolute -bottom-5 left-3 w-full max-w-[480px] aspect-[4/4.5] rounded-[38px] bg-gradient-to-tr from-[#f3e8ff] to-[#ffffff] border border-[#f3e8ff] rotate-[-4deg] shadow-xl" />
+
+            {/* MAIN IMAGE CARD */}
+            <div className="relative z-10 w-full max-w-[500px]">
+              <div className="relative rounded-[40px] p-[3px] bg-gradient-to-br from-[#820ad1] via-[#c084fc] to-[#f3e8ff] shadow-[0_30px_70px_rgba(130,10,209,0.16)]">
+                <div className="relative overflow-hidden rounded-[36px] bg-white aspect-[4/4.6]">
+                  <Image
+                    src="/hero_assets/insurance.jpeg"
+                    alt="Customers"
+                    fill
+                    priority
+                    className="object-cover hover:scale-105 transition-transform duration-700"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+
+                  {/* DOUBLE SHADE OVERLAY */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#820ad1]/10 via-transparent to-[#ffffff]/5" />
+                </div>
+              </div>
+            </div>
+
+            {/* SIDE LIGHT EFFECT */}
+            <div className="absolute top-1/2 -translate-y-1/2 -right-10 w-32 h-32 rounded-full bg-[#c084fc]/20 blur-3xl" />
+
+            {/* BOTTOM LIGHT EFFECT */}
+            <div className="absolute -bottom-10 left-10 w-52 h-32 rounded-full bg-[#820ad1]/15 blur-3xl" />
+
+            {/* TOP DOTS */}
+            <div className="absolute -top-6 left-10 hidden lg:grid grid-cols-6 gap-2 z-20">
+              {[...Array(18)].map((_, i) => (
+                <span
+                  key={i}
+                  className="w-[5px] h-[5px] rounded-full bg-[#d8b4fe]"
+                />
+              ))}
+            </div>
           </motion.div>
         </div>
       </div>

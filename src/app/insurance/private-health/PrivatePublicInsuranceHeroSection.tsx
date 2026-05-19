@@ -113,144 +113,210 @@ export default function PrivatePublicInsuranceHeroSection() {
 
         {/* RIGHT IMAGE */}
         <motion.div
-          initial={{ opacity: 0, x: 40 }}
+          initial={{ opacity: 0, x: 60 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
-          className="relative w-full"
-          style={{ height: "clamp(320px, 45vw, 520px)" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="relative w-full flex justify-center items-center"
+          style={{ height: "clamp(400px, 54vw, 650px)" }}
         >
-          {/* ── Offset decorative border frame (top-right) ── */}
-          <div
-            className="absolute"
-            style={{
-              top: "-14px",
-              right: "-14px",
-              width: "75%",
-              height: "75%",
-              borderRadius: "32px",
-              border: "2px solid #820ad1",
-              opacity: 0.25,
-              zIndex: 0,
-            }}
-          />
-
-          {/* ── Soft purple glow blob behind image ── */}
-          <div
-            className="absolute"
-            style={{
-              top: "10%",
-              left: "-8%",
-              width: "60%",
-              height: "60%",
-              borderRadius: "50%",
-              background:
-                "radial-gradient(circle, rgba(130,10,209,0.18) 0%, transparent 70%)",
-              filter: "blur(28px)",
-              zIndex: 0,
-            }}
-          />
-
-          {/* ── Main image ── */}
-          <div
-            className="absolute inset-0 overflow-hidden"
-            style={{ borderRadius: "28px", zIndex: 1 }}
-          >
-            <Image
-              src="/hero_assets/privatehero.jpg"
-              alt="Private Health Insurance for Employees"
-              fill
-              className="object-cover object-center"
-              priority
-              style={{ borderRadius: "28px" }}
-            />
-            {/* Subtle dark gradient at bottom for contrast */}
-            <div
-              className="absolute inset-0"
-              style={{
-                borderRadius: "28px",
-                background:
-                  "linear-gradient(to bottom, transparent 50%, rgba(10,0,20,0.38) 100%)",
-              }}
-            />
+          {/* BIG PURPLE GLOW */}
+          <div className="absolute inset-0 flex items-center justify-center z-0">
+            <div className="w-[88%] h-[88%] rounded-[70px] bg-gradient-to-br from-[#820ad1]/20 via-[#c084fc]/15 to-transparent blur-[90px]" />
           </div>
 
-          {/* ── Floating stat pill — top-left ── */}
-          <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.45 }}
-            className="absolute flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-xl"
+          {/* BACK SHADE LAYER */}
+          <div
+            className="absolute z-0 hidden lg:block"
             style={{
-              top: "20px",
-              left: "20px",
-              background: "rgba(255,255,255,0.92)",
-              backdropFilter: "blur(12px)",
-              border: "1px solid rgba(130,10,209,0.15)",
-              zIndex: 10,
+              width: "92%",
+              height: "92%",
+              maxWidth: "560px",
+              borderRadius: "48px",
+              background:
+                "linear-gradient(135deg, rgba(130,10,209,0.16), rgba(192,132,252,0.08))",
+              border: "1px solid rgba(192,132,252,0.18)",
+              transform: "rotate(6deg)",
+              top: "10px",
+              right: "-5px",
+              backdropFilter: "blur(10px)",
             }}
-          >
-            <div
-              className="flex items-center justify-center w-7 h-7 rounded-full"
-              style={{ background: "#820ad1" }}
-            >
-              <ShieldCheck className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-gray-900 leading-none">
-                Private Plan
-              </p>
-              <p className="text-[10px] text-gray-500 mt-0.5 leading-none">
-                Activated instantly
-              </p>
-            </div>
-          </motion.div>
+          />
 
-          {/* ── Floating rating card — bottom-right ── */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.88 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{
-              delay: 0.85,
-              duration: 0.4,
-              type: "spring",
-              stiffness: 200,
-            }}
-            className="absolute flex flex-col gap-1 px-4 py-3 rounded-2xl shadow-2xl"
+          {/* FRONT SHADE LAYER */}
+          <div
+            className="absolute z-0 hidden lg:block"
             style={{
-              bottom: "24px",
-              right: "20px",
-              background: "rgba(255,255,255,0.94)",
-              backdropFilter: "blur(14px)",
-              border: "1px solid rgba(130,10,209,0.12)",
-              zIndex: 10,
-              minWidth: "130px",
+              width: "92%",
+              height: "92%",
+              maxWidth: "560px",
+              borderRadius: "48px",
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,0.9), rgba(243,232,255,0.7))",
+              border: "1px solid rgba(255,255,255,0.7)",
+              transform: "rotate(-5deg)",
+              bottom: "5px",
+              left: "-5px",
+              boxShadow: "0 30px 60px rgba(130,10,209,0.08)",
+            }}
+          />
+
+          {/* MAIN IMAGE CONTAINER */}
+          <div
+            className="relative z-10 overflow-hidden"
+            style={{
+              width: "100%",
+              height: "100%",
+              maxWidth: "560px",
+              borderRadius: "46px",
+              background:
+                "linear-gradient(135deg, #820ad1 0%, #c084fc 45%, #ffffff 100%)",
+              padding: "3px",
+              boxShadow: "0 35px 90px rgba(130,10,209,0.18)",
             }}
           >
-            <div className="flex gap-0.5">
+            {/* INNER IMAGE */}
+            <div
+              className="relative w-full h-full overflow-hidden bg-white"
+              style={{ borderRadius: "42px" }}
+            >
+              <Image
+                src="/hero_assets/privatehero.jpg"
+                alt="Private Health Insurance"
+                fill
+                priority
+                className="object-cover object-center transition-transform duration-700 hover:scale-105"
+              />
+
+              {/* DARK OVERLAY */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(to top, rgba(15,0,25,0.22), transparent 45%)",
+                }}
+              />
+
+              {/* PURPLE LIGHT SHADE */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(130,10,209,0.10), transparent 40%, rgba(255,255,255,0.05))",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* TOP FLOATING GLASS CARD */}
+          <motion.div
+            animate={{ y: [0, -10, 0] }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="absolute z-20 hidden md:flex flex-col"
+            style={{
+              top: "55px",
+              left: "80px", 
+              width: "220px",
+              padding: "22px",
+              borderRadius: "30px",
+              background: "rgba(255,255,255,0.72)",
+              backdropFilter: "blur(18px)",
+              border: "1px solid rgba(255,255,255,0.65)",
+              boxShadow: "0 25px 45px rgba(0,0,0,0.08)",
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-[#f3e8ff] flex items-center justify-center">
+                <ShieldCheck className="w-4 h-4 text-[#820ad1]" />
+              </div>
+
+              <h3 className="text-[28px] font-bold leading-none text-[#111827]">
+                95%I
+              </h3>
+            </div>
+
+            <p className="text-[14px] text-gray-500 leading-relaxed mt-4 ml-14">
+              Customer Recommendation
+            </p>
+
+            <div className="flex gap-1 ml-14 mt-4">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400"
+                  className="w-3 h-3 fill-[#820ad1] text-[#820ad1]"
                 />
               ))}
             </div>
-            <p className="text-xs font-bold text-gray-900">4.9 / 5 rating</p>
-            {/* <p className="text-[10px] text-gray-400 leading-tight">
-              12,000+ customers
-            </p> */}
           </motion.div>
 
-          {/* ── Accent dot cluster — bottom-left decorative ── */}
-          <div
-            className="absolute"
+          {/* BOTTOM FLOATING GLASS CARD */}
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="absolute z-20 hidden md:flex flex-col"
             style={{
-              bottom: "-18px",
-              left: "-18px",
-              width: "80px",
-              height: "80px",
-              zIndex: 0,
-              backgroundImage: `radial-gradient(circle, rgba(130,10,209,0.35) 1.5px, transparent 1.5px)`,
-              backgroundSize: "14px 14px",
+              bottom: "40px",
+              left: "-10px",
+              width: "220px",
+              padding: "22px",
+              borderRadius: "30px",
+              background: "rgba(255,255,255,0.76)",
+              backdropFilter: "blur(18px)",
+              border: "1px solid rgba(255,255,255,0.65)",
+              boxShadow: "0 25px 45px rgba(0,0,0,0.08)",
+            }}
+          >
+            <h3 className="text-[28px] font-bold text-[#820ad1] leading-none">
+              50%
+            </h3>
+
+            <p className="text-[16px] text-gray-500 leading-relaxed">
+              employer contribution
+            </p>
+          </motion.div>
+
+          {/* TOP DOTS */}
+          <div className="absolute top-2 left-20 hidden lg:grid grid-cols-5 gap-3 z-20">
+            {[...Array(15)].map((_, i) => (
+              <span
+                key={i}
+                className="w-[6px] h-[6px] rounded-full bg-[#d8b4fe]"
+              />
+            ))}
+          </div>
+
+          {/* SIDE PURPLE LIGHT */}
+          <div
+            className="absolute z-0"
+            style={{
+              top: "25%",
+              left: "-40px",
+              width: "160px",
+              height: "160px",
+              borderRadius: "999px",
+              background: "rgba(192,132,252,0.22)",
+              filter: "blur(70px)",
+            }}
+          />
+
+          {/* BOTTOM PURPLE LIGHT */}
+          <div
+            className="absolute z-0"
+            style={{
+              bottom: "-20px",
+              right: "15%",
+              width: "240px",
+              height: "120px",
+              borderRadius: "999px",
+              background: "rgba(130,10,209,0.20)",
+              filter: "blur(70px)",
             }}
           />
         </motion.div>
