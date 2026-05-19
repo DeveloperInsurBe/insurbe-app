@@ -42,6 +42,17 @@ model Application {
   financialHistory Json?
   insuranceHistory Json?
   signature       String? 
+
+  firstName         String?
+  lastName          String?
+
+  product           String?
+
+  commission        Int      @default(5)
+
+  commissionStatus  String   @default("Pending")
+
+  source            String?  // user | partner
 }
 
 model InsuranceApplication {
