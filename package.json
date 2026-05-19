@@ -16,6 +16,7 @@
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "fast-xml-parser": "^5.3.2",
+    "file-saver": "^2.0.5",
     "framer-motion": "^12.10.5",
     "jspdf": "^4.1.0",
     "lightningcss": "^1.30.2",
@@ -33,6 +34,7 @@
     "resend": "^6.9.1",
     "slick-carousel": "^1.8.1",
     "soap": "^1.6.0",
+    "xlsx": "^0.18.5",
     "xml2js": "^0.6.2",
     "xmldom": "^0.6.0",
     "zustand": "^5.0.8"
@@ -41,6 +43,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/oxide": "^4.1.17",
     "@tailwindcss/postcss": "^4",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
