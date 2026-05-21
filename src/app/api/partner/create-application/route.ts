@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 
         userId: null,
 
-        partnerId: partner.email,
+        partnerId: partner.partnerId,
 
         source: "partner",
 

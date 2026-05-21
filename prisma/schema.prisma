@@ -57,7 +57,7 @@ model Application {
 
 model InsuranceApplication {
   id          String   @id @default(cuid())
-
+  applicationNumber  String?   @unique
   provider    String
 
   status      String   @default("PENDING")

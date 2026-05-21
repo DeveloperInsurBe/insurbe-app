@@ -28,7 +28,7 @@ export default async function PartnerDashboard() {
   // GET APPLICATIONS
   const applications = await prisma.application.findMany({
     where: {
-      partnerId: partner.email,
+      partnerId: partner.partnerId,
       source: "partner",
     },
   });
@@ -168,7 +168,8 @@ export default async function PartnerDashboard() {
               <div className="flex flex-col sm:flex-row gap-3">
                 {/* OPEN */}
                 <a
-                  href={referralLink}
+                  // href={referralLink}
+                  href="#"
                   target="_blank"
                   className="h-12 px-6 rounded-2xl bg-white text-[#820ad1] font-semibold inline-flex items-center justify-center hover:scale-[1.02] transition-all duration-200"
                 >
