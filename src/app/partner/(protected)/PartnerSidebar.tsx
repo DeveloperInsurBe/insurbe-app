@@ -33,12 +33,7 @@ export default function PartnerSidebar({ partner }: PartnerSidebarProps) {
       name: "Conversions",
       href: "/partner/conversions-list",
       icon: BarChart3,
-    },
-    {
-      name: "Study Eligibility",
-      href: "/partner/study-eligibility",
-      icon: BookOpen,
-    },
+    },   
     {
       name: "Partner Data",
       href: "/partner/partner-data",

@@ -15,6 +15,7 @@ import {
   Briefcase,
   Plane,
 } from "lucide-react";
+import Image from "next/image";
 
 export default function ConversionsPage() {
   const router = useRouter();
@@ -532,19 +533,42 @@ export default function ConversionsPage() {
                     `/insuranceSignupFlow?provider=dak&source=partner&ref=${partnerRef}`,
                   );
                 }}
-                className="group text-left cursor-pointer border border-gray-200 hover:border-[#820ad1] rounded-3xl p-7 transition-all hover:-translate-y-1 hover:shadow-xl"
+                className="group relative text-left cursor-pointer border border-gray-200 hover:border-[#820ad1] rounded-3xl p-7 transition-all hover:-translate-y-1 hover:shadow-xl bg-white overflow-hidden"
               >
-                <div className="w-16 h-16 rounded-2xl bg-[#820ad1]/10 flex items-center justify-center mb-6">
-                  <Shield className="text-[#820ad1]" size={30} />
+                {/* BG GLOW */}
+                <div className="absolute -top-14 -right-14 w-40 h-40 bg-[#820ad1]/5 rounded-full blur-3xl" />
+
+                {/* LOGO */}
+                <div className="relative z-10 flex items-center justify-between mb-7">
+                  <div className="w-16 h-16 rounded-2xl bg-[#820ad1]/10 flex items-center justify-center">
+                    <div className="h-12 w-auto flex items-center justify-center ">
+                      <Image
+                        src="/icons/dak_logo.jpeg"
+                        alt="DAK Logo"
+                        width={40}
+                        height={32}
+                        className="object-contain"
+                      />
+                    </div>
+                  </div>
+
+                  {/* DAK LOGO */}
                 </div>
 
-                <h3 className="text-2xl font-bold text-gray-900 leading-snug">
-                  Public Health Insurance
-                </h3>
+                <div className="relative z-10">
+                  <h3 className="text-2xl font-bold text-gray-900 leading-snug">
+                    Public Health Insurance
+                  </h3>
 
-                <p className="text-gray-500 mt-4 leading-relaxed">
-                  Students / Employees
-                </p>
+                  <p className="text-gray-500 mt-4 leading-relaxed">
+                    Students / Employees
+                  </p>
+
+                  <div className="mt-6 inline-flex items-center gap-2 text-[#820ad1] font-semibold group-hover:gap-3 transition-all">
+                    Continue
+                    <ChevronRight size={18} />
+                  </div>
+                </div>
               </button>
 
               {/* PRIVATE */}
@@ -577,40 +601,68 @@ export default function ConversionsPage() {
                     alert("Something went wrong");
                   }
                 }}
-                className="group text-left cursor-pointer border-2 border-[#820ad1] bg-[#faf7ff] rounded-3xl p-7 transition-all hover:-translate-y-1 hover:shadow-2xl"
+                className="group relative text-left cursor-pointer border-2 border-[#820ad1] bg-[#faf7ff] rounded-3xl p-7 transition-all hover:-translate-y-1 hover:shadow-2xl overflow-hidden"
               >
-                <div className="w-16 h-16 rounded-2xl bg-[#820ad1]/10 flex items-center justify-center mb-6">
-                  <Briefcase className="text-[#820ad1]" size={30} />
+                {/* BG GLOW */}
+                <div className="absolute -top-14 -right-14 w-40 h-40 bg-[#820ad1]/10 rounded-full blur-3xl" />
+
+                {/* LOGO */}
+                <div className="relative z-10 flex items-center justify-between mb-7">
+                  <div className="w-16 h-16 rounded-2xl bg-[#820ad1]/10 flex items-center justify-center">
+                    <div className="h-12 w-auto flex items-center justify-center">
+                      <Image
+                        src="/partners_asset/mawista.svg"
+                        alt="Mawista Logo"
+                        width={110}
+                        height={32}
+                        className="object-contain"
+                      />
+                    </div>
+                  </div>
+
+                  {/* MAWISTA LOGO */}
                 </div>
 
-                <h3 className="text-2xl font-bold text-gray-900 leading-snug">
-                  Private Health Insurance
-                </h3>
+                <div className="relative z-10">
+                  <h3 className="text-2xl font-bold text-gray-900 leading-snug">
+                    Private Health Insurance
+                  </h3>
 
-                <p className="text-gray-500 mt-4 leading-relaxed">
-                  Students / Working Professionals
-                </p>
+                  <p className="text-gray-500 mt-4 leading-relaxed">
+                    Students / Working Professionals
+                  </p>
+
+                  <div className="mt-6 inline-flex items-center gap-2 text-[#820ad1] font-semibold group-hover:gap-3 transition-all">
+                    Continue
+                    <ChevronRight size={18} />
+                  </div>
+                </div>
               </button>
 
               {/* TRAVEL */}
               <button
                 disabled
-                className="group text-left border border-gray-200 opacity-60 rounded-3xl p-7"
+                className="group relative text-left border border-gray-200 opacity-60 rounded-3xl p-7 bg-white overflow-hidden"
               >
-                <div className="w-16 h-16 rounded-2xl bg-[#820ad1]/10 flex items-center justify-center mb-6">
-                  <Plane className="text-[#820ad1]" size={30} />
-                </div>
+                <div className="absolute -top-14 -right-14 w-40 h-40 bg-[#820ad1]/5 rounded-full blur-3xl" />
 
-                <h3 className="text-2xl font-bold text-gray-900 leading-snug">
-                  Travel Students to Germany
-                </h3>
+                <div className="relative z-10">
+                  <div className="w-16 h-16 rounded-2xl bg-[#820ad1]/10 flex items-center justify-center mb-6">
+                    <Plane className="text-[#820ad1]" size={30} />
+                  </div>
 
-                <p className="text-gray-500 mt-4 leading-relaxed">
-                  Incoming / Travel Insurance
-                </p>
+                  <h3 className="text-2xl font-bold text-gray-900 leading-snug">
+                    Travel Students to Germany
+                  </h3>
 
-                <div className="mt-6 inline-flex px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm font-semibold">
-                  Coming Soon
+                  <p className="text-gray-500 mt-4 leading-relaxed">
+                    Incoming / Travel Insurance
+                  </p>
+
+                  <div className="mt-6 inline-flex px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm font-semibold">
+                    Coming Soon
+                  </div>
+                  
                 </div>
               </button>
             </div>
