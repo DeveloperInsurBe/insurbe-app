@@ -67,7 +67,6 @@ export default function InsuranceSignupFlow() {
   const [cities, setCities] = useState<string[]>([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectPlan, setSelectPlan] = useState({
     reason: "",
     dob: "",
@@ -113,6 +112,16 @@ export default function InsuranceSignupFlow() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    const ref = params.get("ref");
+
+    if (ref) {
+      localStorage.setItem("partnerRef", ref);
+    }
+  }, []);
 
   // Fetch countries on mount
   useEffect(() => {
@@ -458,32 +467,12 @@ export default function InsuranceSignupFlow() {
         /**
          * SUCCESS
          */
-       if (data?.success) {
-          // await fetch("/api/sendAcknowledgement", {
-          //   method: "POST",
-
-          //   headers: {
-          //     "Content-Type": "application/json",
-          //   },
-
-          //   body: JSON.stringify({
-          //     email: personal.email,
-
-          //     name: personal.firstName,
-
-          //     orderId: data?.antragId || `TK-${Date.now()}`,
-
-          //     provider: "TK",
-
-          //     formType: "public",
-          //   }),
-          // });
-
-          setShowSuccessModal(true);
-
-          setTimeout(() => {
-            router.push("/");
-          }, 2500);
+        if (data?.success) {
+          const successUrl = new URL("/insurance/success", window.location.origin);
+          successUrl.searchParams.set("appId", data.applicationId || "");
+          successUrl.searchParams.set("provider", "tk");
+          successUrl.searchParams.set("email", personal.email);
+          router.push(successUrl.toString());
         } else {
           console.error("TK submission failed:", JSON.stringify(data, null, 2));
           setErrors((prev) => ({
@@ -500,14 +489,47 @@ export default function InsuranceSignupFlow() {
        * DAK FLOW
        */
       if (providerFromUrl === "dak") {
+        const submitData = new FormData();
+
+        /**
+         * PERSONAL
+         */
+        submitData.append("personal", JSON.stringify(personal));
+
+        /**
+         * SELECT PLAN
+         */
+        submitData.append("selectPlan", JSON.stringify(selectPlan));
+
+        /**
+         * PARTNER REF
+         */
+        submitData.append(
+          "partnerRef",
+          typeof window !== "undefined"
+            ? localStorage.getItem("partnerRef") || ""
+            : "",
+        );
+
+        /**
+         * DOCUMENTS
+         */
+        if (documents.passport) {
+          submitData.append("passport", documents.passport);
+        }
+
+        if (documents.contract) {
+          submitData.append("contract", documents.contract);
+        }
+
+        if (documents.photo) {
+          submitData.append("photo", documents.photo);
+        }
+
         const response = await fetch("/api/dak/submit", {
           method: "POST",
 
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify(formData),
+          body: submitData,
         });
 
         const data = await response.json();
@@ -518,11 +540,11 @@ export default function InsuranceSignupFlow() {
          * SUCCESS
          */
         if (data.success) {
-          setShowSuccessModal(true);
-
-          setTimeout(() => {
-            router.push("/");
-          }, 2500);
+          const successUrl = new URL("/insurance/success", window.location.origin);
+          successUrl.searchParams.set("appId", data.applicationId || "");
+          successUrl.searchParams.set("provider", "dak");
+          successUrl.searchParams.set("email", personal.email);
+          router.push(successUrl.toString());
         } else {
           setErrors((prev) => ({
             ...prev,
@@ -672,13 +694,36 @@ export default function InsuranceSignupFlow() {
                 {/* Selected Provider */}
                 <div className="mb-6">
                   <p className="font-medium mb-2">Selected provider *</p>
-                  <div className="p-4 rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50">
-                    <p className="font-semibold text-purple-700">
-                      {selectPlan.provider}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Public health insurance
-                    </p>
+                  <div className="p-4 rounded-2xl border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 shadow-sm">
+                    <div className="flex items-center gap-4">
+                      {/* LOGO */}
+                      <div className="w-14 h-14 rounded-xl bg-white shadow flex items-center justify-center p-2">
+                        <img
+                          src={
+                            providerFromUrl === "tk"
+                              ? "/icons/tk.png"
+                              : providerFromUrl === "dak"
+                                ? "/icons/dak_logo.jpeg"
+                                : providerFromUrl === "aok"
+                                  ? "/icons/tk.png"
+                                  : "/icons/dak_logo.jpeg"
+                          }
+                          alt={selectPlan.provider}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+
+                      {/* TEXT */}
+                      <div>
+                        <p className="font-bold text-lg text-purple-700">
+                          {selectPlan.provider}
+                        </p>
+
+                        <p className="text-sm text-gray-600">
+                          Public health insurance
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -855,7 +900,7 @@ export default function InsuranceSignupFlow() {
                   Please provide the information that is shown in your passport.
                 </p>
 
-                <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
+                <div className="space-y-6">
                   {/* Gender */}
                   <div>
                     <label className="block font-medium mb-2 text-sm">
@@ -1565,7 +1610,7 @@ export default function InsuranceSignupFlow() {
                 <h2 className="text-2xl font-bold mb-6 text-gray-900">
                   Review
                 </h2>
-                <div className="space-y-3 text-sm bg-gray-50 p-6 rounded-xl border max-h-[500px] overflow-y-auto">
+                <div className="space-y-3 text-sm bg-gray-50 p-6 rounded-xl border">
                   <Review
                     label="Name"
                     value={`${personal.firstName} ${personal.lastName}`}
@@ -1711,38 +1756,6 @@ export default function InsuranceSignupFlow() {
           </AnimatePresence>
         </motion.div>
       </div>
-      <AnimatePresence>
-        {showSuccessModal && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-            />
-
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", duration: 0.4 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl p-10 max-w-md w-full z-50 text-center"
-            >
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check className="w-10 h-10 text-green-600" />
-              </div>
-
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                Application Submitted 🎉
-              </h2>
-
-              <p className="text-gray-600">
-                Thank you! Our team will connect with you shortly.
-              </p>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </section>
   );
 }
@@ -1755,3 +1768,4 @@ function Review({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+ 

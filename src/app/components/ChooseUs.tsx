@@ -42,7 +42,7 @@ const cards: CardItem[] = [
     ],
     cta: "Learn more now →",
     href: "/insurance/public-health",
-    image: "/hero_assets/doctordental.png",
+    image: "/hero_assets/dentaldoctor.png",
   },
   {
     title: "Private Health Insurance",
@@ -57,7 +57,7 @@ const cards: CardItem[] = [
     ],
     cta: "Explore plans →",
     href: "/insurance/private-health",
-    image: "/hero_assets/doctorConsult.png",
+    image: "/hero_assets/doctorsconusltation.png",
   },
   {
     title: "Travel Insurance",
@@ -87,7 +87,7 @@ const cards: CardItem[] = [
     ],
     cta: "Start planning →",
     href: "/products/pensionProducts",
-    image: "/hero_assets/retirement.avif",
+    image: "/hero_assets/Retirement.avif",
   },
   {
     title: "Liability Insurance",
@@ -139,16 +139,13 @@ export default function ChooseUs() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-[#faf9ff] pb-16 px-4 sm:px-8 lg:px-16 ">
-      {/* background blur */}
-      <div className="absolute left-0 top-0 h-[260px] w-[260px] rounded-full bg-[#820ad1]/20 blur-3xl" />
-      <div className="absolute bottom-0 right-0 h-[260px] w-[260px] rounded-full bg-[#820ad1]/15 blur-3xl" />
-
+    <section className="relative overflow-hidden bg-white pb-16 px-4 sm:px-8 lg:px-16 ">
+     
       <div className="relative mx-auto max-w-7xl ">
         {/* badge */}
         <div className="mb-5 flex justify-center">
-          <div className="rounded-full border border-[#820ad1]/10 bg-white/80 px-4 py-2 backdrop-blur-xl">
-            <span className="text-xs font-semibold text-[#820ad1]">
+          <div className="rounded-full border border-primary/10 bg-white/80 px-4 py-2 backdrop-blur-xl">
+            <span className="text-xs font-semibold text-primary">
               Trusted • Compliant • Reliable
             </span>
           </div>
@@ -163,7 +160,7 @@ export default function ChooseUs() {
         >
           <h2 className="text-[30px] font-black leading-tight tracking-[-1px] text-[#0f172a] sm:text-[42px] lg:text-[52px]">
             Insurance solutions{" "}
-            <span className="bg-gradient-to-r from-[#820ad1] to-[#9f3cff] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-[#9f3cff] bg-clip-text text-transparent">
               for every stage of life
             </span>
           </h2>
@@ -180,14 +177,14 @@ export default function ChooseUs() {
             onClick={scrollLeft}
             className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-white/40 bg-white/80 shadow-[0_8px_30px_rgba(130,10,209,0.12)] backdrop-blur-xl transition-all duration-300 hover:scale-105"
           >
-            <ChevronLeft className="h-5 w-5 text-[#820ad1]" />
+            <ChevronLeft className="h-5 w-5 text-primary" />
           </button>
 
           <button
             onClick={scrollRight}
             className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-white/40 bg-white/80 shadow-[0_8px_30px_rgba(130,10,209,0.12)] backdrop-blur-xl transition-all duration-300 hover:scale-105"
           >
-            <ChevronRight className="h-5 w-5 text-[#820ad1]" />
+            <ChevronRight className="h-5 w-5 text-primary" />
           </button>
         </div>
 
@@ -221,7 +218,7 @@ export default function ChooseUs() {
 
                       <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
 
-                      <div className="absolute left-4 top-4">
+                      {/* <div className="absolute left-4 top-4">
                         <span
                           className="rounded-full px-3 py-1.5 text-[11px] font-bold text-white shadow-lg"
                           style={{
@@ -230,16 +227,16 @@ export default function ChooseUs() {
                         >
                           {item.badge}
                         </span>
-                      </div>
+                      </div> */}
                     </div>
 
                     {/* content */}
-                    <div className="flex flex-1 flex-col p-5">
+                    <div className="flex flex-1 flex-col p-5 bg-primary/10">
                       {/* title */}
                       <div className="mb-4 flex items-start gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#f3e8ff] to-[#f8f1ff]">
-                          <Icon className="h-5 w-5 text-[#820ad1]" />
-                        </div>
+                        {/* <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#f3e8ff] to-[#f8f1ff]">
+                          <Icon className="h-5 w-5 text-primary" />
+                        </div> */}
 
                         <div>
                           <h3 className="text-[20px] font-black leading-tight text-[#0f172a]">
@@ -259,7 +256,7 @@ export default function ChooseUs() {
                             key={i}
                             className="flex items-start gap-2 text-[14px] leading-relaxed text-[#475467]"
                           >
-                            <div className="mt-1.5 h-2 w-2 rounded-full bg-[#820ad1]" />
+                            <div className="mt-1.5 h-2 w-2 rounded-full bg-primary" />
                             {feature}
                           </li>
                         ))}
@@ -267,11 +264,11 @@ export default function ChooseUs() {
 
                       {/* button */}
                       <div className="mt-auto">
-                        <div className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#820ad1] to-[#9f3cff] px-4 py-2.5 text-[14px] font-bold text-white shadow-lg transition-all duration-300 group-hover:gap-3">
+                        <div className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-[#9f3cff] px-4 py-2.5 text-[14px] font-bold text-white shadow-lg transition-all duration-300 group-hover:gap-3">
                           {item.cta}
-                          <ChevronRight className="h-4 w-4" />
                         </div>
                       </div>
+                      
                     </div>
                   </div>
                 </Link>

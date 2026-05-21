@@ -5,7 +5,15 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const { orderId, pdfBase64 } = body;
+    const { 
+      orderId, 
+      pdfBase64,
+      userId,
+      firstName,
+      lastName,
+      partnerId,
+      product,
+    } = body;
 
     if (!orderId || !pdfBase64) {
       return NextResponse.json(
@@ -19,6 +27,14 @@ export async function POST(req: Request) {
         orderId,
         pdfBase64,
         status: "pending_login",
+        userId: userId || null,
+        firstName: firstName || null,
+        lastName: lastName || null,
+        partnerId: partnerId || null,
+        product: product || null,
+        commission: 5,
+        commissionStatus: "Pending",
+        source: partnerId ? "partner" : "user",
       },
     });
 

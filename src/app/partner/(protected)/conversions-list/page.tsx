@@ -21,7 +21,7 @@ export default function ConversionsPage() {
 
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [partnerRef, setPartnerRef] = useState("");
   const [openModal, setOpenModal] = useState(false);
 
   useEffect(() => {
@@ -32,15 +32,22 @@ export default function ConversionsPage() {
         const session = await sessionRes.json();
         console.log(session);
 
-        const partnerId = session?.user?.email;
-
-        if (!partnerId) {
+        const partnerEmail = session?.user?.email;
+        if (!partnerEmail) {
           setLoading(false);
           return;
         }
 
+        const userRes = await fetch(
+          `/api/partner/get-partner-id?email=${partnerEmail}`,
+        );
+
+        const userData = await userRes.json();
+
+        setPartnerRef(userData.partnerId || "");
+
         const res = await fetch(
-          `/api/partner/conversions?partnerId=${partnerId}`,
+          `/api/partner/conversions?partnerId=${userData.partnerId}`,
         );
 
         const result = await res.json();
@@ -352,7 +359,7 @@ export default function ConversionsPage() {
                         <td className="px-6 py-6">
                           <div className="max-w-[240px]">
                             <p className="text-gray-700 font-medium truncate">
-                              {item.userId || item.partnerId || "—"}
+                              {item.userId || "—"}
                             </p>
                           </div>
                         </td>
@@ -444,7 +451,7 @@ export default function ConversionsPage() {
                       </p>
 
                       <p className="font-medium text-gray-700 mt-1 break-all">
-                        {item.userId || item.partnerId || "—"}
+                        {item.userId || "—"}
                       </p>
                     </div>
 
@@ -520,8 +527,12 @@ export default function ConversionsPage() {
             <div className="grid md:grid-cols-3 gap-6">
               {/* PUBLIC */}
               <button
-                onClick={() => router.push("/dak?source=partner")}
-                className="group text-left border border-gray-200 hover:border-[#820ad1] rounded-3xl p-7 transition-all hover:-translate-y-1 hover:shadow-xl"
+                onClick={() => {
+                  router.push(
+                    `/insuranceSignupFlow?provider=dak&source=partner&ref=${partnerRef}`,
+                  );
+                }}
+                className="group text-left cursor-pointer border border-gray-200 hover:border-[#820ad1] rounded-3xl p-7 transition-all hover:-translate-y-1 hover:shadow-xl"
               >
                 <div className="w-16 h-16 rounded-2xl bg-[#820ad1]/10 flex items-center justify-center mb-6">
                   <Shield className="text-[#820ad1]" size={30} />
@@ -566,7 +577,7 @@ export default function ConversionsPage() {
                     alert("Something went wrong");
                   }
                 }}
-                className="group text-left border-2 border-[#820ad1] bg-[#faf7ff] rounded-3xl p-7 transition-all hover:-translate-y-1 hover:shadow-2xl"
+                className="group text-left cursor-pointer border-2 border-[#820ad1] bg-[#faf7ff] rounded-3xl p-7 transition-all hover:-translate-y-1 hover:shadow-2xl"
               >
                 <div className="w-16 h-16 rounded-2xl bg-[#820ad1]/10 flex items-center justify-center mb-6">
                   <Briefcase className="text-[#820ad1]" size={30} />
