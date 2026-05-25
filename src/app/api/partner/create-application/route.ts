@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
         product,
 
-        commission: 5,
+        commission: 0,
 
         commissionStatus: "Pending",
 

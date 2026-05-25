@@ -245,10 +245,13 @@ export async function POST(
 
     // setField("KT-Nettoeinkünfte-VP1", financial?.annualIncome);
     const monthlyNetIncome = financial?.annualIncome
-  ? Math.round((parseFloat(financial.annualIncome) / 12) * 0.6)
-  : "";
+      ? Math.round((parseFloat(financial.annualIncome) / 12) * 0.6)
+      : "";
 
-setField("KT-Nettoeinkünfte-VP1", monthlyNetIncome ? String(monthlyNetIncome) : "");
+    setField(
+      "KT-Nettoeinkünfte-VP1",
+      monthlyNetIncome ? String(monthlyNetIncome) : "",
+    );
     // =========================
     // ✅ BUSINESS / FREELANCE START DATE (FIX)
     // =========================
@@ -584,18 +587,45 @@ setField("KT-Nettoeinkünfte-VP1", monthlyNetIncome ? String(monthlyNetIncome) :
     const today = new Date();
     const formattedDate = today.toLocaleDateString("de-DE"); // DD.MM.YYYY
 
-    let place = personal?.city || "";
+    // ✅ OPTIMIZED FALLBACK STRATEGY FOR LOCATION/CITY
+    let place = "";
 
-    // ✅ If location exists → convert to city name
+    // Step 1: Try geolocation first (if user allowed permission)
     if (location?.lat && location?.lng) {
       const cityFromCoords = await getCityFromCoords(
         location.lat,
         location.lng,
       );
 
-      place =
-        cityFromCoords ||
-        `${location.lat.toFixed(2)}, ${location.lng.toFixed(2)}`;
+      if (cityFromCoords) {
+        place = cityFromCoords;
+      } else {
+        // Geolocation failed → use coordinates as fallback
+        place = `${location.lat.toFixed(2)}, ${location.lng.toFixed(2)}`;
+      }
+    }
+
+    // Step 2: If no geolocation or it failed, use personal address data
+    if (!place && personal?.city) {
+      place = personal.city;
+    }
+
+    // Step 3: Last resort - if personal?.city is empty, try to use any available address component
+    if (!place) {
+      // Build a fallback from available address parts
+      const addressParts = [];
+      if (personal?.street) addressParts.push(personal.street);
+      if (personal?.houseNumber) addressParts.push(personal.houseNumber);
+      if (personal?.postcode) addressParts.push(personal.postcode);
+
+      if (addressParts.length > 0) {
+        place = addressParts.join(", ");
+      }
+    }
+
+    // Step 4: Final safety check - if still empty, use a generic location
+    if (!place) {
+      place = "Ort nicht verfügbar"; // "Location not available" in German
     }
 
     const placeDate = `${place}, ${formattedDate}`;
@@ -620,8 +650,14 @@ setField("KT-Nettoeinkünfte-VP1", monthlyNetIncome ? String(monthlyNetIncome) :
       where: { id },
       data: {
         pdfBase64: base64,
+
         signature,
+
         status: "completed",
+
+        commission: app?.partnerId ? 5 : 0,
+
+        commissionStatus: app?.partnerId ? "Approved" : "Not Eligible",
       },
     });
 

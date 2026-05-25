@@ -236,9 +236,9 @@ export default function DashboardPage() {
                   : "Hallesche Private Insurance",
 
             status:
-              a.status === "SUBMITTED"
+              a.status === "completed"
                 ? "completed"
-                : a.status === "PENDING"
+                : a.status === "incomplete"
                   ? "incomplete"
                   : "pending",
 
@@ -404,7 +404,7 @@ export default function DashboardPage() {
                     <div>
                       <p className="text-white font-semibold text-sm">
                         Action required
-                      </p>
+                       </p>
                       <p className="text-blue-100 text-xs mt-0.5">
                         Complete your application to activate your health
                         insurance coverage.

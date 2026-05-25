@@ -99,6 +99,11 @@ model Application {
   commissionStatus  String   @default("Pending")
 
   source            String?  // user | partner
+
+  @@index([partnerId, source])
+  @@index([partnerId, source, commissionStatus])
+  @@index([partnerId, source, createdAt])
+  @@index([partnerId, source, commissionStatus, createdAt])
 }
 
 model InsuranceApplication {

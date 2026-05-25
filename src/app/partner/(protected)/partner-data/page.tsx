@@ -883,7 +883,10 @@ export default function PartnerDataPage() {
       {/* PARTNER PROGRAM PLAN */}
       <div className="rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden mb-10 p-6 md:p-8">
         <h1 className="text-2xl font-black text-gray-900">Partner Program Plan</h1>
-        <p className="mt-2 text-gray-600">Health Insurance — €40</p>
+        <div className="mt-4 flex justify-between text-gray-700 space-y-2 border border-purple-100 py-2 px-4">
+        <p className="mt-2 text-gray-600">Public Health Insurance (DAK) </p><p className="mt-2 font-medium text-gray-800">€30</p>
+
+        </div>
       </div>
     </div>
   );

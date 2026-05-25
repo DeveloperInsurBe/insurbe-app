@@ -8,7 +8,6 @@ import {
   BarChart3,
   FileText,
   User,
-  BookOpen,
   HelpCircle,
   Phone,
   Megaphone,
@@ -20,46 +19,46 @@ type PartnerSidebarProps = {
   partner: any;
 };
 
+const menu = [
+  {
+    name: "Partner Program",
+    href: "/partner/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Conversions",
+    href: "/partner/conversions-list",
+    icon: BarChart3,
+  },
+  {
+    name: "Partner Data",
+    href: "/partner/partner-data",
+    icon: User,
+  },
+  {
+    name: "Marketing Assets",
+    href: "/partner/marketing-assets",
+    icon: Megaphone,
+  },
+  {
+    name: "Documents",
+    href: "/partner/documents",
+    icon: FileText,
+  },
+  {
+    name: "FAQ",
+    href: "/partner/faq-page",
+    icon: HelpCircle,
+  },
+  {
+    name: "Contact",
+    href: "/partner/contact",
+    icon: Phone,
+  },
+] as const;
+
 export default function PartnerSidebar({ partner }: PartnerSidebarProps) {
   const pathname = usePathname();
-
-  const menu = [
-    {
-      name: "Partner Program",
-      href: "/partner/dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      name: "Conversions",
-      href: "/partner/conversions-list",
-      icon: BarChart3,
-    },
-    {
-      name: "Partner Data",
-      href: "/partner/partner-data",
-      icon: User,
-    },
-    {
-      name: "Marketing Assets",
-      href: "/partner/marketing-assets",
-      icon: Megaphone,
-    },
-    {
-      name: "Documents",
-      href: "/partner/documents",
-      icon: FileText,
-    },
-    {
-      name: "FAQ",
-      href: "/partner/faq-page",
-      icon: HelpCircle,
-    },
-    {
-      name: "Contact",
-      href: "/partner/contact",
-      icon: Phone,
-    },
-  ];
 
   return (
     <aside className="hidden xl:flex w-[290px] bg-white border-r border-gray-200 flex-col justify-between">
@@ -104,6 +103,7 @@ export default function PartnerSidebar({ partner }: PartnerSidebarProps) {
               <Link
                 key={item.name}
                 href={item.href}
+                prefetch
                 className={`group flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-200 ${
                   active
                     ? "bg-[#820ad1]/10 text-[#820ad1]"
