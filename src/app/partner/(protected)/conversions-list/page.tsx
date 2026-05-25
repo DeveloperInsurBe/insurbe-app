@@ -662,7 +662,6 @@ export default function ConversionsPage() {
                   <div className="mt-6 inline-flex px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm font-semibold">
                     Coming Soon
                   </div>
-                  
                 </div>
               </button>
             </div>
