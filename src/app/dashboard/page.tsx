@@ -236,9 +236,9 @@ export default function DashboardPage() {
                   : "Hallesche Private Insurance",
 
             status:
-              a.status === "SUBMITTED"
+              a.status === "completed"
                 ? "completed"
-                : a.status === "PENDING"
+                : a.status === "incomplete"
                   ? "incomplete"
                   : "pending",
 
