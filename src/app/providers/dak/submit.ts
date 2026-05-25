@@ -237,8 +237,8 @@ export const submitDakApplication = async (
     from:
       "InsurBe <noreply@insurbe.com>",
 
-    // to: "pradeep.k@insurbe.com",
-        to: "dalipdivakar@gmail.com",
+    to: "pradeep.k@insurbe.com",
+      
 
 
     subject: `New DAK Application - ${personal.firstName} ${personal.lastName}`,
