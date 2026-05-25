@@ -12,7 +12,6 @@ export default async function PartnerLayout({
 }: {
   children: React.ReactNode;
 }) {
-
   const session = await getServerSession(authOptions);
 
   // Not logged in
@@ -30,12 +29,15 @@ export default async function PartnerLayout({
     where: {
       email: session.user.email!,
     },
+
+    include: {
+      partnerProfile: true,
+    },
   });
 
   return (
     <div className="min-h-screen bg-[#f5f7fb] flex flex-col">
       <div className="flex flex-1">
-
         {/* SIDEBAR */}
         <PartnerSidebar partner={partner} />
 
@@ -43,7 +45,6 @@ export default async function PartnerLayout({
         <main className="flex-1 overflow-y-auto p-4 md:p-6 xl:p-10">
           {children}
         </main>
-
       </div>
     </div>
   );

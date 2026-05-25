@@ -33,7 +33,7 @@ export default function PartnerSidebar({ partner }: PartnerSidebarProps) {
       name: "Conversions",
       href: "/partner/conversions-list",
       icon: BarChart3,
-    },   
+    },
     {
       name: "Partner Data",
       href: "/partner/partner-data",
@@ -80,7 +80,8 @@ export default function PartnerSidebar({ partner }: PartnerSidebarProps) {
             {/* USER INFO */}
             <div className="flex flex-col">
               <h2 className="text-[18px] font-semibold text-gray-900 leading-none">
-                {partner?.firstName} {partner?.lastName}
+                {partner?.partnerProfile?.firstName || partner?.firstName}{" "}
+                {partner?.partnerProfile?.lastName || partner?.lastName}
               </h2>
 
               <p className="text-sm text-gray-500 mt-2">Partner ID</p>

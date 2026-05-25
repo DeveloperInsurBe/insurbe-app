@@ -9,6 +9,7 @@ import Footernew from "./components/footernew";
 import CookieBanner from "./cookie/CookieBanner";
 import { Providers } from "./providers";
 import LayoutWrapper from "./components/LayoutWrapper";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -86,6 +87,7 @@ export default function RootLayout({
           <LayoutWrapper>{children}</LayoutWrapper>
 
           <CookieBanner />
+          <Toaster position="top-right" theme="light" richColors />
         </Providers>
       </body>
     </html>

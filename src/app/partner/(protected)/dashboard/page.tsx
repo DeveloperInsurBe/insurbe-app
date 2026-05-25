@@ -18,6 +18,10 @@ export default async function PartnerDashboard() {
     where: {
       email: session.user.email,
     },
+
+    include: {
+      partnerProfile: true,
+    },
   });
 
   // IF USER NOT FOUND
@@ -79,7 +83,7 @@ export default async function PartnerDashboard() {
             <h1 className="mt-4 text-3xl md:text-5xl font-black tracking-tight text-[#111827]">
               Welcome back,{" "}
               <span className="bg-gradient-to-r from-[#820ad1] to-[#a855f7] bg-clip-text text-transparent">
-                {partner?.firstName}
+                {partner?.partnerProfile?.firstName || "Partner"}
               </span>
             </h1>
 
