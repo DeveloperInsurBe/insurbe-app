@@ -16,6 +16,7 @@ export async function POST(req: Request) {
      * EXTRACT PARTNER REF
      */
     const partnerRef = body.partnerRef || null;
+    const isPartnerAttributed = Boolean(partnerRef);
 
     /**
      * CALL PROVIDER FUNCTION
@@ -53,11 +54,11 @@ export async function POST(req: Request) {
 
             product: "Public Health Insurance",
 
-            commission: 5,
+            commission: isPartnerAttributed ? 5 : 0,
 
-            commissionStatus: "Pending",
+            commissionStatus: isPartnerAttributed ? "Pending" : "Not Eligible",
 
-            source: "partner",
+            source: isPartnerAttributed ? "partner" : "user",
 
             status: "Submitted",
 

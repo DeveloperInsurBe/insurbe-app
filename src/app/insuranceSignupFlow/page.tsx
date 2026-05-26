@@ -55,6 +55,15 @@ export default function InsuranceSignupFlow() {
   const router = useRouter();
   const [providerFromUrl, setProviderFromUrl] = useState<string | null>(null);
 
+  const getStoredPartnerRef = () => {
+    if (typeof window === "undefined") return "";
+    return (
+      localStorage.getItem("partner_ref") ||
+      localStorage.getItem("partnerRef") ||
+      ""
+    );
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setProviderFromUrl(params.get("provider"));
@@ -119,6 +128,7 @@ export default function InsuranceSignupFlow() {
     const ref = params.get("ref");
 
     if (ref) {
+      localStorage.setItem("partner_ref", ref);
       localStorage.setItem("partnerRef", ref);
     }
   }, []);
@@ -450,6 +460,11 @@ export default function InsuranceSignupFlow() {
        * CHECK PROVIDER
        */
       if (providerFromUrl === "tk") {
+        const submitBody = {
+          ...formData,
+          partnerRef: getStoredPartnerRef(),
+        };
+
         const result = await fetch("/api/tk/submit", {
           method: "POST",
 
@@ -457,7 +472,7 @@ export default function InsuranceSignupFlow() {
             "Content-Type": "application/json",
           },
 
-          body: JSON.stringify(formData),
+          body: JSON.stringify(submitBody),
         });
 
         const data = await result.json();
@@ -506,9 +521,7 @@ export default function InsuranceSignupFlow() {
          */
         submitData.append(
           "partnerRef",
-          typeof window !== "undefined"
-            ? localStorage.getItem("partnerRef") || ""
-            : "",
+          getStoredPartnerRef(),
         );
 
         /**

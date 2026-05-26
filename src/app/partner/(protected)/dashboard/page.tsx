@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
-import CopyReferralButton from "@/app/components/CopyReferralButton";
+import ReferralShareCard from "./ReferralShareCard";
 
 export default async function PartnerDashboard() {
   const session = await getServerSession(authOptions);
@@ -107,7 +107,12 @@ export default async function PartnerDashboard() {
   const todayApprovedCommission = todayApprovedCommissionAgg._sum.commission || 0;
   const monthApprovedCommission = monthApprovedCommissionAgg._sum.commission || 0;
 
-  const referralLink = `${process.env.NEXTAUTH_URL}/register?ref=${partner.partnerId}`;
+  const baseUrl = process.env.NEXTAUTH_URL || "https://insurbe.com";
+  const referralLink = `${baseUrl}/?ref=${partner.partnerId}`;
+  const partnerName =
+    `${partner?.partnerProfile?.firstName || partner?.firstName || ""} ${
+      partner?.partnerProfile?.lastName || partner?.lastName || ""
+    }`.trim() || "Partner";
 
   return (
     <div className="space-y-6">
@@ -184,41 +189,7 @@ export default async function PartnerDashboard() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-[30px] bg-gradient-to-br from-[#6d00c9] via-[#820ad1] to-[#a855f7] p-6 text-white shadow-[0_18px_55px_rgba(130,10,209,0.22)]">
-          <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-
-          <div className="relative z-10 flex h-full flex-col justify-between">
-            <div>
-              <div className="inline-flex rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[2px] text-white/80 backdrop-blur-md">
-                Referral Link
-              </div>
-
-              <h2 className="mt-5 text-3xl font-black leading-tight">Invite & Earn</h2>
-
-              <p className="mt-3 text-sm leading-relaxed text-white/75">
-                Share your affiliate link and earn commission from successful insurance applications.
-              </p>
-            </div>
-
-            <div className="mt-6 space-y-4">
-              <div className="flex h-14 items-center overflow-hidden rounded-2xl border border-white/15 bg-white/10 px-4 backdrop-blur-md">
-                <p className="truncate text-sm font-semibold text-white">{referralLink}</p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <a
-                  href="#"
-                  target="_blank"
-                  className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-5 text-sm font-bold text-[#820ad1] transition-all duration-200 hover:scale-[1.02]"
-                >
-                  Open Link
-                </a>
-
-                <CopyReferralButton referralLink={referralLink} />
-              </div>
-            </div>
-          </div>
-        </div>
+        <ReferralShareCard referralLink={referralLink} partnerName={partnerName} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

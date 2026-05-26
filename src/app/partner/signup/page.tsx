@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Building2,
   User,
@@ -62,15 +63,19 @@ export default function PartnerSignupPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Signup failed");
+        const message = data.message || "Signup failed";
+        setError(message);
+        toast.error(message);
         setLoading(false);
         return;
       }
 
+      toast.success("Partner account created successfully. Please login.");
       router.push("/partner/login");
     } catch (err) {
       console.error(err);
       setError("Something went wrong");
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }

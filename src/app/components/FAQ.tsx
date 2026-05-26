@@ -1,16 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Plus, Minus, MessageCircle } from "lucide-react";
 
 export default function FAQ() {
   const faqs = [
     {
       question: "Who is InsurBe and what do you do?",
       answer:
-        "InsurBe is a Germany-focused insurance platform helping students, professionals, families, and expats find the right health insurance plans that meet legal and visa requirements. We simplify the entire process—from choosing a plan to getting insured.",
+        "InsurBe is a Germany-focused insurance platform helping students, professionals, families, and expats find the right health insurance plans that meet legal and visa requirements. We simplify the entire process-from choosing a plan to getting insured.",
     },
     {
       question: "Is InsurBe a licensed insurance provider?",
@@ -20,7 +20,7 @@ export default function FAQ() {
     {
       question: "How long does it take to get insured through InsurBe?",
       answer:
-        "In most cases, applications are processed within 24–48 hours after document submission. Some plans can be activated even faster, depending on eligibility and insurer approval.",
+        "In most cases, applications are processed within 24-48 hours after document submission. Some plans can be activated even faster, depending on eligibility and insurer approval.",
     },
     {
       question: "Can InsurBe help with visa and residence permit requirements?",
@@ -35,122 +35,110 @@ export default function FAQ() {
   ];
 
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const router = useRouter();
 
   return (
-    <section className="md:pb-16 pb-10 px-6 lg:px-20 ">
-      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12">
-        {/* LEFT SIDE */}
-        <div className="max-h-[600px] overflow-y-auto pr-4 custom-scroll">
-          {/* Heading */}
-          <div className="mb-10">
-            <p className="text-sm text-purple-500 font-semibold mb-3 tracking-wider">
-              — FAQS
-            </p>
+    <section className="py-10 sm:py-12 lg:py-14 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-purple-50/30">
+      <div className="max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          viewport={{ once: true }}
+          className="text-center mb-7 sm:mb-9"
+        >
+          <span className="inline-block px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs sm:text-sm font-semibold mb-3">
+            FAQ
+          </span>
 
-            <h2 className="text-4xl lg:text-5xl font-bold leading-tight text-gray-900">
-              <span className="  px-2">
-                Got questions?
-              </span>
-              <br />
-              <span className=" text-primary  px-2">
-                We've got answers.
-              </span>
-            </h2>
+          <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 mb-2 leading-tight">
+            Got questions?
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-purple-700">
+              We've got answers.
+            </span>
+          </h2>
 
-            <p className="text-gray-500 mt-4">
-              Everything you need to know about InsurBe and our insurance
-              products.
-            </p>
-          </div>
+          <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
+            Everything you need to know about InsurBe and our insurance products
+          </p>
+        </motion.div>
 
-          {/* FAQ LIST */}
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className="border-b border-gray-200 pb-4 cursor-pointer"
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="text-base font-medium text-gray-800">
-                    {faq.question}
-                  </h3>
-
-                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-100 text-purple-600 font-bold">
-                    {openIndex === index ? "−" : "+"}
-                  </div>
-                </div>
-
-                <AnimatePresence>
-                  {openIndex === index && (
-                    <motion.p
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="text-sm text-gray-600 mt-3 pr-6"
-                    >
-                      {faq.answer}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* RIGHT SIDE (STICKY CARD) */}
-        <div className="sticky top-24 h-fit  md:px-10">
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="rounded-3xl overflow-hidden shadow-xl "
-          >
-            {/* Top Gradient */}
-            <div className="bg-gradient-to-br from-purple-800 to-purple-400 py-8 px-16  text-white">
-              <h3 className="text-2xl font-bold mb-3">
-                Still have questions? Let's talk.
-              </h3>
-
-              <p className="text-sm opacity-90">
-                Our insurance experts are ready to help you find the right plan
-                — completely free of charge and with zero obligation.
-              </p>
-            </div>
-
-            {/* Bottom */}
-            <div className="p-6 flex flex-col items-center gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.08 }}
+          viewport={{ once: true }}
+          className="space-y-2.5"
+        >
+          {faqs.map((faq, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+            >
               <button
-                onClick={() => router.push("/book-appointment")}
-                className="w-full py-3 rounded-full bg-gradient-to-r from-purple-800 to-purple-400 text-white font-semibold shadow-md hover:scale-105 transition"
+                type="button"
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="w-full flex items-center justify-between p-4 sm:p-4.5 text-left hover:bg-purple-50/50 transition-colors"
               >
-                📅 Book a Free Call
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900 pr-3 flex-1">
+                  {faq.question}
+                </h3>
+
+                <span
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                    openIndex === index
+                      ? " text-white"
+                      : " text-purple-600"
+                  }`}
+                >
+                  {openIndex === index ? (
+                    <Minus className="w-4 h-4" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )}
+                </span>
               </button>
 
-              <p className="text-sm text-gray-500 text-center">
-                Or chat with us at{" "}
-                <span className="text-purple-600 font-medium">
-                  support@insurbe.com
-                </span>
-              </p>
+              <AnimatePresence>
+                {openIndex === index && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-4 sm:px-5 pb-4">
+                      <div className="pt-3 border-t border-purple-100">
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          {faq.answer}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </motion.div>
+          ))}
+        </motion.div>
+
+        <div className="mt-6 sm:mt-7 rounded-xl border border-[#e9d7ff] bg-white/90 p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
+            Still have questions? Reach us at{" "}
+            <a href="mailto:support@insurbe.com" className="font-semibold text-[#820ad1] hover:underline">
+              support@insurbe.com
+            </a>
+          </p>
+
+          <Link
+            href="/insuranceSignupFlow?provider=dak"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-purple-700 to-purple-500 text-white text-sm font-semibold hover:opacity-95 transition"
+          >
+            <MessageCircle className="w-4 h-4" />
+           Book a free consultation
+          </Link>
         </div>
       </div>
-
-      {/* Custom Scrollbar */}
-      <style jsx>{`
-        .custom-scroll {
-          -ms-overflow-style: none; /* IE & Edge */
-          scrollbar-width: none; /* Firefox */
-        }
-
-        .custom-scroll::-webkit-scrollbar {
-          display: none; /* Chrome, Safari */
-        }
-      `}</style>
     </section>
   );
 }
