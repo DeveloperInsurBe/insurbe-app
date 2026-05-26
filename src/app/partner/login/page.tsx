@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Mail,
   Lock,
@@ -41,16 +42,20 @@ export default function PartnerLoginPage() {
       });
 
       if (!res || res.error) {
-        setError("Invalid email or password");
+        const message = "Invalid email or password";
+        setError(message);
+        toast.error(message);
         setLoading(false);
         return;
       }
 
+      toast.success("Login successful");
       router.push("/partner/dashboard");
 
     } catch (err) {
       console.error(err);
       setError("Something went wrong");
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }

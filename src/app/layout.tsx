@@ -10,6 +10,7 @@ import CookieBanner from "./cookie/CookieBanner";
 import { Providers } from "./providers";
 import LayoutWrapper from "./components/LayoutWrapper";
 import { Toaster } from "sonner";
+import ReferralCapture from "./components/ReferralCapture";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -84,6 +85,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
+          <ReferralCapture />
           <LayoutWrapper>{children}</LayoutWrapper>
 
           <CookieBanner />

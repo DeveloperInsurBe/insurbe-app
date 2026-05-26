@@ -29,8 +29,28 @@ export async function GET() {
       },
     });
 
+    if (!user) {
+      return NextResponse.json(
+        {
+          error: "User not found",
+        },
+        {
+          status: 404,
+        },
+      );
+    }
+
+    const profile = {
+      title: user.partnerProfile?.title ?? user.title ?? "",
+      firstName: user.partnerProfile?.firstName ?? user.firstName ?? "",
+      lastName: user.partnerProfile?.lastName ?? user.lastName ?? "",
+      email: user.partnerProfile?.email ?? user.email ?? "",
+      companyName: user.partnerProfile?.companyName ?? user.companyName ?? "",
+      ...user.partnerProfile,
+    };
+
     return NextResponse.json({
-      profile: user?.partnerProfile,
+      profile,
     });
   } catch (error) {
     console.error(error);

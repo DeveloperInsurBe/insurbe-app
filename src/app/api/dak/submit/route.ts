@@ -41,6 +41,8 @@ export async function POST(req: Request) {
     const partnerRef =
       (body.get("partnerRef") as string) || null;
 
+    const isPartnerAttributed = Boolean(partnerRef);
+
     /**
      * SUBMIT TO DAK
      */
@@ -82,12 +84,12 @@ export async function POST(req: Request) {
             product:
               "Public Health Insurance",
 
-            commission: 5,
+            commission: isPartnerAttributed ? 5 : 0,
 
             commissionStatus:
-              "Pending",
+              isPartnerAttributed ? "Pending" : "Not Eligible",
 
-            source: "partner",
+            source: isPartnerAttributed ? "partner" : "user",
 
             status: "Submitted",
 

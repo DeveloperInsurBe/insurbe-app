@@ -451,23 +451,33 @@ export default function PartnerDataPage() {
     }
     try {
       setSaving(true);
-      const res = await fetch("/api/partner/save-profile", {
+
+      const savePromise = fetch("/api/partner/save-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
+      }).then(async (res) => {
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || "Failed to save profile");
+        return result;
       });
-      const result = await res.json();
-      if (!res.ok) {
-        toast.error(result.error || "Failed to save profile");
-        return;
+
+      const toastId = toast.loading("Saving partner profile...");
+      const result = await savePromise;
+      toast.success("Partner profile saved successfully", { id: toastId });
+
+      if (!result.mailSent) {
+        toast.message("Profile saved, but acknowledgement email was not sent.");
       }
-      toast.success("Partner profile saved successfully");
+
       setEditMode(false);
       setTouched({});
       setErrors({});
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong");
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong",
+      );
     } finally {
       setSaving(false);
     }
