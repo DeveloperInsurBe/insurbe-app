@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
+import { getPartnerByEmail } from "@/lib/partner";
 import ReferralShareCard from "./ReferralShareCard";
 
 export default async function PartnerDashboard() {
@@ -12,10 +13,7 @@ export default async function PartnerDashboard() {
     redirect("/");
   }
 
-  const partner: any = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { partnerProfile: true },
-  });
+  const partner: any = await getPartnerByEmail(session.user.email);
 
   if (!partner || !partner.partnerId) {
     redirect("/");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -23,16 +23,23 @@ export default function PartnerLoginPage() {
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   const [error, setError] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    router.prefetch("/partner/dashboard");
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setError("");
     setLoading(true);
+    setRedirecting(false);
+    let loginSuccess = false;
 
     try {
       const res = await signIn("credentials", {
@@ -50,14 +57,18 @@ export default function PartnerLoginPage() {
       }
 
       toast.success("Login successful");
-      router.push("/partner/dashboard");
+      loginSuccess = true;
+      setRedirecting(true);
+      router.replace("/partner/dashboard");
 
     } catch (err) {
       console.error(err);
       setError("Something went wrong");
       toast.error("Something went wrong");
     } finally {
-      setLoading(false);
+      if (!loginSuccess) {
+        setLoading(false);
+      }
     }
   };
 
@@ -218,10 +229,12 @@ export default function PartnerLoginPage() {
               {/* BUTTON */}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || redirecting}
                 className="group mt-2 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#820ad1] font-semibold text-white transition-all hover:scale-[1.01] hover:bg-[#6f08b2] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? (
+                {redirecting ? (
+                  "Redirecting to dashboard..."
+                ) : loading ? (
                   "Logging in..."
                 ) : (
                   <>

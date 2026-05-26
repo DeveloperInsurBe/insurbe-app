@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/authOptions";
-import { prisma } from "@/lib/prisma";
+import { getPartnerByEmail } from "@/lib/partner";
 
 import PartnerSidebar from "./PartnerSidebar";
 
@@ -24,15 +24,7 @@ export default async function PartnerLayout({
   }
 
   // Fetch partner data
-  const partner = await prisma.user.findUnique({
-    where: {
-      email: session.user.email!,
-    },
-
-    include: {
-      partnerProfile: true,
-    },
-  });
+  const partner = await getPartnerByEmail(session.user.email!);
 
   return (
     <div className="min-h-screen bg-[#f5f7fb] flex flex-col">

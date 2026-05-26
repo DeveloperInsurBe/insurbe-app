@@ -136,7 +136,7 @@ export default function PrivateInsuranceSteps() {
             className="hidden sm:block shrink-0"
           >
             <Link
-              href="/insuranceSignupFlow?provider=dak"
+              href="/products/insuranceJourney"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-white text-sm transition-all duration-300 hover:scale-105"
               style={{
                 background: "linear-gradient(135deg, #820ad1 0%, #a855f7 100%)",
