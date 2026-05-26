@@ -131,7 +131,7 @@ export default function FAQ() {
           </p>
 
           <Link
-            href="/insuranceSignupFlow?provider=dak"
+            href="/book-appointment"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-purple-700 to-purple-500 text-white text-sm font-semibold hover:opacity-95 transition"
           >
             <MessageCircle className="w-4 h-4" />
