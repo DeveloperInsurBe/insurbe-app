@@ -42,7 +42,7 @@ const cards: CardItem[] = [
     ],
     cta: "Learn more now →",
     href: "/insurance/public-health",
-    image: "/hero_assets/dentaldoctor.png",
+    image: "/hero_assets/docto.jpg",
   },
   {
     title: "Private Health Insurance",
@@ -139,7 +139,10 @@ export default function ChooseUs() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-white pb-16 px-4 sm:px-8 lg:px-16 ">
+    <section
+      id="explore"
+      className="relative overflow-hidden bg-white pb-16 px-4 sm:px-8 lg:px-16 "
+    >
      
       <div className="relative mx-auto max-w-7xl ">
         {/* badge */}

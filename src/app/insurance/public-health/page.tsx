@@ -35,7 +35,10 @@ export default function PublicHealthPage() {
       <InsuranceCalculatorPrivate setPremium={setPremium} premium={premium} />
       <ProviderComparison premium={premium} />
       <FirstExpatHero />
-      <PrivateInsuranceSteps />
+      <PrivateInsuranceSteps
+        desktopCtaHref="/insuranceSignupFlow?provider=dak"
+        mobileCtaHref="/insuranceSignupFlow?provider=dak"
+      />
       <PublicInsuranceFAQ />
     </section>
   );
