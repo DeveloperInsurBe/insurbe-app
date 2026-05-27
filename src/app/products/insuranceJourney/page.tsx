@@ -268,9 +268,9 @@ ProgressBar.displayName = "ProgressBar";
 
 // ── Right-panel image & "Why do we ask" card ──────────
 const RightPanel = memo(
-  ({ imageSrc = "/hero_assets/userJourney.jpg" }: { imageSrc?: string }) => (
+  ({ imageSrc = "/hero_assets/userJourney1.png" }: { imageSrc?: string }) => (
     <div className="hidden md:flex flex-col h-full">
-      <div className="relative flex-1 rounded-3xl overflow-hidden min-h-[420px]">
+      <div className="relative flex-1 rounded-3xl overflow-hidden min-h-[500px]">
         <Image
           src={imageSrc}
           alt="Illustration"
@@ -720,7 +720,7 @@ export default function InsuranceJourney() {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="relative bg-white rounded-3xl shadow-sm border border-gray-100 p-8"
+              className="relative rounded-3xl   p-8"
             >
               {children}
             </motion.div>
