@@ -216,7 +216,7 @@ export default function PrivateInsuranceTariffs() {
     };
     sessionStorage.setItem("selectedPlan", JSON.stringify(planData));
     setSelectedPlan(planData as any);
-    router.push("/calculator/submitApplication");
+    router.push("/products/insuranceJourney");
   };
 
   return (
