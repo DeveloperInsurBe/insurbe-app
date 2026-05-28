@@ -168,9 +168,21 @@ export async function POST(
       }
     };
 
+    // Static broker details requested
+    const AGENT_NUMBER = "509941";
+    const AGENT_NAME = "InsurBe";
+
     // =========================
     // PERSONAL (UNCHANGED ✅)
     // =========================
+    // Agent/Broker fields (use exact internal PDF field names from runtime dump)
+    setField("acFldVerm", AGENT_NAME);
+    setField("Vermittler", AGENT_NUMBER);
+
+    setField("acFldV1", AGENT_NUMBER);
+    setField("fldVM_Firma", AGENT_NAME);
+    setField("Neu-Änderungs-Antrag", "New Application");
+
     setField("VornameVN", personal?.firstName);
     setField("ZunameVN", personal?.lastName);
     setField(
@@ -532,6 +544,14 @@ export async function POST(
       "GeburtsdatumVP1",
       `${personal?.day}.${personal?.month}.${personal?.year}`,
     );
+    // Confirmation of Receipt (VG26) fields
+    setField("acFldNachname", personal?.lastName);
+    setField("acFldVorname", personal?.firstName);
+    setField(
+      "acFldGebDatum",
+      `${personal?.day}.${personal?.month}.${personal?.year}`,
+    );
+    setField("DurchschlagK", false);
 
     // =========================
     // SIGNATURE (UNCHANGED ✅)
@@ -634,11 +654,14 @@ export async function POST(
     setField("Unterschrift-Antrag-OrtDatum", placeDate);
     setField("Unterschrift-Datenschutz-OrtDatum", placeDate);
     setField("OrtDatumIN4", placeDate);
+    setField("OrtDatumVG26", placeDate);
+    setField("DatumAntragAnmeldungVG26", formattedDate);
 
     if (signature) {
       await drawSignature("Unterschrift-Antrag-Antragsteller", signature);
       await drawSignature("Unterschrift-Datenschutz-Antragsteller", signature);
       await drawSignature("Unterschrift-IN4-Kontoinhaber", signature);
+      await drawSignature("UnterschriftVG26", signature);
     }
 
     form.flatten();
