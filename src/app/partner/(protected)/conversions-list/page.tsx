@@ -150,7 +150,7 @@ export default function ConversionsPage() {
 
   return (
     <>
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* BREADCRUMB */}
         <div className="text-sm text-gray-500">
           Your Profile /{" "}
@@ -158,23 +158,23 @@ export default function ConversionsPage() {
         </div>
 
         {/* HEADER */}
-        <div className="relative overflow-hidden rounded-[32px] border border-gray-100 bg-white shadow-sm p-6 md:p-8">
+        <div className="relative overflow-hidden rounded-[24px] md:rounded-[32px] border border-gray-100 bg-white shadow-sm p-4 sm:p-6 md:p-8">
           {/* BG GRADIENT */}
           <div className="absolute top-0 right-0 w-72 h-72 bg-[#820ad1]/5 rounded-full blur-3xl" />
 
-          <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
+          <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 md:gap-8">
             {/* LEFT CONTENT */}
             <div className="flex flex-col gap-5">
               {/* TOP */}
               <div className="flex items-start sm:items-center gap-4">
                 {/* ICON */}
-                <div className="min-w-[60px] h-[60px] rounded-2xl bg-gradient-to-br from-[#820ad1] to-[#9f3cff] flex items-center justify-center shadow-lg shadow-[#820ad1]/20">
+                <div className="min-w-[52px] h-[52px] sm:min-w-[60px] sm:h-[60px] rounded-2xl bg-gradient-to-br from-[#820ad1] to-[#9f3cff] flex items-center justify-center shadow-lg shadow-[#820ad1]/20">
                   <BarChart3 className="text-white" size={28} />
                 </div>
 
                 {/* TITLE */}
                 <div>
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 leading-tight">
+                  <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-gray-900 leading-tight">
                     Conversions
                   </h1>
 
@@ -225,7 +225,7 @@ export default function ConversionsPage() {
         </div>
 
         {/* CONVERSIONS TABLE */}
-        <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
           {/* TOP BAR */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 px-6 md:px-8 py-6 border-b border-gray-100">
             <div>
@@ -393,11 +393,11 @@ export default function ConversionsPage() {
               </div>
 
               {/* MOBILE CARDS */}
-              <div className="xl:hidden p-5 space-y-5">
+              <div className="xl:hidden p-4 sm:p-5 space-y-4 sm:space-y-5">
                 {data.map((item, index) => (
                   <div
                     key={item.id || index}
-                    className="rounded-3xl border border-gray-100 bg-[#fcfcfc] p-5 shadow-sm"
+                    className="rounded-3xl border border-gray-100 bg-[#fcfcfc] p-4 sm:p-5 shadow-sm"
                   >
                     {/* TOP */}
                     <div className="flex items-start justify-between gap-4">
@@ -423,7 +423,7 @@ export default function ConversionsPage() {
                     </div>
 
                     {/* USER DETAILS */}
-                    <div className="mt-6 grid grid-cols-2 gap-5">
+                    <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                       <div>
                         <p className="text-xs text-gray-400 uppercase tracking-wide">
                           First Name
@@ -477,7 +477,7 @@ export default function ConversionsPage() {
               </div>
 
               {/* FOOTER */}
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-6 md:px-8 py-5 border-t border-gray-100 bg-white">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 sm:px-6 md:px-8 py-5 border-t border-gray-100 bg-white">
                 <div className="text-sm text-gray-500">
                   Showing{" "}
                   <span className="font-semibold text-gray-900">
@@ -503,8 +503,8 @@ export default function ConversionsPage() {
 
       {/* MODAL */}
       {openModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6">
-          <div className="w-full max-w-5xl bg-white rounded-[32px] p-8 md:p-10 relative animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+          <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto bg-white rounded-[24px] md:rounded-[32px] p-4 sm:p-6 md:p-10 relative animate-in fade-in zoom-in duration-200">
             {/* CLOSE */}
             <button
               onClick={() => setOpenModal(false)}
@@ -514,18 +514,18 @@ export default function ConversionsPage() {
             </button>
 
             {/* TITLE */}
-            <div className="mb-10">
-              <h2 className="text-3xl md:text-4xl font-black text-gray-900">
+            <div className="mb-8 md:mb-10 pr-10">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">
                 Please Select a Product Type
               </h2>
 
-              <p className="text-gray-500 mt-3 text-lg">
+              <p className="text-gray-500 mt-3 text-base md:text-lg">
                 Choose an insurance category to continue application process.
               </p>
             </div>
 
             {/* CARDS */}
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
               {/* PUBLIC */}
               <button
                 onClick={() => {

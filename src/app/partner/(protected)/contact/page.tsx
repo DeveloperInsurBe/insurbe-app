@@ -144,18 +144,18 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       <div className="text-sm text-gray-500">
         Support / <span className="font-semibold text-black">Contact</span>
       </div>
 
-      <div className="relative overflow-hidden rounded-[32px] border border-white/50 bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] p-6 md:p-8 shadow-[0_12px_40px_rgba(130,10,209,0.08)]">
+      <div className="relative overflow-hidden rounded-[24px] md:rounded-[32px] border border-white/50 bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] p-4 sm:p-6 md:p-8 shadow-[0_12px_40px_rgba(130,10,209,0.08)]">
         <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-[#820ad1]/10 blur-3xl pointer-events-none" />
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#ead7ff] bg-[#f8f1ff] px-4 py-1.5 text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
             Partner Support
           </div>
-          <h1 className="mt-5 text-3xl md:text-5xl font-black tracking-tight text-[#111827]">
+          <h1 className="mt-4 sm:mt-5 text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-[#111827]">
             Submit a Request
           </h1>
           <p className="mt-3 max-w-2xl text-sm md:text-base text-[#667085] leading-relaxed">
@@ -167,9 +167,9 @@ export default function ContactPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden"
+        className="rounded-[24px] md:rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden"
       >
-        <div className="p-6 md:p-8 border-b border-gray-100">
+        <div className="p-4 sm:p-6 md:p-8 border-b border-gray-100">
           <h2 className="text-2xl md:text-3xl font-black text-gray-900">
             Request Details
           </h2>
@@ -178,7 +178,7 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div className="p-6 md:p-8 space-y-6">
+        <div className="p-4 sm:p-6 md:p-8 space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold tracking-[2px] uppercase text-gray-600 block">
@@ -344,11 +344,11 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <div className="px-6 md:px-8 pb-8">
+        <div className="px-4 sm:px-6 md:px-8 pb-6 sm:pb-8">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="h-14 px-7 cursor-pointer rounded-2xl bg-gradient-to-r from-[#820ad1] to-[#9f3cff] text-white font-semibold inline-flex items-center justify-center gap-3 shadow-xl shadow-[#820ad1]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="h-14 w-full sm:w-auto px-7 cursor-pointer rounded-2xl bg-gradient-to-r from-[#820ad1] to-[#9f3cff] text-white font-semibold inline-flex items-center justify-center gap-3 shadow-xl shadow-[#820ad1]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <Send size={18} />
             {isSubmitting ? "Submitting..." : "Submit Request"}
