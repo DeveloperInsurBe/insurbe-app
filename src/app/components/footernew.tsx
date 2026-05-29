@@ -7,13 +7,13 @@ import { CARD_BG } from "../constants/styles";
 export default function Footernew() {
   return (
     <footer
-      className="text-black py-20 px-6 md:px-20"
+      className="text-black py-14 px-6 md:px-20"
       style={{
         background:
           "linear-gradient(135deg, rgba(130,10,209,0.18), rgba(192,132,252,0.08))",
       }}
     >
-      <div className="max-w-full mx-auto">
+      <div className="max-w-full mx-auto ">
         <div className="flex flex-col md:flex-row justify-between gap-12">
           {/* Brand Info */}
           <div className="space-y-4 max-w-md text-center md:text-left mx-auto md:mx-0 ">

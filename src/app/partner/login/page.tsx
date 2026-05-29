@@ -23,7 +23,6 @@ export default function PartnerLoginPage() {
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
 
   const [error, setError] = useState("");
 
@@ -38,7 +37,6 @@ export default function PartnerLoginPage() {
 
     setError("");
     setLoading(true);
-    setRedirecting(false);
     let loginSuccess = false;
 
     try {
@@ -56,9 +54,7 @@ export default function PartnerLoginPage() {
         return;
       }
 
-      toast.success("Login successful");
       loginSuccess = true;
-      setRedirecting(true);
       router.replace("/partner/dashboard");
 
     } catch (err) {
@@ -229,12 +225,10 @@ export default function PartnerLoginPage() {
               {/* BUTTON */}
               <button
                 type="submit"
-                disabled={loading || redirecting}
+                disabled={loading}
                 className="group mt-2 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#820ad1] font-semibold text-white transition-all hover:scale-[1.01] hover:bg-[#6f08b2] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {redirecting ? (
-                  "Redirecting to dashboard..."
-                ) : loading ? (
+                {loading ? (
                   "Logging in..."
                 ) : (
                   <>
