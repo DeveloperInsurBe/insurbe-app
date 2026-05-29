@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   Shield,
   FileText,
-  User,
   LogOut,
   Download,
   ArrowRight,
@@ -13,7 +12,6 @@ import {
   Clock,
   LayoutDashboard,
   FolderOpen,
-  Bell,
   HelpCircle,
   Menu,
   X,
@@ -225,27 +223,31 @@ export default function DashboardPage() {
         if (!isMounted) return;
 
         setPolicies(
-          apps.map((a: any) => ({
-            id: a.id,
+          apps.map((a: any) => {
+            const isDakOrTk = a.provider === "DAK" || a.provider === "TK";
+            return {
+              id: a.id,
 
-            name:
-              a.provider === "DAK"
-                ? "DAK Health Insurance"
-                : a.provider === "TK"
-                  ? "TK Health Insurance"
-                  : "Hallesche Private Insurance",
+              name:
+                a.provider === "DAK"
+                  ? "DAK Health Insurance"
+                  : a.provider === "TK"
+                    ? "TK Health Insurance"
+                    : "Hallesche Private Insurance",
 
-            status:
-              a.status === "completed"
+              status: isDakOrTk
                 ? "completed"
-                : a.status === "incomplete"
-                  ? "incomplete"
-                  : "pending",
+                : a.status === "completed"
+                  ? "completed"
+                  : a.status === "incomplete"
+                    ? "incomplete"
+                    : "pending",
 
-            startDate: new Date(a.createdAt).toDateString(),
+              startDate: new Date(a.createdAt).toDateString(),
 
-            isDak: a.provider === "DAK" || a.provider === "TK",
-          })),
+              isDak: isDakOrTk,
+            };
+          }),
         );
         setDocuments(
           apps.map((a: any) => ({
@@ -319,7 +321,7 @@ export default function DashboardPage() {
 
   return (
     <div
-      className="min-h-screen bg-gray-50 flex"
+      className="min-h-screen bg-gray-50 flex overflow-x-hidden"
       style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
     >
       {/* Mobile sidebar overlay */}
@@ -340,7 +342,7 @@ export default function DashboardPage() {
               animate={{ x: 0 }}
               exit={{ x: -260 }}
               transition={{ type: "spring", stiffness: 320, damping: 32 }}
-              className="fixed inset-y-0 left-0 w-60 z-50 shadow-xl lg:hidden"
+              className="fixed inset-y-0 left-0 w-[84vw] max-w-72 z-50 shadow-xl lg:hidden"
             >
               <Sidebar
                 displayName={displayName}
@@ -369,9 +371,27 @@ export default function DashboardPage() {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
+        <header className="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-100 px-3 py-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen((prev) => !prev)}
+              className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+              aria-label={sidebarOpen ? "Close navigation menu" : "Open navigation menu"}
+            >
+              {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </button>
+            <div className="min-w-0 text-right">
+              <p className="text-xs font-semibold text-gray-800 truncate">
+                {displayName}
+              </p>
+              <p className="text-[10px] text-gray-400 truncate">{today}</p>
+            </div>
+          </div>
+        </header>
         {/* Content */}
 
-        <main className="flex-1 px-5 sm:px-8 py-7 space-y-6 overflow-y-auto">
+        <main className="flex-1 px-3 sm:px-5 md:px-8 py-4 sm:py-6 md:py-7 space-y-5 sm:space-y-6 overflow-y-auto">
           {/* Greeting */}
           {activePage === "Home" && (
             <>
@@ -451,7 +471,7 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
               >
                 {[
                   {
@@ -493,7 +513,7 @@ export default function DashboardPage() {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 + i * 0.04 }}
-                    className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition-shadow"
+                    className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 hover:shadow-sm transition-shadow"
                   >
                     <div
                       className={`w-8 h-8 rounded-lg ${s.iconBg} flex items-center justify-center mb-4`}
@@ -501,7 +521,7 @@ export default function DashboardPage() {
                       <s.Icon className={`w-4 h-4 ${s.iconColor}`} />
                     </div>
                     <p
-                      className={`font-bold text-gray-900 leading-none ${(s as any).isText ? "text-xl" : "text-3xl"}`}
+                      className={`font-bold text-gray-900 leading-none ${(s as any).isText ? "text-lg sm:text-xl" : "text-2xl sm:text-3xl"}`}
                     >
                       {s.value}
                     </p>
@@ -521,7 +541,7 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.16 }}
             >
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between gap-3 mb-4">
                 <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
                   {activePage === "Insurance"
                     ? "All Insurance Applications"
@@ -533,7 +553,7 @@ export default function DashboardPage() {
               </div>
 
               {policies.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-12 text-center">
                   <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
                     <Shield className="w-5 h-5 text-blue-400" />
                   </div>
@@ -568,9 +588,9 @@ export default function DashboardPage() {
                           transition={{ delay: i * 0.05 }}
                           className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-sm transition-shadow"
                         >
-                          <div className="p-5 sm:p-6">
+                          <div className="p-4 sm:p-6">
                             {/* Header row */}
-                            <div className="flex items-center gap-3 flex-wrap">
+                            <div className="flex items-start sm:items-center gap-3 flex-wrap">
                               <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
                                 <span className="text-blue-600 font-bold text-sm">
                                   {policy.name?.charAt(0).toUpperCase()}
@@ -679,7 +699,7 @@ export default function DashboardPage() {
                             </div>
 
                             {/* Mobile buttons */}
-                            <div className="flex gap-2 mt-4 sm:hidden">
+                            <div className="flex flex-col gap-2 mt-4 sm:hidden">
                               {policy.isDak ? null : isCompleted ? (
                                 <>
                                   <motion.button
@@ -747,7 +767,7 @@ export default function DashboardPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: i * 0.04 }}
-                    className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
@@ -767,7 +787,7 @@ export default function DashboardPage() {
 
                     <button
                       onClick={() => downloadPDF(doc.id)}
-                      className="flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-700 text-white text-xs font-semibold rounded-xl flex-shrink-0 transition-colors"
+                      className="w-full sm:w-auto justify-center flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-700 text-white text-xs font-semibold rounded-xl flex-shrink-0 transition-colors"
                     >
                       <Download className="w-3 h-3" />
                       Download
@@ -783,7 +803,7 @@ export default function DashboardPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.28 }}
-            className="bg-white rounded-2xl border border-gray-100 px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+            className="bg-white rounded-2xl border border-gray-100 px-4 sm:px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
           >
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
@@ -800,7 +820,7 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={() => router.push("/insurance/private-health")}
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors flex-shrink-0"
+              className="w-full sm:w-auto justify-center flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors flex-shrink-0"
             >
               Explore Plans <ArrowRight className="w-3.5 h-3.5" />
             </button>
