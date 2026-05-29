@@ -6,7 +6,13 @@ import { CARD_BG } from "../constants/styles";
 
 export default function Footernew() {
   return (
-    <footer className="bg-[#531D6F] text-white py-20 px-6 ">
+    <footer
+      className="text-black py-20 px-6 md:px-20"
+      style={{
+        background:
+          "linear-gradient(135deg, rgba(130,10,209,0.18), rgba(192,132,252,0.08))",
+      }}
+    >
       <div className="max-w-full mx-auto">
         <div className="flex flex-col md:flex-row justify-between gap-12">
           {/* Brand Info */}
@@ -15,7 +21,7 @@ export default function Footernew() {
             <div className="flex justify-center md:justify-start py-2 gap-20">
               <Link href="/" className="font-bold font-serif">
                 <Image
-                  src="/icons/logo_white.png"
+                  src="/logo.svg"
                   alt="Logo"
                   width={120}
                   height={30}
@@ -24,7 +30,7 @@ export default function Footernew() {
             </div>
 
             {/* Subtitle */}
-            <p className="md:text-lg text-2xl  text-white ">
+            <p className="md:text-lg text-2xl text-black">
               The only digital solution for all your insurance needs.
             </p>
 
@@ -42,7 +48,7 @@ export default function Footernew() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <span className="text-sm font-medium text-white">
+                  <span className="text-sm font-medium text-black">
                     GDPR Compliant
                   </span>
                 </div>
@@ -57,7 +63,7 @@ export default function Footernew() {
                     className="rounded-full object-cover flex-shrink-0"
                   />
 
-                  <span className="text-sm font-medium text-white leading-tight">
+                  <span className="text-sm font-medium text-black leading-tight">
                     <span className="block whitespace-nowrap">Data Centre</span>
                     <span className="block whitespace-nowrap">in Germany</span>
                   </span>
@@ -73,7 +79,7 @@ export default function Footernew() {
                     className="rounded-full object-cover flex-shrink-0"
                   />
 
-                  <span className="text-sm font-medium text-white leading-tight">
+                  <span className="text-sm font-medium text-black leading-tight">
                     SECURE
                     <span className="block whitespace-nowrap">
                       SSL Encryption
@@ -100,7 +106,7 @@ export default function Footernew() {
                 <li>
                   <a
                     href="/insurance/private-health"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     Private
                   </a>
@@ -108,7 +114,7 @@ export default function Footernew() {
                 <li>
                   <a
                     href="/insurance/public-health"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     Public
                   </a>
@@ -117,7 +123,7 @@ export default function Footernew() {
                 <li>
                   <a
                     href="/insurance/expat-health"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     Expat
                   </a>
@@ -125,7 +131,7 @@ export default function Footernew() {
                 <li>
                   <a
                     href="/products/students"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     Student
                   </a>
@@ -141,7 +147,7 @@ export default function Footernew() {
                  <li>
                   <a
                     href="/about"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     About InsurBe
                   </a>
@@ -149,7 +155,7 @@ export default function Footernew() {
                  <li>
                   <a
                     href="/career"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     Careers
                   </a>
@@ -157,7 +163,7 @@ export default function Footernew() {
                  <li>
                   <a
                     href="/becomepartner"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     Become a Partner
                   </a>
@@ -165,7 +171,7 @@ export default function Footernew() {
                 <li>
                   <a
                     href="/support"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     Contact
                   </a>
@@ -180,7 +186,7 @@ export default function Footernew() {
                 <li>
                   <a
                     href="/imprint"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     Imprint
                   </a>
@@ -188,7 +194,7 @@ export default function Footernew() {
                 <li>
                   <a
                     href="/privacypolicy"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     Data Privacy
                   </a>
@@ -196,7 +202,7 @@ export default function Footernew() {
                 <li>
                   <a
                     href="/termscondition"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     Terms & Conditions
                   </a>
@@ -205,7 +211,7 @@ export default function Footernew() {
 <li>
                   <a
                     href="/accessibility"
-                    className="hover:text-purple-300 text-xl md:text-[18px]"
+                    className="hover:text-purple-900 text-xl md:text-[18px]"
                   >
                     Accessibility
                   </a>
@@ -218,8 +224,8 @@ export default function Footernew() {
         </div>
 
         {/* Footer Bottom */}
-        <div className="border-t border-gray-200 mt-10 pt-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-white/90 text-sm">
+        <div className="border-t border-black/15 mt-10 pt-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-black/80 text-sm">
             {/* Copyright */}
             <p className="text-center md:text-left">
               Copyright © 2026 InsurBe GmbH
@@ -233,7 +239,7 @@ export default function Footernew() {
                 href="https://www.linkedin.com/company/insurbe-gmbh/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-blue-400 transition-colors"
+                className="hover:text-purple-900 transition-colors"
                 aria-label="LinkedIn"
               >
                 <svg
@@ -249,7 +255,7 @@ export default function Footernew() {
                 href="https://www.facebook.com/share/1CFrgoW6TV/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-blue-400 transition-colors"
+                className="hover:text-purple-900 transition-colors"
                 aria-label="Facebook"
               >
                 <svg

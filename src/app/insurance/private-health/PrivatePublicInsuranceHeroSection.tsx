@@ -119,11 +119,6 @@ export default function PrivatePublicInsuranceHeroSection() {
           className="relative w-full flex justify-center items-center"
           style={{ height: "clamp(400px, 54vw, 650px)" }}
         >
-          {/* BIG PURPLE GLOW */}
-          <div className="absolute inset-0 flex items-center justify-center z-0">
-            <div className="w-[88%] h-[88%] rounded-[70px] bg-gradient-to-br from-[#820ad1]/20 via-[#c084fc]/15 to-transparent blur-[90px]" />
-          </div>
-
           {/* BACK SHADE LAYER */}
           <div
             className="absolute z-0 hidden lg:block"
@@ -168,8 +163,7 @@ export default function PrivatePublicInsuranceHeroSection() {
               height: "100%",
               maxWidth: "560px",
               borderRadius: "46px",
-              background:
-                "linear-gradient(135deg, #820ad1 0%, #c084fc 45%, #ffffff 100%)",
+
               padding: "3px",
               boxShadow: "0 35px 90px rgba(130,10,209,0.18)",
             }}
@@ -186,64 +180,8 @@ export default function PrivatePublicInsuranceHeroSection() {
                 priority
                 className="object-cover object-center transition-transform duration-700 hover:scale-105"
               />
-
-              {/* DARK OVERLAY */}
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(to top, rgba(15,0,25,0.22), transparent 45%)",
-                }}
-              />
-
-              {/* PURPLE LIGHT SHADE */}
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(130,10,209,0.10), transparent 40%, rgba(255,255,255,0.05))",
-                }}
-              />
             </div>
           </div>
-
-          {/* TOP DOTS */}
-          <div className="absolute top-2 left-20 hidden lg:grid grid-cols-5 gap-3 z-20">
-            {[...Array(15)].map((_, i) => (
-              <span
-                key={i}
-                className="w-[6px] h-[6px] rounded-full bg-[#d8b4fe]"
-              />
-            ))}
-          </div>
-
-          {/* SIDE PURPLE LIGHT */}
-          <div
-            className="absolute z-0"
-            style={{
-              top: "25%",
-              left: "-40px",
-              width: "160px",
-              height: "160px",
-              borderRadius: "999px",
-              background: "rgba(192,132,252,0.22)",
-              filter: "blur(70px)",
-            }}
-          />
-
-          {/* BOTTOM PURPLE LIGHT */}
-          <div
-            className="absolute z-0"
-            style={{
-              bottom: "-20px",
-              right: "15%",
-              width: "240px",
-              height: "120px",
-              borderRadius: "999px",
-              background: "rgba(130,10,209,0.20)",
-              filter: "blur(70px)",
-            }}
-          />
         </motion.div>
       </div>
     </section>

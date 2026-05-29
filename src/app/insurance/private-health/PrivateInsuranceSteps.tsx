@@ -75,10 +75,11 @@ export default function PrivateInsuranceSteps({
               }}
             >
               <span
-                className="absolute -top-9 left-1/2 -translate-x-1/2 text-7xl font-black leading-none"
+                className="absolute -top-5 left-1/2 -translate-x-1/2 text-4xl font-black italic leading-none"
                 style={{
                   color: "#ebd8ff",
                   WebkitTextStroke: "2px #820ad1",
+                  fontFamily: 'vage-bold, sans-serif',
                 }}
               >
                 {item.step}
