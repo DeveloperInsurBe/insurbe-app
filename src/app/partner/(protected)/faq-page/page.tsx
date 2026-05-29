@@ -62,7 +62,7 @@ export default function Page() {
         Partner Help / <span className="font-semibold text-black">FAQ</span>
       </div>
 
-      <div className="relative overflow-hidden rounded-[18px] md:rounded-[22px] border border-white/50 bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] p-4 md:p-5 shadow-[0_10px_28px_rgba(130,10,209,0.08)]">
+      <div className="relative overflow-hidden rounded-[16px] md:rounded-[22px] border border-white/50 bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] p-4 md:p-5 shadow-[0_10px_28px_rgba(130,10,209,0.08)]">
         <div className="absolute top-0 right-0 h-56 w-56 rounded-full bg-[#820ad1]/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-2xl">
@@ -71,7 +71,7 @@ export default function Page() {
             Frequently Asked Questions
           </div>
 
-          <h1 className="mt-3 text-xl sm:text-2xl md:text-[40px] font-black tracking-tight text-[#111827]">
+          <h1 className="mt-3 text-xl sm:text-2xl md:text-4xl font-black tracking-tight text-[#111827]">
             Partner FAQ
           </h1>
 
@@ -82,7 +82,7 @@ export default function Page() {
         </div>
       </div>
 
-      <div className="rounded-[18px] md:rounded-[22px] bg-white border border-gray-100 shadow-sm overflow-hidden">
+      <div className="rounded-[16px] md:rounded-[22px] bg-white border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-2.5 sm:p-3 md:p-4 space-y-2">
           {FAQS.map((item, index) => {
             const isOpen = openIndex === index;

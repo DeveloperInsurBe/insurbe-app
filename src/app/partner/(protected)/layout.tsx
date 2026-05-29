@@ -1,8 +1,6 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import { authOptions } from "@/lib/authOptions";
-import { getPartnerByEmail } from "@/lib/partner";
+import { getCurrentPartnerAccess } from "@/lib/applicationAccess";
 
 import PartnerSidebar from "./PartnerSidebar";
 
@@ -11,7 +9,7 @@ export default async function PartnerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const { session, partner } = await getCurrentPartnerAccess();
 
   // Not logged in
   if (!session) {
@@ -23,17 +21,18 @@ export default async function PartnerLayout({
     redirect("/");
   }
 
-  // Fetch partner data
-  const partner = await getPartnerByEmail(session.user.email!);
+  if (!partner) {
+    redirect("/");
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f7fb] flex flex-col">
-      <div className="flex flex-1">
+      <div className="flex flex-1 flex-col xl:flex-row">
         {/* SIDEBAR */}
         <PartnerSidebar partner={partner} />
 
         {/* PAGE CONTENT */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 xl:p-10">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 xl:p-10">
           {children}
         </main>
       </div>

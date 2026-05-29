@@ -107,7 +107,7 @@ export default function ReferralShareCard({ referralLink, partnerName }: Props) 
   }
 
   return (
-    <div className="relative overflow-hidden rounded-[30px] bg-gradient-to-br from-[#6d00c9] via-[#820ad1] to-[#a855f7] p-6 text-white shadow-[0_18px_55px_rgba(130,10,209,0.22)]">
+    <div className="relative overflow-hidden rounded-[22px] md:rounded-[30px] bg-gradient-to-br from-[#6d00c9] via-[#820ad1] to-[#a855f7] p-4 sm:p-6 text-white shadow-[0_18px_55px_rgba(130,10,209,0.22)]">
       <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
 
       <div className="relative z-10 flex h-full flex-col">
@@ -115,7 +115,7 @@ export default function ReferralShareCard({ referralLink, partnerName }: Props) 
           Affiliate Link
         </div>
 
-        <h2 className="mt-4 text-3xl font-black leading-tight">Invite & Earn</h2>
+        <h2 className="mt-4 text-2xl sm:text-3xl font-black leading-tight">Invite & Earn</h2>
 
         <p className="mt-2.5 text-sm leading-relaxed text-white/80">
           Share this link on WhatsApp, social media, or email. If someone submits
@@ -126,7 +126,7 @@ export default function ReferralShareCard({ referralLink, partnerName }: Props) 
           <p className="truncate text-sm font-semibold text-white">{referralLink}</p>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+        <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-2">
           {shareActions.map((item) => {
             const Icon = item.icon;
             return (

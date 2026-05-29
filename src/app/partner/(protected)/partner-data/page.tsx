@@ -323,12 +323,12 @@ function SectionHeader({
   subtitle: string;
 }) {
   return (
-    <div className="p-6 md:p-8 border-b border-gray-100 flex items-center gap-4">
-      <div className="w-14 h-14 rounded-2xl bg-[#820ad1]/10 flex items-center justify-center shrink-0">
+    <div className="p-4 sm:p-6 md:p-8 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-4">
+      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#820ad1]/10 flex items-center justify-center shrink-0">
         <Icon className="text-[#820ad1]" size={26} />
       </div>
       <div>
-        <h2 className="text-2xl md:text-3xl font-black text-gray-900">{title}</h2>
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900">{title}</h2>
         <p className="text-gray-500 mt-1 text-sm">{subtitle}</p>
       </div>
     </div>
@@ -551,28 +551,28 @@ export default function PartnerDataPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* BREADCRUMB */}
       <div className="text-sm text-gray-500">
         Your Profile / <span className="font-semibold text-black">Partner Data</span>
       </div>
 
       {/* HERO */}
-      <div className="relative overflow-hidden rounded-[32px] border border-white/50 bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] p-6 md:p-8 shadow-[0_12px_40px_rgba(130,10,209,0.08)]">
+      <div className="relative overflow-hidden rounded-[24px] md:rounded-[32px] border border-white/50 bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] p-4 sm:p-6 md:p-8 shadow-[0_12px_40px_rgba(130,10,209,0.08)]">
         <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-[#820ad1]/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 md:gap-6">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-[#ead7ff] bg-[#f8f1ff] px-4 py-1.5 text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
               Partner Account
             </div>
-            <h1 className="mt-5 text-3xl md:text-5xl font-black tracking-tight text-[#111827]">
+            <h1 className="mt-4 sm:mt-5 text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-[#111827]">
               Partner Data
             </h1>
             <p className="mt-3 max-w-2xl text-sm md:text-base text-[#667085] leading-relaxed">
               Manage your company information, address and payout details.
             </p>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-start lg:items-end gap-2 w-full lg:w-auto">
             {editMode && hasErrors && (
               <span className="flex items-center gap-1.5 text-xs text-red-500 font-semibold">
                 <AlertCircle size={14} />
@@ -582,7 +582,7 @@ export default function PartnerDataPage() {
             <button
               onClick={() => (editMode ? handleSave() : setEditMode(true))}
               disabled={saving}
-              className="h-14 px-7 cursor-pointer rounded-2xl bg-gradient-to-r from-[#820ad1] to-[#9f3cff] text-white font-semibold flex items-center justify-center gap-3 shadow-xl shadow-[#820ad1]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="h-14 w-full sm:w-auto px-7 cursor-pointer rounded-2xl bg-gradient-to-r from-[#820ad1] to-[#9f3cff] text-white font-semibold flex items-center justify-center gap-3 shadow-xl shadow-[#820ad1]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {editMode ? <Save size={20} /> : <Edit3 size={20} />}
               {saving ? "Saving..." : editMode ? "Save Information" : "Edit Information"}
@@ -592,13 +592,13 @@ export default function PartnerDataPage() {
       </div>
 
       {/* PARTNER INFORMATION */}
-      <div className="rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-visible">
+      <div className="rounded-[24px] md:rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-visible">
         <SectionHeader
           icon={User}
           title="Partner Information"
           subtitle="Basic company and contact details."
         />
-        <div className="p-6 md:p-8 grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="p-4 sm:p-6 md:p-8 grid md:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
           <Field label="Title">
             <select {...selectProps("title")} className={selectCls()}>
               <option value="Mr">Mr</option>
@@ -688,13 +688,13 @@ export default function PartnerDataPage() {
       </div>
 
       {/* ADDRESS */}
-      <div className="rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden">
+      <div className="rounded-[24px] md:rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden">
         <SectionHeader
           icon={MapPin}
           title="Address"
           subtitle="Manage address and location details."
         />
-        <div className="p-6 md:p-8 space-y-6">
+        <div className="p-4 sm:p-6 md:p-8 space-y-6">
           <div className="flex items-center gap-8">
             {(["german", "overseas"] as const).map((type) => (
               <label key={type} className="flex items-center gap-3 font-medium text-gray-700 cursor-pointer">
@@ -778,13 +778,13 @@ export default function PartnerDataPage() {
       </div>
 
       {/* BANK DETAILS */}
-      <div className="rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden mb-10">
+      <div className="rounded-[24px] md:rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden mb-10">
         <SectionHeader
           icon={Landmark}
           title="Bank Details"
           subtitle="Payout and banking information."
         />
-        <div className="p-6 md:p-8 space-y-10">
+        <div className="p-4 sm:p-6 md:p-8 space-y-8 md:space-y-10">
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-6">Recipient Details</h3>
             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -891,10 +891,10 @@ export default function PartnerDataPage() {
       </div>
 
       {/* PARTNER PROGRAM PLAN */}
-      <div className="rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden mb-10 p-6 md:p-8">
+      <div className="rounded-[24px] md:rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden mb-10 p-4 sm:p-6 md:p-8">
         <h1 className="text-2xl font-black text-gray-900">Partner Program Plan</h1>
-        <div className="mt-4 flex justify-between text-gray-700 space-y-2 border border-purple-100 py-2 px-4">
-        <p className="mt-2 text-gray-600">Public Health Insurance (DAK) </p><p className="mt-2 font-medium text-gray-800">€30</p>
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-gray-700 border border-purple-100 py-2 px-4 rounded-xl">
+        <p className="text-gray-600">Public Health Insurance (DAK) </p><p className="font-medium text-gray-800">EUR 30</p>
 
         </div>
       </div>
