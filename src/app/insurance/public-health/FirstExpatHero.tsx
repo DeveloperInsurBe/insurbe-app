@@ -28,7 +28,7 @@ const features = [
     title: "Support Anytime, Anywhere",
     desc: "Our international support team is available 24/7 to assist you in your preferred language.",
     cta: "We're here for you",
-    image: "/hero_assets/sofa.png",
+    image: "/hero_assets/privatei.jpg",
     imgAlt: "24/7 support",
   },
 ];

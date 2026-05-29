@@ -83,7 +83,7 @@ export default function PublicInsuranceBenefits() {
   return (
     <section
       id="learnmore"
-      className="relative py-20 px-4 sm:px-8 lg:px-16 overflow-hidden"
+      className="relative py-20 px-4 sm:px-8 lg:px-10 overflow-hidden"
       style={{
         background:
           "linear-gradient(160deg, #f8f5ff 0%, #faf8ff 50%, #f0ebff 100%)",

@@ -6,7 +6,6 @@ import {
   Check,
   CheckCircle,
   Star,
-  Sparkles,
   ChevronDown,
   ChevronUp,
   Diamond,
@@ -195,7 +194,7 @@ export default function PrivateInsuranceTariffs() {
   const handlePlanSelect = (
     key: ComparisonKey,
     title: string,
-    price: string
+    price: string,
   ) => {
     const cfg = PLAN_CONFIG[key];
     const planData = {
@@ -220,19 +219,16 @@ export default function PrivateInsuranceTariffs() {
   };
 
   return (
-    <section className="relative py-16 px-4 overflow-hidden">
+    <section className="relative py-16 px-4 sm:px-20 overflow-hidden">
       <div className="max-w-7xl mx-auto">
-
         {/* Header */}
         <div className="text-center mb-14">
-          <span className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
-            <Sparkles className="w-4 h-4" />
+          <span className="inline-flex items-center gap-2 bg-purple-100 text-primary px-4 py-2 rounded-full text-sm font-semibold mb-4">
+            <ShieldCheck className="w-4 h-4" />
             Choose Your Coverage
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">
-            Which{" "}
-            <span className="text-purple-600">tariff suits</span>{" "}
-            you best
+            Which <span className="text-primary">tariff suits</span> you best
           </h2>
           <p className="mt-4 text-gray-500 max-w-xl mx-auto text-base">
             Maximum freedom of choice with first-class medical care.
@@ -249,44 +245,43 @@ export default function PrivateInsuranceTariffs() {
                 key={key}
                 className={`relative rounded-3xl p-8 flex flex-col ${
                   isPlus
-                    ? "bg-purple-600 text-white shadow-2xl"
+                    ? "bg-primary text-white shadow-2xl"
                     : "bg-white border border-gray-200 shadow-lg"
                 }`}
               >
                 {/* Most Popular badge */}
                 {isPlus && (
-                  <div
-                    className="absolute -top-4 left-1/2 -translate-x-1/2 bg-purple-400 text-white text-xs font-bold px-4 py-1.5 rounded-full flex items-center gap-1 whitespace-nowrap"
-                  >
-                    <Star className="w-3 h-3 fill-white" />
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-purple-300 text-emerald-950 text-xs font-bold px-4 py-1.5 rounded-full shadow-[0_8px_20px_rgba(16,185,129,0.35)] flex items-center gap-1 whitespace-nowrap">
+                    <Star className="w-3 h-3 fill-emerald-950 text-emerald-950" />
                     Most Popular
                   </div>
                 )}
 
-                {/* Icon */}
-                <div
-                  className={`w-11 h-11 rounded-full flex items-center justify-center mb-4 ${
-                    isPlus
-                      ? "bg-white/20 text-white"
-                      : "bg-purple-100 text-purple-600"
-                  }`}
-                >
-                  {icon}
+                <div className="flex items-start mb-4 sm:items-center justify-start gap-3">
+                  {/* Icon */}
+                  <div
+                    className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shrink-0 ${
+                      isPlus
+                        ? "bg-white/20 text-white"
+                        : "bg-purple-100 text-primary"
+                    }`}
+                  >
+                    {icon}
+                  </div>
+                  {/* Title */}
+                  <h3
+                    className={`text-xl sm:text-2xl leading-tight font-bold mb-1 ${
+                      isPlus ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    {title}
+                  </h3>
                 </div>
 
-                {/* Title */}
-                <h3
-                  className={`text-2xl font-bold mb-1 ${
-                    isPlus ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {title}
-                </h3>
-
                 {/* Price */}
-                <div className="flex items-baseline gap-2 mb-6">
+                <div className="flex items-baseline gap-2 mb-4">
                   <span
-                    className={`text-3xl font-bold ${
+                    className={`text-2xl font-bold ${
                       isPlus ? "text-white" : "text-gray-900"
                     }`}
                   >
@@ -311,7 +306,7 @@ export default function PrivateInsuranceTariffs() {
                       }`}
                     >
                       <CheckCircle
-                        className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                        className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
                           isPlus ? "text-white/90" : "text-primary"
                         }`}
                       />
@@ -323,10 +318,8 @@ export default function PrivateInsuranceTariffs() {
                 {/* CTA */}
                 <button
                   onClick={() => handlePlanSelect(key, title, price)}
-                  className={`w-full py-3.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-opacity hover:opacity-90 ${
-                    isPlus
-                      ? "bg-white text-purple-600"
-                      : "bg-purple-600 text-white"
+                  className={`w-full py-3.5 rounded-full cursor-pointer font-semibold text-sm flex items-center justify-center gap-2 transition-opacity hover:opacity-90 ${
+                    isPlus ? "bg-white text-primary" : "bg-primary text-white"
                   }`}
                 >
                   Select Plan
@@ -342,7 +335,7 @@ export default function PrivateInsuranceTariffs() {
           <div className="text-center mt-8">
             <button
               onClick={() => setShowCompare(true)}
-              className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-white font-semibold shadow-lg transition-opacity hover:opacity-90 bg-purple-600"
+              className="inline-flex items-center cursor-pointer gap-2 px-10 py-4 rounded-full text-white font-semibold shadow-lg transition-opacity hover:opacity-90 bg-primary"
             >
               Compare tariffs
               <ChevronDown className="w-5 h-5" />
@@ -355,10 +348,7 @@ export default function PrivateInsuranceTariffs() {
           <div className="mt-4">
             <div className="space-y-0 px-8 py-4">
               {comparisonData.map((item) => (
-                <div
-                  key={item.label}
-                  className="border-b border-gray-300"
-                >
+                <div key={item.label} className="border-b border-gray-300">
                   <h3 className="text-sm font-semibold pl-8 pt-4 pb-2 text-gray-800">
                     {item.label}
                   </h3>
@@ -378,7 +368,7 @@ export default function PrivateInsuranceTariffs() {
           <div className="text-center mt-10">
             <button
               onClick={() => setShowCompare(false)}
-              className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-white font-semibold shadow-lg transition-opacity hover:opacity-90 bg-purple-600"
+              className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-white font-semibold shadow-lg transition-opacity hover:opacity-90 bg-primary"
             >
               Hide tariffs
               <ChevronUp className="w-5 h-5" />
@@ -394,7 +384,7 @@ export default function PrivateInsuranceTariffs() {
                 {item.icon}
               </div>
               <div>
-                <p className="text-sm font-semibold text-purple-600">
+                <p className="text-sm font-semibold text-primary">
                   {item.title}
                 </p>
                 <p className="text-xs text-gray-500 leading-snug mt-0.5">
@@ -404,7 +394,6 @@ export default function PrivateInsuranceTariffs() {
             </div>
           ))}
         </div>
-
       </div>
     </section>
   );

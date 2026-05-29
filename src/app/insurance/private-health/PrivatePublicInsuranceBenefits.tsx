@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import {
   Shield,
   CalendarDays,
@@ -14,34 +15,40 @@ const benefits = [
     desc: "We offer guaranteed premium relief in old age. Think of it as a savings pot when capital is set aside to reduce premiums later. Best of all, your employer contributes up to 50% of those additional savings.",
     cta: "More information about premium relief",
     icon: Shield,
+    image: "/hero_assets/parents.jpg",
+    imageAlt: "Premium relief illustration",
   },
   {
     title: "Daily sickness benefits",
     desc: "Employees are usually covered by their employer for 42 days. To secure yourself against long-term illness, daily sickness benefits step in and compensate for income loss.",
     cta: "More information on daily sickness benefits",
     icon: CalendarDays,
+    image: "/hero_assets/illness.jpg",
+    imageAlt: "Daily sickness benefits illustration",
   },
   {
     title: "No-claim bonus",
     desc: "First Class Pro+ and Business Class Pro tariffs include a no-claim bonus if no benefits are claimed (except dental cleanings, check-ups, and vaccinations) for one year.",
     cta: "More information about no-claim bonus",
     icon: BadgeDollarSign,
+    image: "/hero_assets/cliam.jpg",
+    imageAlt: "No-claim bonus illustration",
   },
 ];
 
 export default function PrivatePublicInsuranceBenefits() {
   return (
     <section className="bg-[#faf9fc] py-16">
-      <div className="mx-auto max-w-[1320px] px-5">
+      <div className="mx-auto max-w-7xl sm:px-20 px-4">
         {/* HEADING */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="mb-14 text-center"
+          className="mb-10 text-center"
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-[-1px] text-[#0c1533] sm:text-[42px] lg:text-[58px]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-black sm:px-12">
             More control over your private{" "}
             <span className="bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
               health insurance
@@ -53,46 +60,62 @@ export default function PrivatePublicInsuranceBenefits() {
             benefits.
           </p>
         </motion.div>
-
         {/* CARDS */}
-        <div className="grid gap-7 lg:grid-cols-3">
+        <div className="grid gap-8 lg:grid-cols-3">
           {benefits.map((item, idx) => {
             const Icon = item.icon;
 
             return (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 25 }}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="flex min-h-[390px] flex-col rounded-[26px] border border-[#ebe7f3] bg-white px-7 py-7"
+                transition={{ duration: 0.6, delay: idx * 0.15 }}
+                whileHover={{ y: -10 }}
+                className="group relative overflow-hidden rounded-[32px] border border-white/50 bg-white/80 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.08)]"
               >
-                <div className="flex items-center gap-4">
-                  {/* ICON */}
-                  <div className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-full bg-[#f3ebff]">
-                    <Icon className="h-7 w-7 text-primary" strokeWidth={2} />
-                  </div>
+                {/* Glow Effect */}
+                <div className="absolute -right-20 -top-20 h-52 w-52 rounded-full bg-purple-500/10 blur-3xl transition-all duration-500 group-hover:bg-purple-500/20" />
 
-                  {/* TITLE */}
-                  <h3 className="max-w-[240px] text-[18px] font-black leading-[1.15] tracking-[-0.5px] text-[#0d1635]">
-                    {item.title}
-                  </h3>
+                {/* Image */}
+                <div className="relative h-[250px] overflow-hidden">
+                  <Image
+                    src={item.image}
+                    alt={item.imageAlt}
+                    fill
+                    className="object-cover transition duration-700 group-hover:scale-110"
+                    sizes="(max-width:1024px) 100vw, 33vw"
+                  />
+
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+
+                  {/* Floating Icon */}
+                  <div className="absolute left-6 top-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/30 bg-white/20 backdrop-blur-md">
+                    <Icon className="h-8 w-8 text-white" strokeWidth={2} />
+                  </div>
                 </div>
 
-                {/* DESC */}
-                <p className="mt-7 text-[16px] leading-[2] text-[#6f7688]">
-                  {item.desc}
-                </p>
+                {/* Content */}
+                <div className="relative p-6">
+                 
 
-                {/* CTA */}
-                <button className="mt-auto flex items-center justify-between pt-5 text-left">
-                  <span className="max-w-full text-[16px] font-bold leading-[1.5] text-[#7c3aed]">
-                    {item.cta}
-                  </span>
+                  {/* Title */}
+                  <h3 className="text-[18px] font-black leading-tight text-[#0d1635]">
+                    {item.title}
+                  </h3>
 
-                  <ArrowRight className="h-5 w-5 shrink-0 text-[#7c3aed]" />
-                </button>
+                  {/* Description */}
+                  <p className="mt-2 text-[14px] leading-6 text-[#667085]">
+                    {item.desc}
+                  </p>
+
+                  
+                </div>
+
+                {/* Bottom Border Gradient */}
+                <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-purple-600 via-violet-500 to-fuchsia-500" />
               </motion.div>
             );
           })}
