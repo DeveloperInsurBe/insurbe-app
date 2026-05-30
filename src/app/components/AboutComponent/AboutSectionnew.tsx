@@ -77,12 +77,12 @@ export default function AboutSectionnew() {
 
             {/* Header */}
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
-              We Actively Strive To
+              Putting Customers
               <br />
-              Exceed Our
+              At The Heart Of
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-purple-500 to-purple-700">
-                Customers' Expectations
+                Everything We Do
               </span>
             </h2>
 
@@ -106,10 +106,10 @@ export default function AboutSectionnew() {
                     key={index}
                     variants={itemVariants}
                     whileHover={{ x: 5 }}
-                    className="group flex items-center gap-4 rounded-[22px] border border-[#ece7f6] bg-white/60 px-4 py-3 shadow-[0_8px_24px_rgba(130,10,209,0.05)] hover:shadow-[0_14px_30px_rgba(130,10,209,0.10)] transition-all duration-300"
+                    className="group flex items-center gap-3 rounded-[22px] border border-[#ece7f6] bg-white/60 px-3 py-2 shadow-[0_8px_24px_rgba(130,10,209,0.05)] hover:shadow-[0_14px_30px_rgba(130,10,209,0.10)] transition-all duration-300"
                   >
                     {/* Icon Circle */}
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                     {/* DIVIDER */}
@@ -117,10 +117,10 @@ export default function AboutSectionnew() {
 
                     {/* Text */}
                     <div className="flex-1 pt-1">
-                      <h3 className="text-md sm:text-lg font-medium text-gray-900 mb-1">
+                      <h3 className="text-md sm:text-md font-medium text-gray-900 mb-1">
                         {feature.title}
                       </h3>
-                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                      <p className="text-sm sm:text-[12px] text-gray-600 leading-relaxed">
                         {feature.description}
                       </p>
                     </div>
@@ -138,11 +138,6 @@ export default function AboutSectionnew() {
             viewport={{ once: true }}
             className="relative flex justify-center lg:justify-end order-1 lg:order-2"
           >
-            {/* OUTER BLUR SHADE */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-[92%] h-[92%] rounded-[50px] bg-gradient-to-br from-[#820ad1]/25 via-[#c084fc]/20 to-[#f3e8ff]/10 blur-3xl" />
-            </div>
-
             {/* BACK LAYER */}
             <div className="absolute top-8 right-0 w-full max-w-[480px] aspect-[4/4.5] rounded-[38px] bg-gradient-to-br from-[#820ad1]/20 to-[#c084fc]/10 border border-[#e9d5ff]/40 rotate-[5deg]" />
 
@@ -161,28 +156,8 @@ export default function AboutSectionnew() {
                     className="object-cover hover:scale-105 transition-transform duration-700"
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
-
-                  {/* DOUBLE SHADE OVERLAY */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#820ad1]/10 via-transparent to-[#ffffff]/5" />
                 </div>
               </div>
-            </div>
-
-            {/* SIDE LIGHT EFFECT */}
-            <div className="absolute top-1/2 -translate-y-1/2 -right-10 w-32 h-32 rounded-full bg-[#c084fc]/20 blur-3xl" />
-
-            {/* BOTTOM LIGHT EFFECT */}
-            <div className="absolute -bottom-10 left-10 w-52 h-32 rounded-full bg-[#820ad1]/15 blur-3xl" />
-
-            {/* TOP DOTS */}
-            <div className="absolute -top-6 left-10 hidden lg:grid grid-cols-6 gap-2 z-20">
-              {[...Array(18)].map((_, i) => (
-                <span
-                  key={i}
-                  className="w-[5px] h-[5px] rounded-full bg-[#d8b4fe]"
-                />
-              ))}
             </div>
           </motion.div>
         </div>

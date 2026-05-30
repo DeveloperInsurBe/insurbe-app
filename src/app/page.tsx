@@ -4,6 +4,8 @@ import FAQ from "./components/FAQ";
 import Featureshome from "./components/Featureshome";
 import HeroInsurancenew1 from "./components/HeroInsurancenew1";
 import ProductBanner from "./components/ProductBanner";
+import SubscribeSteps from "./components/SubscribeSteps";
+import FreeConsultation from "./freeConsultation/page";
 
 export default function Home() {
   return (
@@ -13,7 +15,9 @@ export default function Home() {
       <ChooseUs />
       <ProductBanner />
       <AboutSectionnew />
-      <FAQ />
+      <SubscribeSteps/>
+      <FreeConsultation/>
+     
     </main>
   );
 }
