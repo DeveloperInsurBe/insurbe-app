@@ -17,6 +17,10 @@ export async function GET(req: Request) {
     const applications = await prisma.application.findMany({
       where: {
         partnerId,
+        source: "partner",
+        status: {
+          not: "incomplete",
+        },
       },
 
       orderBy: {
