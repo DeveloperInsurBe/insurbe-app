@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const steps = [
   {
@@ -31,22 +32,22 @@ export default function SubscribeSteps() {
             Quick & Easy Process
           </span>
 
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-            Get Covered Online
-            <span className="block bg-gradient-to-r from-purple-600 via-purple-500 to-purple-700 bg-clip-text text-transparent">
-              In Just 2 Minutes
+          <h2 className="mt-4 text-3xl font-extrabold  text-slate-900 sm:text-4xl ">
+            Subscribe online{" "}
+            <span className="bg-gradient-to-r from-purple-600 via-purple-500 to-purple-700 bg-clip-text text-transparent">
+              In 2 Minutes
             </span>
           </h2>
 
           <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-slate-600">
-            Complete your application online in minutes.
+            And our team take over, it's simple and quick!
           </p>
         </div>
 
         {/* Desktop */}
         <div className="relative mx-auto mt-12 hidden max-w-5xl lg:block">
           {/* Progress Line */}
-          <div className="absolute left-12 right-12 top-6 h-[3px] rounded-full bg-purple-600" />
+          <div className="absolute left-36 right-36 top-6 h-[3px] rounded-full bg-purple-600" />
 
           <div className="grid grid-cols-3 gap-10">
             {steps.map((step, index) => (
@@ -64,8 +65,8 @@ export default function SubscribeSteps() {
                 </div>
 
                 {/* Title */}
-                <h3 className="mt-6 text-[22px] font-bold leading-snug text-slate-900">
-                  {step.title}
+                <h3 className="mt-6 text-[22px] font-medium leading-snug text-slate-900 px-6">
+                  {step.number}.{step.title}
                 </h3>
 
                 {/* Description */}
@@ -107,10 +108,13 @@ export default function SubscribeSteps() {
 
         {/* CTA */}
         <div className="mt-10 text-center">
-          <button className="group inline-flex cursor-pointer items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 px-8 py-3 text-base font-semibold text-white shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-            Subscribe To My Insurance
+          <Link
+            href="/products/insuranceJourney"
+            className="group inline-flex cursor-pointer items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 px-8 py-3 text-base font-semibold text-white shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+          >
+            Start Assessment
             <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </button>
+          </Link>
         </div>
       </div>
     </section>

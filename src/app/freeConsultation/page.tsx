@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export default function FreeConsultation() {
@@ -13,7 +14,7 @@ export default function FreeConsultation() {
             {/* LEFT IMAGE */}
             <div className="relative min-h-[320px] lg:min-h-[400px]">
               <Image
-                src="/hero_assets/consultation-team.jpg"
+                src="/hero_assets/consultation.png"
                 alt="Free Consultation"
                 fill
                 priority
@@ -52,7 +53,7 @@ export default function FreeConsultation() {
                 {/* Features */}
                 <div className="mt-8 flex flex-wrap gap-3">
                   <div className="rounded-full bg-white px-4 py-2 text-[12px] font-medium text-slate-700 shadow-sm">
-                    ✓ 15-Min Call
+                    ✓ 30-Min Call
                   </div>
 
                   <div className="rounded-full bg-white px-4 py-2 text-[12px] font-medium text-slate-700 shadow-sm">
@@ -66,10 +67,13 @@ export default function FreeConsultation() {
 
                 {/* CTA */}
                 <div className="mt-10">
-                  <button className="group inline-flex items-center cursor-pointer gap-3 rounded-xl bg-primary px-7 py-4 text-[14px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
-                    Free 15-Minute Consultation
+                  <Link
+                    href="/book-appointment"
+                    className="group inline-flex items-center cursor-pointer gap-3 rounded-xl bg-primary px-7 py-4 text-[14px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                  >
+                    Free 30-Minute Consultation
                     <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-                  </button>
+                  </Link>
                 </div>
 
                
