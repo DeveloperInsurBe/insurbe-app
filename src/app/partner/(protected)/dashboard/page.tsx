@@ -18,6 +18,9 @@ export default async function PartnerDashboard() {
   const baseWhere = {
     partnerId: partner.partnerId,
     source: "partner",
+    status: {
+      not: "incomplete",
+    },
   } as const;
 
   const now = new Date();

@@ -680,7 +680,8 @@ export async function POST(
 
         commission: app?.partnerId ? 5 : 0,
 
-        commissionStatus: app?.partnerId ? "Approved" : "Not Eligible",
+        // Partner commissions must be manually reviewed; never auto-approve.
+        commissionStatus: app?.partnerId ? "Pending" : "Not Eligible",
       },
     });
 
