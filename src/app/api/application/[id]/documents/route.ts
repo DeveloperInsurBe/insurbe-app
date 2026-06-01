@@ -7,11 +7,19 @@ export async function POST(
   try {
     const { id } = await context.params;
     const body = await req.json();
+    const files = Array.isArray(body?.files) ? body.files : [];
+    const nowIso = new Date().toISOString();
+
+    const normalizedFiles = files.map((file: any) => ({
+      ...file,
+      uploadedAt: file?.uploadedAt || nowIso,
+    }));
 
     await prisma.application.update({
       where: { id },
       data: {
-        uploadedDocs: body.files,
+        uploadedDocs: normalizedFiles,
+        status: "application_updated",
       },
     });
 

@@ -33,8 +33,12 @@ interface Policy {
 
 interface Document {
   id: string;
+  applicationId: string;
   title: string;
   uploadedAt: string;
+  base64?: string;
+  fileName?: string;
+  mimeType?: string;
 }
 
 const STATUS_META: Record<
@@ -59,6 +63,16 @@ const STATUS_META: Record<
     progress: 100,
     nextStep: "Policy successfully submitted",
     nextDetail: "Download your completed application PDF below.",
+  },
+  application_updated: {
+    label: "Application updated",
+    color: "text-sky-600",
+    bg: "bg-sky-50",
+    border: "border-sky-200",
+    dot: "bg-sky-500",
+    progress: 80,
+    nextStep: "Application updated successfully",
+    nextDetail: "Review and complete your final submission.",
   },
   incomplete: {
     label: "In Progress",
@@ -239,6 +253,8 @@ export default function DashboardPage() {
                 ? "completed"
                 : a.status === "completed"
                   ? "completed"
+                  : a.status === "application_updated"
+                    ? "application_updated"
                   : a.status === "incomplete"
                     ? "incomplete"
                     : "pending",
@@ -249,13 +265,41 @@ export default function DashboardPage() {
             };
           }),
         );
-        setDocuments(
-          apps.map((a: any) => ({
-            id: a.id,
-            title: "Health Insurance Application",
-            uploadedAt: new Date(a.updatedAt ?? a.createdAt).toDateString(),
-          })),
-        );
+        const hallescheDocuments: Document[] = apps
+          .filter((a: any) => a.provider !== "DAK" && a.provider !== "TK")
+          .flatMap((a: any) => {
+            const uploadedDocs = Array.isArray(a.uploadedDocs) ? a.uploadedDocs : [];
+            const uploadedAt = new Date(a.createdAt).toDateString();
+            const docs: Document[] = [];
+
+            if (a.pdfBase64) {
+              docs.push({
+                id: `${a.id}-application`,
+                applicationId: a.id,
+                title: "Hallesche Application",
+                uploadedAt,
+                base64: a.pdfBase64,
+                fileName: "Hallesche_Application.pdf",
+                mimeType: "application/pdf",
+              });
+            }
+
+            uploadedDocs.forEach((f: any, idx: number) => {
+              docs.push({
+                id: `${a.id}-doc-${idx}`,
+                applicationId: a.id,
+                title: f?.name || `Hallesche Document ${idx + 1}`,
+                uploadedAt,
+                base64: f?.base64,
+                fileName: f?.name || `Hallesche_Document_${idx + 1}`,
+                mimeType: f?.type || "application/octet-stream",
+              });
+            });
+
+            return docs;
+          });
+
+        setDocuments(hallescheDocuments);
         hasFetchedRef.current = true;
       } catch (err: any) {
         if (err?.name !== "AbortError") console.error("❌", err);
@@ -290,6 +334,32 @@ export default function DashboardPage() {
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch {
       alert("Could not load PDF.");
+    }
+  };
+
+  const downloadDocument = async (doc: Document) => {
+    const base64 = doc.base64;
+    if (!base64) {
+      await downloadPDF(doc.applicationId);
+      return;
+    }
+
+    try {
+      const match = String(base64).match(/^data:(.*?);base64,(.*)$/);
+      const mimeType = match?.[1] || doc.mimeType || "application/octet-stream";
+      const cleanBase64 = match?.[2] || String(base64).replace(/^data:.*;base64,/, "");
+      const bytes = Uint8Array.from(atob(cleanBase64), (c) => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = doc.fileName || "Hallesche_Document";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      alert("Could not download document.");
     }
   };
 
@@ -780,13 +850,13 @@ export default function DashboardPage() {
                         </p>
 
                         <p className="text-[11px] text-gray-400">
-                          Updated {doc.uploadedAt}
+                          Application created • {doc.uploadedAt}
                         </p>
                       </div>
                     </div>
 
                     <button
-                      onClick={() => downloadPDF(doc.id)}
+                      onClick={() => downloadDocument(doc)}
                       className="w-full sm:w-auto justify-center flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-700 text-white text-xs font-semibold rounded-xl flex-shrink-0 transition-colors"
                     >
                       <Download className="w-3 h-3" />
