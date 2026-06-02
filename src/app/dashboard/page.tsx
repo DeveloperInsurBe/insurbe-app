@@ -506,7 +506,7 @@ export default function DashboardPage() {
                     whileTap={{ scale: 0.97 }}
                     onClick={() => {
                       const f = policies.find((p) => p.status !== "completed");
-                      if (f) router.push(`/application/${f.id}`);
+                      if (f) router.push(`/application/${f.id}?resume=1`);
                     }}
                     className="self-start sm:self-center flex-shrink-0 bg-white text-blue-600 text-sm font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2"
                   >
@@ -712,7 +712,7 @@ export default function DashboardPage() {
                                     whileHover={{ y: -1 }}
                                     whileTap={{ scale: 0.97 }}
                                     onClick={() =>
-                                      router.push(`/application/${policy.id}`)
+                                      router.push(`/application/${policy.id}?resume=1`)
                                     }
                                     className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors"
                                   >
@@ -794,7 +794,7 @@ export default function DashboardPage() {
                                 <motion.button
                                   whileTap={{ scale: 0.97 }}
                                   onClick={() =>
-                                    router.push(`/application/${policy.id}`)
+                                    router.push(`/application/${policy.id}?resume=1`)
                                   }
                                   className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl"
                                 >

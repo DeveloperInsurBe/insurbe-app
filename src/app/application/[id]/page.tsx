@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApplicationStore } from "@/app/stores/applicationStore";
 import { useJourneyStore } from "@/app/stores/journeyStore";
@@ -43,12 +43,14 @@ export default function ApplicationPage() {
 
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const application = useApplicationStore((s) => s.application);
   const setApplication = useApplicationStore((s) => s.setApplication);
 
   const [loading, setLoading] = useState(true);
   const [agreed, setAgreed] = useState(false);
+  const [hasAutoResumed, setHasAutoResumed] = useState(false);
 
   // 🔥 SAFE FETCH + MERGE (NO OVERWRITE)
   useEffect(() => {
@@ -107,18 +109,32 @@ export default function ApplicationPage() {
     if (id) fetchApplication();
   }, [id, setApplication]);
 
-  // 🔥 STEP DETECTION
-  const nextStep = steps.find((s) => {
-    if (!s.key) return false;
+  const stepRouteMap: Record<StepKey, string> = {
+    personalDetails: "personal",
+    financialHistory: "financial",
+    insuranceHistory: "insurance",
+    healthAnswers: "health",
+  };
 
-    if (s.key === "personalDetails") {
-      return application?.personalDetails?.isComplete !== true;
+  const isStepComplete = (stepKey: StepKey) => {
+    const data = application?.[stepKey];
+
+    if (stepKey === "personalDetails") {
+      return !!(
+        data?.firstName &&
+        data?.email &&
+        data?.day &&
+        data?.gender &&
+        data?.street &&
+        data?.marital &&
+        data?.countries &&
+        data?.relocationDay &&
+        data?.residence
+      );
     }
 
-    if (s.key === "financialHistory") {
-      const data = application?.financialHistory;
-
-      return !(
+    if (stepKey === "financialHistory") {
+      return !!(
         data?.employmentStatus &&
         data?.jobTitle &&
         data?.employerName &&
@@ -128,60 +144,38 @@ export default function ApplicationPage() {
       );
     }
 
-    return !application?.[s.key];
-  });
-
-  const stepRouteMap: Record<StepKey, string> = {
-    personalDetails: "personal",
-    financialHistory: "financial",
-    insuranceHistory: "insurance",
-    healthAnswers: "health",
+    return !!(
+      data &&
+      Object.keys(data).length > 0 &&
+      Object.values(data).some((v) => v !== null && v !== undefined && v !== "")
+    );
   };
+
+  const nextStep = steps.find((s) => !isStepComplete(s.key as StepKey));
 
   // 🔥 PROGRESS CALCULATION
   const completedCount = application
-    ? steps.filter((s) => {
-        if (!s.key) return true;
-
-        const data = application?.[s.key];
-
-        if (s.key === "personalDetails") {
-          return !!(
-            data?.firstName &&
-            data?.email &&
-            data?.day &&
-            data?.gender &&
-            data?.street &&
-            data?.marital &&
-            data?.countries &&
-            data?.relocationDay &&
-            data?.residence
-          );
-        }
-
-        if (s.key === "financialHistory") {
-          return !!(
-            data?.employmentStatus &&
-            data?.jobTitle &&
-            data?.employerName &&
-            data?.annualIncome &&
-            data?.employedOutsideGermany &&
-            data?.hasGermanTaxId
-          );
-        }
-
-        // fallback (keep existing behavior for others)
-        return (
-          data &&
-          Object.keys(data).length > 0 && // 🔥 IMPORTANT FIX
-          Object.values(data).some(
-            (v) => v !== null && v !== undefined && v !== "",
-          )
-        );
-      }).length
+    ? steps.filter((s) => isStepComplete(s.key as StepKey)).length
     : 0;
 
   const progressPct = Math.round((completedCount / steps.length) * 100);
+  const ctaStepKey = (nextStep?.key as StepKey | undefined) || "healthAnswers";
+
+  useEffect(() => {
+    if (loading || !application) return;
+    if (completedCount > 0) setAgreed(true);
+  }, [loading, application, completedCount]);
+
+  useEffect(() => {
+    if (loading || !id || hasAutoResumed) return;
+
+    if (searchParams.get("resume") !== "1") return;
+    if (!nextStep?.key) return;
+
+    const stepKey = nextStep.key as StepKey;
+    setHasAutoResumed(true);
+    router.replace(`/application/${id}/${stepRouteMap[stepKey]}`);
+  }, [loading, id, hasAutoResumed, searchParams, nextStep, router]);
 
   if (loading) {
     return (
@@ -278,30 +272,12 @@ export default function ApplicationPage() {
           }}
         >
           {steps.map((step, i) => {
-            const done =
-              step.key === null
-                ? true
-                : step.key === "personalDetails"
-                  ? application?.personalDetails?.isComplete === true
-                  : step.key === "financialHistory"
-                    ? !!(
-                        application?.financialHistory?.employmentStatus &&
-                        application?.financialHistory?.jobTitle &&
-                        application?.financialHistory?.employerName &&
-                        application?.financialHistory?.annualIncome &&
-                        application?.financialHistory?.employedOutsideGermany &&
-                        application?.financialHistory?.hasGermanTaxId
-                      )
-                    : application?.[step.key] &&
-                      Object.keys(application?.[step.key] || {}).length > 0 &&
-                      Object.values(application?.[step.key] || {}).some(
-                        (v) => v !== null && v !== undefined && v !== "",
-                      );
+            const done = isStepComplete(step.key as StepKey);
 
             const isNext = nextStep?.key === step.key;
 
             return (
-              <motion.div
+              <motion.button
                 key={step.label}
                 variants={{
                   hidden: { opacity: 0, y: 20 },
@@ -317,7 +293,10 @@ export default function ApplicationPage() {
                     : isNext
                       ? "bg-white/90 border-violet-300 shadow-lg shadow-violet-100"
                       : "bg-white/70 border-black/[0.07]"
-                }`}
+                } cursor-pointer`}
+                onClick={() =>
+                  router.push(`/application/${id}/${stepRouteMap[step.key as StepKey]}`)
+                }
               >
                 {/* Step number */}
                 <span
@@ -385,7 +364,7 @@ export default function ApplicationPage() {
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                 )}
-              </motion.div>
+              </motion.button>
             );
           })}
         </motion.div>
@@ -479,16 +458,12 @@ export default function ApplicationPage() {
           {/* CTA Button */}
           <motion.button
             onClick={() => {
-              if (nextStep?.key) {
-                const stepKey = nextStep.key as StepKey;
-
-                router.push(`/application/${id}/${stepRouteMap[stepKey]}`);
-              }
+              router.push(`/application/${id}/${stepRouteMap[ctaStepKey]}`);
             }}
             disabled={!agreed}
             whileHover={agreed ? { y: -2, scale: 1.02 } : {}}
             whileTap={agreed ? { scale: 0.97 } : {}}
-            className="relative overflow-hidden rounded-xl px-8 py-3.5 font-bold text-sm text-white bg-gradient-to-r from-violet-600 via-purple-600 to-purple-600 shadow-lg shadow-violet-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-violet-300 hover:shadow-xl flex items-center justify-center gap-2 sm:flex-shrink-0"
+            className="relative overflow-hidden cursor-pointer rounded-xl px-8 py-3.5 font-bold text-sm text-white bg-gradient-to-r from-violet-600 via-purple-600 to-purple-600 shadow-lg shadow-violet-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-violet-300 hover:shadow-xl flex items-center justify-center gap-2 sm:flex-shrink-0"
           >
             {/* Shimmer */}
             <motion.span

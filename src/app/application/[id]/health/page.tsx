@@ -7,6 +7,13 @@ import ApplicationStepper from "@/app/components/privateApplications/Application
 import { useApplicationStore } from "@/app/stores/applicationStore";
 
 type Form = Record<string, any>;
+type DocumentReference = {
+  id?: string;
+  name: string;
+  size?: number;
+  type?: string;
+  uploadedAt?: string;
+};
 type Screen =
   | "steps"
   | "book-appointment"
@@ -671,6 +678,32 @@ export default function MedicalPage() {
   const current = steps[stepIndex];
   const isLast = stepIndex === totalSteps - 1;
   const progress = Math.round((stepIndex / totalSteps) * 100);
+  const idValue = Array.isArray(id) ? id[0] : id;
+
+  const toDocumentReference = (doc: any): DocumentReference | null => {
+    if (!doc || typeof doc !== "object") return null;
+
+    return {
+      id: doc.id,
+      name: doc.name || "Document",
+      size: doc.size,
+      type: doc.type || doc.mimeType || "",
+      uploadedAt: doc.uploadedAt,
+    };
+  };
+
+  const sanitizeHealthPayload = (payload: Form): Form => {
+    const docs = Array.isArray(payload?.documents)
+      ? payload.documents
+          .map((doc: any) => toDocumentReference(doc))
+          .filter(Boolean)
+      : [];
+
+    return {
+      ...payload,
+      documents: docs,
+    };
+  };
 
   const updateStep = useApplicationStore((s) => s.updateStep);
   const application = useApplicationStore((s) => s.application);
@@ -689,18 +722,18 @@ export default function MedicalPage() {
   }, [form]);
 
   useEffect(() => {
-    if (!id || Object.keys(form).length === 0) return;
+    if (!idValue || Object.keys(form).length === 0) return;
     const t = setTimeout(async () => {
       try {
-        await fetch(`/api/application/${id}/health`, {
+        await fetch(`/api/application/${idValue}/health`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
+          body: JSON.stringify(sanitizeHealthPayload(form)),
         });
       } catch {}
     }, 800);
     return () => clearTimeout(t);
-  }, [form, id]);
+  }, [form, idValue]);
 
   // ── Canvas helpers ──────────────────────────────────────────────────────
   const getCtx = () => {
@@ -778,6 +811,11 @@ export default function MedicalPage() {
 
   const handleFileChange = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    if (!idValue) {
+      setError("Missing application id.");
+      return;
+    }
+
     const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
 
     const allowedTypes = [
@@ -842,36 +880,63 @@ export default function MedicalPage() {
       });
     };
 
-    const uploaded = await Promise.all(
-      Array.from(files).map(async (f) => {
-        // IMAGE compression
-        if (f.type.startsWith("image/")) {
-          const compressed = await compressImage(f);
+    try {
+      const uploadPayload = await Promise.all(
+        Array.from(files).map(async (f) => {
+          // IMAGE compression
+          if (f.type.startsWith("image/")) {
+            const compressed = await compressImage(f);
 
-          return {
-            name: f.name,
-            size: f.size,
-            base64: compressed,
-          };
-        }
-
-        // PDF/DOC normal
-        return new Promise<any>((res, rej) => {
-          const r = new FileReader();
-
-          r.onload = () =>
-            res({
+            return {
               name: f.name,
               size: f.size,
-              base64: r.result,
-            });
+              type: "image/jpeg",
+              base64: compressed,
+            };
+          }
 
-          r.onerror = rej;
-          r.readAsDataURL(f);
-        });
-      }),
-    );
-    handleChange("documents", [...(form.documents || []), ...uploaded]);
+          // PDF/DOC normal
+          return new Promise<any>((res, rej) => {
+            const r = new FileReader();
+
+            r.onload = () =>
+              res({
+                name: f.name,
+                size: f.size,
+                type: f.type,
+                base64: r.result,
+              });
+
+            r.onerror = rej;
+            r.readAsDataURL(f);
+          });
+        }),
+      );
+
+      const uploadRes = await fetch(`/api/application/${idValue}/documents`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ files: uploadPayload, append: true }),
+      });
+
+      if (!uploadRes.ok) {
+        setError("Upload failed. Please try a smaller image or PDF.");
+        return;
+      }
+
+      const uploadData = await uploadRes.json().catch(() => ({}));
+      const uploadedRefs = Array.isArray(uploadData?.uploadedRefs)
+        ? uploadData.uploadedRefs
+            .map((doc: any) => toDocumentReference(doc))
+            .filter(Boolean)
+        : uploadPayload.map((doc: any) => toDocumentReference(doc)).filter(Boolean);
+
+      handleChange("documents", [...(form.documents || []), ...uploadedRefs]);
+      setError(null);
+    } catch (e) {
+      console.error("File upload failed", e);
+      setError("Upload failed. Please try a smaller image or PDF.");
+    }
   };
 
   const handleChange = (name: string, value: any) => {
@@ -964,7 +1029,13 @@ export default function MedicalPage() {
   useEffect(() => {
     const financial = application?.financialHistory;
     if (financial?.documents && !form.documents) {
-      setForm((prev: any) => ({ ...prev, documents: [financial.documents] }));
+      const refs = Array.isArray(financial.documents)
+        ? financial.documents
+            .map((doc: any) => toDocumentReference(doc))
+            .filter(Boolean)
+        : [toDocumentReference(financial.documents)].filter(Boolean);
+
+      setForm((prev: any) => ({ ...prev, documents: refs }));
     }
   }, [application]);
 
@@ -1031,6 +1102,11 @@ export default function MedicalPage() {
   //    loader if any redirectOnYes field is "Yes". API never called.
   // ════════════════════════════════════════════════════════════════════════
   const handleSubmit = async () => {
+    if (!idValue) {
+      setError("Missing application id.");
+      return;
+    }
+
     const redirectFields = [
       "outpatient3y",
       "inpatient5y",
@@ -1080,13 +1156,13 @@ export default function MedicalPage() {
       );
 
     try {
-      const cleanForm = JSON.parse(JSON.stringify(form));
+      const cleanForm = sanitizeHealthPayload(JSON.parse(JSON.stringify(form)));
       console.log("📦 FULL FORM DATA:", cleanForm);
       console.log("🎯 TARIFF IDS:", cleanForm.tariffIds);
 
       await advanceLoader(1, 900);
 
-      let healthRes = await fetch(`/api/application/${id}/health`, {
+      let healthRes = await fetch(`/api/application/${idValue}/health`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cleanForm),
@@ -1095,7 +1171,7 @@ export default function MedicalPage() {
         console.warn("⚠️ Database cold start, retrying...");
         setLoaderStep(0);
         await new Promise((r) => setTimeout(r, 2500));
-        healthRes = await fetch(`/api/application/${id}/health`, {
+        healthRes = await fetch(`/api/application/${idValue}/health`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(cleanForm),
@@ -1112,7 +1188,7 @@ export default function MedicalPage() {
 
       const coords = await getLocation();
 
-      const completeRes = await fetch(`/api/application/${id}/complete`, {
+      const completeRes = await fetch(`/api/application/${idValue}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
