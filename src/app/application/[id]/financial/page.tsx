@@ -244,6 +244,7 @@ export default function FinancialPage() {
 
   const totalSteps = questions.length;
   const current = questions[stepIndex] as any;
+  const idValue = Array.isArray(id) ? id[0] : id;
   useEffect(() => {
     if (
       questions[stepIndex]?.key === "germanTaxIdNumber" &&
@@ -269,23 +270,65 @@ export default function FinancialPage() {
     updateStep("financialHistory", updated);
   };
 
+  const saveFinancial = async (payload: Form) => {
+    if (!idValue) {
+      throw new Error("Missing application id");
+    }
+
+    const response = await fetch(`/api/application/${idValue}/financial`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      return response.json();
+    }
+
+    // Some local dev states return HTML 404 for nested route mismatch.
+    // Retry through the base endpoint so continue flow is not blocked.
+    if (response.status === 404) {
+      const fallback = await fetch(`/api/application/${idValue}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          financialHistory: payload,
+          status: "incomplete",
+        }),
+      });
+
+      if (fallback.ok) {
+        return fallback.json();
+      }
+    }
+
+    let errorMessage = `Save failed (${response.status})`;
+    try {
+      const text = await response.text();
+      if (text) {
+        const parsed = JSON.parse(text);
+        errorMessage = parsed?.error || errorMessage;
+      }
+    } catch {
+      // Keep status-based fallback message
+    }
+
+    throw new Error(errorMessage);
+  };
+
   useEffect(() => {
-    if (!id || Object.keys(form).length === 0) return;
+    if (!idValue || Object.keys(form).length === 0) return;
 
     const timeout = setTimeout(async () => {
       try {
-        await fetch(`/api/application/${id}/financial`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
+        await saveFinancial(form);
       } catch (err) {
         console.error("Auto-save failed", err);
       }
     }, 800);
 
     return () => clearTimeout(timeout);
-  }, [form, id]);
+  }, [form, idValue]);
 
   const handleFileChange = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -340,21 +383,19 @@ export default function FinancialPage() {
 
   const handleSubmit = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await fetch(`/api/application/${id}/financial`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      const updated = await res.json();
+      const updated = await saveFinancial(form);
 
       // ✅ sync Zustand
       setApplication(updated);
       localStorage.removeItem("financialForm");
-      router.push(`/application/${id}/insurance`);
+      router.push(`/application/${idValue}/insurance`);
     } catch (err) {
       console.error("❌ Error saving", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to save financial details."
+      );
       setLoading(false);
     }
   };
