@@ -16,7 +16,6 @@ type DocumentReference = {
 };
 type Screen =
   | "steps"
-  | "book-appointment"
   | "summary"
   | "complete"
   | "post-summary";
@@ -181,7 +180,7 @@ function HealthGuidanceModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
-        className="fixed inset-0 z-50 flex items-center justify-center px-4"
+        className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         style={{
           background: "rgba(15, 10, 40, 0.55)",
           backdropFilter: "blur(8px)",
@@ -192,7 +191,7 @@ function HealthGuidanceModal({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.96 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="relative w-full max-w-[440px] bg-white rounded-3xl overflow-hidden shadow-2xl"
+          className="relative my-auto w-full max-w-[620px] bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl"
           style={{
             boxShadow:
               "0 32px 80px rgba(109,40,217,0.2), 0 8px 24px rgba(0,0,0,0.1)",
@@ -200,7 +199,7 @@ function HealthGuidanceModal({
         >
           {/* ── Gradient hero ── */}
           <div
-            className="relative h-[192px] flex items-center justify-center overflow-hidden"
+            className="relative h-[88px] sm:h-[96px] overflow-hidden"
             style={{
               background:
                 "linear-gradient(135deg, #3b0764 0%, #5b21b6 35%, #7c3aed 65%, #a855f7 100%)",
@@ -217,8 +216,8 @@ function HealthGuidanceModal({
               className="absolute w-24 h-24 rounded-full"
               style={{
                 background: "rgba(255,255,255,0.05)",
-                top: -12,
-                right: -12,
+                top: -18,
+                right: 26,
               }}
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 4, repeat: Infinity }}
@@ -227,42 +226,44 @@ function HealthGuidanceModal({
               className="absolute w-16 h-16 rounded-full"
               style={{
                 background: "rgba(255,255,255,0.06)",
-                bottom: 16,
-                left: 20,
+                bottom: -18,
+                left: 22,
               }}
               animate={{ scale: [1, 1.08, 1] }}
               transition={{ duration: 5, repeat: Infinity, delay: 1 }}
             />
-            <div
-              className="relative z-10 w-[72px] h-[72px] rounded-2xl flex items-center justify-center"
-              style={{
-                background: "rgba(255,255,255,0.14)",
-                border: "1.5px solid rgba(255,255,255,0.28)",
-                backdropFilter: "blur(8px)",
-              }}
-            >
-              <svg
-                className="w-9 h-9"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
+              <div
+                className="w-[46px] h-[46px] rounded-xl flex items-center justify-center"
+                style={{
+                  background: "rgba(255,255,255,0.16)",
+                  border: "1.5px solid rgba(255,255,255,0.32)",
+                  backdropFilter: "blur(8px)",
+                }}
               >
-                <path d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-              </svg>
+                <svg
+                  className="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
+              </div>
             </div>
             <div
-              className="absolute bottom-0 left-0 right-0 h-8 bg-white"
+              className="absolute bottom-0 left-0 right-0 h-5 bg-white"
               style={{ borderRadius: "24px 24px 0 0" }}
             />
           </div>
 
           {/* ── Body ── */}
-          <div className="px-7 pb-7 pt-0">
+          <div className="relative -mt-3 sm:-mt-4 bg-white rounded-t-2xl sm:rounded-t-3xl px-4 sm:px-6 pb-5 sm:pb-6 pt-3 sm:pt-4">
             <div
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 mb-4"
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 mb-3"
               style={{ background: "#f3f0ff", border: "1px solid #e2d9ff" }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
@@ -271,7 +272,7 @@ function HealthGuidanceModal({
               </span>
             </div>
 
-            <h2 className="text-[22px] font-extrabold text-slate-900 leading-tight tracking-tight mb-3">
+            <h2 className="text-[21px] sm:text-[24px] font-extrabold text-slate-900 leading-tight tracking-tight mb-3">
               Let&apos;s make sure the cover
               <br />
               fits your situation
@@ -288,7 +289,7 @@ function HealthGuidanceModal({
             </p>
 
             <div
-              className="flex items-start gap-3 rounded-2xl p-4 mb-5"
+              className="flex items-start gap-3 rounded-2xl p-3.5 sm:p-4 mb-5"
               style={{ background: "#fafafa", border: "1px solid #f0eff8" }}
             >
               <div
@@ -378,61 +379,6 @@ function HealthGuidanceModal({
         </motion.div>
       </motion.div>
     </AnimatePresence>
-  );
-}
-
-// ── Book appointment screen ───────────────────────────────────────────────────
-function BookAppointmentScreen({ onBack }: { onBack: () => void }) {
-  const router = useRouter();
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-2xl shadow-xl shadow-black/[0.06] overflow-hidden"
-    >
-      <div className="h-1.5 w-full bg-gradient-to-r from-amber-400 to-orange-400" />
-      <div className="px-7 py-8">
-        <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center mb-5">
-          <svg
-            className="w-7 h-7 text-amber-500"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </div>
-        <h2 className="text-xl font-bold text-slate-900 mb-3">
-          A medical review is required
-        </h2>
-        <p className="text-sm text-slate-500 font-light leading-relaxed mb-6">
-          Based on your answer, we need to review your medical history with a
-          specialist before we can continue with your application. Please book
-          an appointment with our team so we can help you find the best
-          coverage.
-        </p>
-        <div className="space-y-3">
-          <motion.button
-            onClick={() => router.push("/book-appointment")}
-            whileHover={{ y: -2, scale: 1.01 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-md shadow-violet-200 hover:shadow-violet-300 transition-shadow"
-          >
-            Book Appointment
-          </motion.button>
-          <button
-            onClick={onBack}
-            className="w-full py-3 rounded-xl text-slate-500 text-sm font-medium hover:text-slate-700 transition-colors"
-          >
-            ← Go back
-          </button>
-        </div>
-      </div>
-    </motion.div>
   );
 }
 
@@ -623,6 +569,14 @@ const GROUPED_STEPS = [
   },
 ] as const;
 
+const REDIRECT_ON_YES_FIELDS = GROUPED_STEPS.flatMap((step) =>
+  "questions" in step
+    ? step.questions
+        .filter((q) => q.redirectOnYes)
+        .map((q) => q.key as string)
+    : [],
+);
+
 const POST_STEPS = [
   { key: "documents", title: "Upload supporting documents", type: "documents" },
   {
@@ -666,7 +620,6 @@ export default function MedicalPage() {
   const [hasDrawn, setHasDrawn] = useState(false);
 
   const [showGuidanceModal, setShowGuidanceModal] = useState(false);
-  const [pendingNext, setPendingNext] = useState(false);
 
   const [showLoader, setShowLoader] = useState(false);
   const [loaderStep, setLoaderStep] = useState(0);
@@ -978,17 +931,6 @@ export default function MedicalPage() {
     return null;
   };
 
-  // ── Check if any redirectOnYes question was answered Yes ───────────────
-  const checkRedirect = (): boolean => {
-    const s = current as any;
-    if (s.type === "multi-yesno" || s.type === "multi-yesno-count") {
-      return s.questions.some(
-        (q: any) => q.redirectOnYes && form[q.key] === "Yes",
-      );
-    }
-    return false;
-  };
-
   // ── handleNext: just validate and advance — modal only shows at submit ──
   const handleNext = () => {
     const err = validate();
@@ -1002,12 +944,10 @@ export default function MedicalPage() {
 
   const handleModalContinue = () => {
     setShowGuidanceModal(false);
-    setPendingNext(false);
   };
 
   const handleModalClose = () => {
     setShowGuidanceModal(false);
-    setPendingNext(false);
     setShowLoader(false); // return to form
   };
 
@@ -1098,8 +1038,8 @@ export default function MedicalPage() {
   };
 
   // ════════════════════════════════════════════════════════════════════════
-  // ── HANDLE SUBMIT — checks flagged answers FIRST, shows modal over
-  //    loader if any redirectOnYes field is "Yes". API never called.
+  // ── HANDLE SUBMIT — checks flagged answers first, shows modal over loader.
+  //    In this branch, final submit APIs are not called.
   // ════════════════════════════════════════════════════════════════════════
   const handleSubmit = async () => {
     if (!idValue) {
@@ -1107,24 +1047,14 @@ export default function MedicalPage() {
       return;
     }
 
-    const redirectFields = [
-      "outpatient3y",
-      "inpatient5y",
-      "psychotherapy10y",
-      "sterility3y",
-      "plannedTreatment",
-      "untreatedDisease",
-      "chronicDisease",
-      "hiv",
-      "handicap",
-      "regularMedication",
-    ];
+    const isGenderFlagged = application?.personalDetails?.gender === "Other";
     const hasFlaggedAnswers =
-      redirectFields.some((k) => form[k] === "Yes") ||
-      (form.missingTeeth === "Yes" && Number(form.missingTeethCount) > 6);
+      REDIRECT_ON_YES_FIELDS.some((k) => form[k] === "Yes") ||
+      (form.missingTeeth === "Yes" && Number(form.missingTeethCount) > 6) ||
+      isGenderFlagged;
 
     if (hasFlaggedAnswers) {
-      // Show loader UI, animate through steps, then show modal — never call API
+      // Show loader UI, animate through steps, then show modal.
       setShowLoader(true);
       setLoaderStep(0);
       setLoaderDone(false);
@@ -1137,7 +1067,7 @@ export default function MedicalPage() {
 
       // Show guidance modal on top of loader screen
       setShowGuidanceModal(true);
-      return; // ← stop here, API is never called
+      return; // ← stop here, final submit APIs are not called
     }
 
     // ── No flagged answers: proceed with normal API flow ─────────────────
@@ -1201,22 +1131,11 @@ export default function MedicalPage() {
 
       await advanceLoader(3, 600);
 
-      const healthCheckFields = [
-        "outpatient3y",
-        "inpatient5y",
-        "psychotherapy10y",
-        "sterility3y",
-        "plannedTreatment",
-        "untreatedDisease",
-        "chronicDisease",
-        "hiv",
-        "handicap",
-        "regularMedication",
-      ];
       const flagged =
-        healthCheckFields.some((k) => cleanForm[k] === "Yes") ||
+        REDIRECT_ON_YES_FIELDS.some((k) => cleanForm[k] === "Yes") ||
         (cleanForm.missingTeeth === "Yes" &&
-          Number(cleanForm.missingTeethCount) > 6);
+          Number(cleanForm.missingTeethCount) > 6) ||
+        isGenderFlagged;
       setNeedsHealthCheck(flagged);
 
       await new Promise((r) => setTimeout(r, 500));
@@ -2608,3 +2527,6 @@ export default function MedicalPage() {
     </>
   );
 }
+
+
+
