@@ -1,0 +1,88 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
+import {
+  BarChart3,
+  FileText,
+  LogOut,
+  ReceiptText,
+  Users,
+  UserSquare2,
+} from "lucide-react";
+
+const menu = [
+  {
+    href: "/admin/dashboard",
+    label: "Dashboard",
+    icon: BarChart3,
+  },
+  {
+    href: "/admin/partners",
+    label: "Partners",
+    icon: UserSquare2,
+  },
+  {
+    href: "/admin/users",
+    label: "Users",
+    icon: Users,
+  },
+  {
+    href: "/admin/applications",
+    label: "Applications",
+    icon: FileText,
+  },
+  {
+    href: "/admin/reports",
+    label: "Reports",
+    icon: ReceiptText,
+  },
+] as const;
+
+export default function AdminSidebar() {
+  const pathname = usePathname();
+
+  return (
+    <aside className="w-full border-b border-gray-200 bg-white xl:w-[280px] xl:border-b-0 xl:border-r">
+      <div className="px-5 py-4 xl:px-6 xl:py-7">
+        <p className="text-xs font-semibold uppercase tracking-[1.5px] text-[#820ad1]">
+          InsurBe
+        </p>
+        <h2 className="mt-1 text-xl font-black text-gray-900">Admin Portal</h2>
+      </div>
+
+      <nav className="grid grid-cols-2 gap-2 px-4 pb-4 xl:grid-cols-1 xl:px-5">
+        {menu.map((item) => {
+          const Icon = item.icon;
+          const active = pathname === item.href;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+                active
+                  ? "bg-[#820ad1]/10 text-[#820ad1]"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="border-t border-gray-100 px-4 py-4 xl:px-5">
+        <button
+          onClick={() => signOut({ callbackUrl: "/admin/login" })}
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+        >
+          <LogOut className="h-4 w-4" />
+          Log Out
+        </button>
+      </div>
+    </aside>
+  );
+}
