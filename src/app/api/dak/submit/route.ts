@@ -1,6 +1,7 @@
 import { submitDakApplication } from "@/app/providers/dak/submit";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { ensureApplicationUserAccount } from "@/lib/ensureApplicationUserAccount";
 
 export async function POST(req: Request) {
   try {
@@ -101,6 +102,12 @@ export async function POST(req: Request) {
           },
         });
       }
+
+      await ensureApplicationUserAccount({
+        email: personal.email,
+        firstName: personal.firstName,
+        lastName: personal.lastName,
+      });
     }
 
     return NextResponse.json(result);

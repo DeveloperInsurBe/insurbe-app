@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import PartnerDataClient from "./PartnerDataClient";
 import { getCurrentPartnerAccess } from "@/lib/applicationAccess";
+import { getCountriesCollection } from "@/lib/countries";
 
 type Country = {
   name: string;
@@ -12,19 +13,7 @@ type Country = {
 
 async function getCountries(): Promise<Country[]> {
   try {
-    const res = await fetch(
-      "https://restcountries.com/v3.1/all?fields=name,cca2,idd,flag",
-      {
-        // Cache on server so partner-data doesn't wait on countries each visit.
-        next: { revalidate: 60 * 60 * 24 },
-      },
-    );
-
-    if (!res.ok) {
-      return [];
-    }
-
-    const data = await res.json();
+    const data = await getCountriesCollection();
 
     return data
       .map((c: any) => ({

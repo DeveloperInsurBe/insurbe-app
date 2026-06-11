@@ -155,20 +155,42 @@ export default function InsuranceSignupFlow() {
   }, [providerFromUrl]);
 
   // Fetch countries from REST Countries API
-  const fetchCountries = async () => {
+  const fetchCountries = async (attempt = 0) => {
     setLoadingCountries(true);
     try {
-      const response = await fetch(
-        "https://restcountries.com/v3.1/all?fields=name,cca2",
-      );
-      const data: Country[] = await response.json();
-      const sortedCountries = data.sort((a, b) =>
-        a.name.common.localeCompare(b.name.common),
-      );
+      const response = await fetch("/api/countries", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Countries API failed with ${response.status}`);
+      }
+
+      const payload = await response.json();
+      const list = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : [];
+
+      const sortedCountries: Country[] = list
+        .filter((item: any) => item?.name?.common && item?.cca2)
+        .sort((a: Country, b: Country) =>
+          a.name.common.localeCompare(b.name.common),
+        );
+
+      if (!sortedCountries.length) {
+        throw new Error("Countries list is empty");
+      }
+
       setCountries(sortedCountries);
     } catch (error) {
       console.error("Error fetching countries:", error);
-      setErrors((prev) => ({ ...prev, countries: "Failed to load countries" }));
+
+      if (attempt < 2) {
+        setTimeout(() => {
+          fetchCountries(attempt + 1);
+        }, 1200);
+      } else {
+        setErrors((prev) => ({ ...prev, countries: "Failed to load countries" }));
+      }
     } finally {
       setLoadingCountries(false);
     }

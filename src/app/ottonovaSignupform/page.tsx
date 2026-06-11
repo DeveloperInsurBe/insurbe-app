@@ -244,9 +244,7 @@ export default function ComprehensiveInsuranceForm() {
           }
         }
 
-        const res = await fetch(
-          "https://restcountries.com/v3.1/all?fields=name,flags,cca2",
-        );
+        const res = await fetch("/api/countries?fields=name,flags,cca2");
 
         const data = await res.json();
 
