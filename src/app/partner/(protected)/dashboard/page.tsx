@@ -107,7 +107,7 @@ export default async function PartnerDashboard() {
   const monthApprovedCommission = monthApprovedAgg._sum.commission || 0;
 
   const baseUrl = process.env.NEXTAUTH_URL || "https://insurbe.com";
-  const referralLink = `${baseUrl}/?ref=${partner.partnerId}`;
+  const referralLink = `${baseUrl}/insurance/public-health?ref=${partner.partnerId}#provider-comparison`;
   const partnerName =
     `${partner?.partnerProfile?.firstName || partner?.firstName || ""} ${
       partner?.partnerProfile?.lastName || partner?.lastName || ""

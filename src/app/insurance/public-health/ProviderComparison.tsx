@@ -134,8 +134,36 @@ export default function ProviderComparison({
 }) {
   const router = useRouter();
 
+  const getSignupUrl = (providerId: string) => {
+    const params = new URLSearchParams();
+    params.set("provider", providerId);
+
+    const refFromUrl =
+      (typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("ref")?.trim()) ||
+      "";
+    const refFromStorage =
+      (typeof window !== "undefined" &&
+        (localStorage.getItem("partner_ref") ||
+          localStorage.getItem("partnerRef") ||
+          "")) ||
+      "";
+    const ref = refFromUrl || refFromStorage;
+
+    if (ref) {
+      params.set("ref", ref);
+      params.set("source", "partner");
+    }
+
+    return `/insuranceSignupFlow?${params.toString()}`;
+  };
+
   return (
-    <section className="pb-16 pt-10 px-4" style={{ background: "#f8f7ff" }}>
+    <section
+      id="provider-comparison"
+      className="pb-16 pt-10 px-4"
+      style={{ background: "#f8f7ff" }}
+    >
       <div className="max-w-7xl mx-auto">
 
         {/* HEADER */}
@@ -324,7 +352,7 @@ export default function ProviderComparison({
 
                 {/* CTA */}
                 <button
-                  onClick={() => router.push(`/insuranceSignupFlow?provider=${p.id}`)}
+                  onClick={() => router.push(getSignupUrl(p.id))}
                   className="w-full py-3 rounded-xl font-bold text-sm cursor-pointer flex items-center justify-center gap-2 transition-all duration-200"
                   style={
                     p.featured

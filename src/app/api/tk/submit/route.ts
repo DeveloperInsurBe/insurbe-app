@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { submitTkApplication } from "@/app/providers/tk/submit";
 import { prisma } from "@/lib/prisma";
+import { ensureApplicationUserAccount } from "@/lib/ensureApplicationUserAccount";
 
 export const runtime = "nodejs";
 
@@ -70,6 +71,12 @@ export async function POST(req: Request) {
           },
         });
       }
+
+      await ensureApplicationUserAccount({
+        email: body?.personal?.email,
+        firstName: body?.personal?.firstName,
+        lastName: body?.personal?.lastName,
+      });
     }
 
     /**
