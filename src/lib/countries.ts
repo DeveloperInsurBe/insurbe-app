@@ -6,9 +6,7 @@ type CountryShape = {
   flag: string;
 };
 
-const COUNTRIES_URL =
-  "https://restcountries.com/v3.1/all?fields=name,cca2,flags,idd,flag";
-const COUNTRIES_FALLBACK_URL =
+const COUNTRIES_SOURCE_URL =
   "https://raw.githubusercontent.com/mledoze/countries/master/countries.json";
 
 function asArrayPayload(payload: unknown): any[] {
@@ -62,35 +60,19 @@ function normalizeCountry(entry: any): CountryShape | null {
 
 export async function getCountriesCollection(): Promise<CountryShape[]> {
   try {
-    const primaryResponse = await fetch(COUNTRIES_URL, {
+    const response = await fetch(COUNTRIES_SOURCE_URL, {
       next: { revalidate: 60 * 60 * 24 },
     });
 
-    if (primaryResponse.ok) {
-      const primaryPayload = await primaryResponse.json();
-      const primaryCountries = asArrayPayload(primaryPayload)
-        .map(normalizeCountry)
-        .filter((item): item is CountryShape => Boolean(item))
-        .sort((a, b) => a.name.common.localeCompare(b.name.common));
+    if (!response.ok) return [];
 
-      if (primaryCountries.length > 0) {
-        return primaryCountries;
-      }
-    }
-
-    const fallbackResponse = await fetch(COUNTRIES_FALLBACK_URL, {
-      next: { revalidate: 60 * 60 * 24 },
-    });
-
-    if (!fallbackResponse.ok) return [];
-
-    const fallbackPayload = await fallbackResponse.json();
-    const fallbackCountries = asArrayPayload(fallbackPayload)
+    const payload = await response.json();
+    const countries = asArrayPayload(payload)
       .map(normalizeCountry)
       .filter((item): item is CountryShape => Boolean(item))
       .sort((a, b) => a.name.common.localeCompare(b.name.common));
 
-    return fallbackCountries;
+    return countries;
   } catch {
     return [];
   }

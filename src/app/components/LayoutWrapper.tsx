@@ -15,14 +15,16 @@ export default function LayoutWrapper({
 
   const isPartnerRoute =
     pathname.startsWith("/partner");
+  const isAgentRoute =
+    pathname.startsWith("/agent");
 
   return (
     <>
-      {!isPartnerRoute && <Header />}
+      {!isPartnerRoute && !isAgentRoute && <Header />}
 
       {children}
 
-      <Footernew />
+      {!isAgentRoute && <Footernew />}
     </>
   );
 }

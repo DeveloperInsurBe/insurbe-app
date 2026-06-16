@@ -91,11 +91,11 @@ export default async function AdminApplicationsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-gray-200 bg-white p-5">
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
         <p className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
           Applications
         </p>
-        <h1 className="mt-2 text-3xl font-black text-gray-900">
+        <h1 className="mt-2 text-2xl font-black text-gray-900 sm:text-3xl">
           Partner & User Applications
         </h1>
         <p className="mt-2 text-sm text-gray-500">
