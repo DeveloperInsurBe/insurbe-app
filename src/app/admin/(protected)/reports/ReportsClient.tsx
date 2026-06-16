@@ -150,11 +150,11 @@ export default function ReportsClient() {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-gray-200 bg-white p-5">
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
         <p className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
           Reports
         </p>
-        <h1 className="mt-2 text-3xl font-black text-gray-900">
+        <h1 className="mt-2 text-2xl font-black text-gray-900 sm:text-3xl">
           Monthly Commission Report
         </h1>
         <p className="mt-2 text-sm text-gray-500">
@@ -162,8 +162,8 @@ export default function ReportsClient() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-4">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
+      <div className="rounded-2xl border border-gray-200 bg-white p-3 sm:p-4">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-5">
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
               From
@@ -188,7 +188,7 @@ export default function ReportsClient() {
             />
           </div>
 
-          <div className="md:col-span-2">
+          <div className="lg:col-span-2">
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
               Search Partner
             </label>
@@ -226,7 +226,7 @@ export default function ReportsClient() {
       ) : null}
 
       {data ? (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <SummaryCard label="Partners" value={data.summary.totalPartners} />
           <SummaryCard label="Applications" value={data.summary.totalApplications} />
           <SummaryCard label="Total Commission" value={`EUR ${data.summary.totalCommission}`} />
@@ -234,8 +234,48 @@ export default function ReportsClient() {
         </div>
       ) : null}
 
-      <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-        <table className="min-w-[1400px] w-full">
+      <div className="space-y-3 xl:hidden">
+        {filteredRows.map((row) => (
+          <div key={row.partnerId} className="rounded-2xl border border-gray-200 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">
+                  {row.partnerName || row.partnerId}
+                </p>
+                <p className="mt-1 text-xs font-medium text-[#820ad1]">
+                  {row.partnerId}
+                </p>
+              </div>
+              <p className="text-sm font-black text-[#820ad1]">
+                EUR {row.payableCommission}
+              </p>
+            </div>
+
+            <div className="mt-3 space-y-1 text-sm text-gray-700">
+              <p>{row.companyName || "-"}</p>
+              <p className="break-all">{row.partnerEmail || "-"}</p>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <MetricChip label="Apps" value={row.totalApplications} />
+              <MetricChip label="Total" value={`EUR ${row.totalCommission}`} />
+              <MetricChip label="Pending" value={`EUR ${row.pendingCommission}`} />
+              <MetricChip label="Approved" value={`EUR ${row.approvedCommission}`} />
+              <MetricChip label="Paid" value={`EUR ${row.paidCommission}`} />
+              <MetricChip label="Rejected" value={`EUR ${row.rejectedCommission}`} />
+            </div>
+          </div>
+        ))}
+
+        {!loading && filteredRows.length === 0 ? (
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+            No partners found for selected filters.
+          </div>
+        ) : null}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-2xl border border-gray-200 bg-white xl:block">
+        <table className="w-full min-w-[1400px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
@@ -333,7 +373,18 @@ function SummaryCard({ label, value }: { label: string; value: string | number }
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4">
       <p className="text-xs font-bold uppercase tracking-wide text-gray-500">{label}</p>
-      <p className="mt-2 text-2xl font-black text-gray-900">{value}</p>
+      <p className="mt-2 text-xl font-black text-gray-900 sm:text-2xl">{value}</p>
+    </div>
+  );
+}
+
+function MetricChip({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl bg-gray-50 p-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+        {label}
+      </p>
+      <p className="mt-1 text-xs font-semibold text-gray-900">{value}</p>
     </div>
   );
 }
