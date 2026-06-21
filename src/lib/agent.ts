@@ -5,8 +5,8 @@ import { prisma } from "./prisma";
 export const getAgentByEmail = cache(async (email: string) => {
   if (!email) return null;
 
-  return prisma.user.findUnique({
-    where: { email },
+  return prisma.user.findFirst({
+    where: { email, role: "agent" },
     include: { partnerProfile: true },
   });
 });

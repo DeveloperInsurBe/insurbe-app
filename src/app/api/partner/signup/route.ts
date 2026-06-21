@@ -75,6 +75,7 @@ export async function POST(req: Request) {
       email,
       password,
       confirmPassword,
+      partnerType,
     } = body;
 
     // Validation
@@ -101,6 +102,8 @@ export async function POST(req: Request) {
       );
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Existing User Check
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -125,12 +128,21 @@ export async function POST(req: Request) {
           title,
           firstName,
           lastName,
+          password: hashedPassword,
 
           role: "partner",
 
           partnerId: generatePartnerId(),
         },
       });
+
+      if (partnerType) {
+        await prisma.partnerProfile.upsert({
+          where: { userId: updatedUser.id },
+          update: { position: partnerType },
+          create: { userId: updatedUser.id, position: partnerType },
+        });
+      }
 
       try {
         await sendPartnerAcknowledgementEmail({
@@ -152,9 +164,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Hash Password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     // Create Partner
     const partner = await prisma.user.create({
       data: {
@@ -170,6 +179,14 @@ export async function POST(req: Request) {
         partnerId: generatePartnerId(),
       },
     });
+
+    if (partnerType) {
+      await prisma.partnerProfile.upsert({
+        where: { userId: partner.id },
+        update: { position: partnerType },
+        create: { userId: partner.id, position: partnerType },
+      });
+    }
 
     try {
       await sendPartnerAcknowledgementEmail({
