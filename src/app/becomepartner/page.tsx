@@ -102,7 +102,7 @@ export default function BecomePartnerPage() {
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-12">
                   {/* SIGN UP */}
-                  <Link href="/partner/signup">
+                  <Link href="/partner-access/signup">
                     <motion.button
                       whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
@@ -114,7 +114,7 @@ export default function BecomePartnerPage() {
                   </Link>
 
                   {/* LOGIN */}
-                  <Link href="/partner/login">
+                  <Link href="/partner-access/login">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

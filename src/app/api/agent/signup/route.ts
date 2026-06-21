@@ -6,8 +6,15 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { firstName, lastName, email, password, confirmPassword, companyName } =
-      body || {};
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      confirmPassword,
+      companyName,
+      brokerType,
+    } = body || {};
 
     if (
       !firstName ||
@@ -30,6 +37,8 @@ export async function POST(req: Request) {
       );
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -48,17 +57,24 @@ export async function POST(req: Request) {
           firstName,
           lastName,
           companyName,
+          password: hashedPassword,
           role: "agent",
         },
       });
+
+      if (brokerType) {
+        await prisma.partnerProfile.upsert({
+          where: { userId: updatedUser.id },
+          update: { position: brokerType },
+          create: { userId: updatedUser.id, position: brokerType },
+        });
+      }
 
       return NextResponse.json(
         { message: "Agent account created successfully", email: updatedUser.email },
         { status: 200 },
       );
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     const agent = await prisma.user.create({
       data: {
@@ -70,6 +86,14 @@ export async function POST(req: Request) {
         role: "agent",
       },
     });
+
+    if (brokerType) {
+      await prisma.partnerProfile.upsert({
+        where: { userId: agent.id },
+        update: { position: brokerType },
+        create: { userId: agent.id, position: brokerType },
+      });
+    }
 
     return NextResponse.json(
       { message: "Agent account created successfully", email: agent.email },
@@ -83,4 +107,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

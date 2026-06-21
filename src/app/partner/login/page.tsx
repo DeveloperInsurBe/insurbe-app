@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -48,6 +48,17 @@ export default function PartnerLoginPage() {
 
       if (!res || res.error) {
         const message = "Invalid email or password";
+        setError(message);
+        toast.error(message);
+        setLoading(false);
+        return;
+      }
+
+      const session = await getSession();
+
+      if (!session?.user || session.user.role !== "partner") {
+        await signOut({ redirect: false });
+        const message = "This account is not a partner account";
         setError(message);
         toast.error(message);
         setLoading(false);
