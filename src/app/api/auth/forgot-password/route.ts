@@ -3,11 +3,7 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 
-console.log("RESEND KEY:", process.env.RESEND_API_KEY);
 const resend = new Resend(process.env.RESEND_API_KEY);
-console.log("RESEND KEY:", process.env.RESEND_API_KEY);
-
-console.log("FORGOT PASSWORD API HIT");
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
@@ -107,7 +103,12 @@ export async function POST(req: Request) {
 `,
     });
 
-    console.log("RESEND RESULT:", result);
+    const resendError = "error" in result ? result.error : null;
+    if (resendError) {
+      console.error("FORGOT PASSWORD EMAIL FAILED:", resendError);
+    } else {
+      console.log("FORGOT PASSWORD EMAIL SENT");
+    }
 
     return NextResponse.json(
       { message: "Reset link sent if email exists" },

@@ -1,119 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model User {
-  id                String   @id @default(uuid())
-  email             String   @unique
-  password          String
-   role             String   @default("user") 
-
- // Partner Fields
-  companyName       String?
-  title             String?
-  firstName         String?
-  lastName          String?
-
-  partnerId         String?  @unique
-
-  resetToken        String?
-  resetTokenExpiry  DateTime?
-  createdAt         DateTime @default(now())
-  partnerProfile    PartnerProfile?
+  id               String          @id @default(uuid())
+  email            String          @unique
+  password         String
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime        @default(now())
+  role             String?         @default("user")
+  partnerId        String?
+  partnerCode      String?         @unique
+  companyName      String?
+  title            String?
+  firstName        String?
+  lastName         String?
+  partnerProfile   PartnerProfile?
 }
 
 model PartnerProfile {
   id                 String   @id @default(uuid())
-
   userId             String   @unique
-  user               User     @relation(fields: [userId], references: [id])
-
-  // Partner Info
   companyName        String?
   title              String?
   firstName          String?
   lastName           String?
   position           String?
-
   phone              String?
   countryCode        String?
   email              String?
-
   companyDescription String?
-
-  // Address
-  addressType        String? // german | overseas
-
+  addressType        String?
   streetName         String?
   streetNumber       String?
   postalCode         String?
   city               String?
   careOfAddress      String?
   country            String?
-
-  // Bank Details
   accountHolder      String?
   recipientStreet    String?
   recipientZip       String?
   recipientCity      String?
   recipientCountry   String?
-
   iban               String?
   bicSwift           String?
   currency           String?
   additionalInfo     String?
-
   createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  updatedAt          DateTime @default(now()) @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Application {
-  id          String   @id @default(uuid())
-  orderId     String
-  userId      String?   // null until login
-  partnerId   String?
-  pdfBase64   String    @db.Text
-  status      String    // pending_login | incomplete | completed
-  createdAt   DateTime  @default(now())
-   tariffIds       Json?     
-  startDate       String?
-  personalDetails Json?   
-  healthAnswers   Json?   
-  uploadedDocs    Json?   
+  id               String   @id @default(uuid())
+  orderId          String
+  userId           String?
+  pdfBase64        String
+  status           String
+  createdAt        DateTime @default(now())
+  healthAnswers    Json?
+  personalDetails  Json?
+  signature        String?
+  uploadedDocs     Json?
   financialHistory Json?
   insuranceHistory Json?
-  signature       String? 
-
-  firstName         String?
-  lastName          String?
-
-  product           String?
-
-  commission        Int      @default(5)
-
-  commissionStatus  String   @default("Pending")
-
-  source            String?  // user | partner
-
-  @@index([partnerId, source])
-  @@index([partnerId, source, commissionStatus])
-  @@index([partnerId, source, createdAt])
-  @@index([partnerId, source, commissionStatus, createdAt])
+  startDate        String?
+  tariffIds        Json?
+  partnerId        String?
+  source           String?
+  firstName        String?
+  lastName         String?
+  product          String?
+  commission       Int      @default(5)
+  commissionStatus String   @default("Pending")
 }
 
 model InsuranceApplication {
-  id          String   @id @default(cuid())
-  applicationNumber  String?   @unique
-  provider    String
-
-  status      String   @default("PENDING")
-
-  payload     Json
-
-  createdAt   DateTime @default(now())
+  id                String    @id @default(cuid())
+  provider          String
+  status            String    @default("PENDING")
+  payload           Json
+  createdAt         DateTime? @default(now()) @db.Timestamptz(6)
+  applicationNumber String?   @unique
 }

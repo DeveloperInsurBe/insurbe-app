@@ -2,6 +2,7 @@ import { submitDakApplication } from "@/app/providers/dak/submit";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureApplicationUserAccount } from "@/lib/ensureApplicationUserAccount";
+import { resolveReferralAttribution } from "@/lib/referralAttribution";
 
 export async function POST(req: Request) {
   try {
@@ -39,10 +40,9 @@ export async function POST(req: Request) {
     /**
      * PARTNER REF
      */
-    const partnerRef =
-      (body.get("partnerRef") as string) || null;
-
-    const isPartnerAttributed = Boolean(partnerRef);
+    const referralAttribution = await resolveReferralAttribution(
+      (body.get("partnerRef") as string) || null,
+    );
 
     /**
      * SUBMIT TO DAK
@@ -80,17 +80,17 @@ export async function POST(req: Request) {
               personal.email || "",
 
             partnerId:
-              partnerRef || null,
+              referralAttribution.partnerId,
 
             product:
               "Public Health Insurance",
 
-            commission: isPartnerAttributed ? 5 : 0,
+            commission: referralAttribution.isAttributed ? 5 : 0,
 
             commissionStatus:
-              isPartnerAttributed ? "Pending" : "Not Eligible",
+              referralAttribution.isAttributed ? "Pending" : "Not Eligible",
 
-            source: isPartnerAttributed ? "partner" : "user",
+            source: referralAttribution.source,
 
             status: "Submitted",
 

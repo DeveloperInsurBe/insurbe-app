@@ -2,11 +2,11 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useState } from "react";
 import { ShieldCheck, Lock, Globe } from "lucide-react";
 
 export default function MawistaExpatcarePage() {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const mawistaFormUrl =
+    "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=MAE&UVM=IB25";
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#faf7ff] to-[#f5f3ff] px-4 py-12 sm:px-8 lg:px-16">
@@ -100,42 +100,28 @@ export default function MawistaExpatcarePage() {
             </div>
           </div>
 
-          {/* IFRAME WRAPPER */}
-          <div className="relative h-[3400px] md:h-[3600px]">
-            {!isLoaded && (
-              <div className="absolute inset-0 z-20 bg-white">
-                <div className="animate-pulse p-6 md:p-8">
-                  {/* HEADER */}
-                  <div className="mb-8 h-10 w-60 rounded-xl bg-[#ede9fe]" />
+          <div className="space-y-5 px-6 pb-8 pt-6 md:px-8 md:pb-10">
+            <div className="rounded-2xl border border-[#e9d5ff] bg-[#faf5ff] p-4 text-sm text-[#4b5563]">
+              <p className="font-semibold text-[#111827]">
+                Start your secure application
+              </p>
+              <p className="mt-1">
+                Continue to the official MAWISTA form to complete your Expatcare
+                application 
+              </p>
+            </div>
 
-                  {/* FORM FIELDS */}
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {[...Array(8)].map((_, i) => (
-                      <div key={i} className="h-12 rounded-xl bg-[#f3f4f6]" />
-                    ))}
-                  </div>
-
-                  <div className="mt-6 space-y-4">
-                    <div className="h-12 rounded-xl bg-[#f3f4f6]" />
-                    <div className="h-12 rounded-xl bg-[#f3f4f6]" />
-                    <div className="h-12 rounded-xl bg-[#f3f4f6]" />
-                  </div>
-
-                  <div className="mt-8 h-12 w-44 rounded-xl bg-[#c4b5fd]" />
-                </div>
-              </div>
-            )}
-
-            <iframe
-              src="https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=MAE&UVM=IB25"
-              title="Mawista Expatcare Application Form"
-              loading="lazy"
-              scrolling="no"
-              onLoad={() => setIsLoaded(true)}
-              className={`h-full w-full transition-opacity duration-500 ${
-                isLoaded ? "opacity-100" : "opacity-0"
-              }`}
-            />
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href={mawistaFormUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#820ad1] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#6f08b2]"
+              >
+                <Globe className="h-4 w-4" />
+                Continue Application
+              </a>
+            </div>
           </div>
         </motion.div>
       </div>

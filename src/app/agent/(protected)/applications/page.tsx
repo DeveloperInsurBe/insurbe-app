@@ -1,15 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-
-type ClientItem = {
-  id: string;
-  createdAt: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-};
+import AgentInsurancePurchaseCard from "../dashboard/AgentInsurancePurchaseCard";
 
 type AppItem = {
   id: string;
@@ -24,33 +18,17 @@ type AppItem = {
 };
 
 export default function AgentApplicationsPage() {
-  const [clients, setClients] = useState<ClientItem[]>([]);
+  const { data: session } = useSession();
   const [applications, setApplications] = useState<AppItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    clientEmail: "",
-    product: "Public Health Insurance",
-  });
 
   const fetchData = async () => {
     try {
-      const [clientsRes, appsRes] = await Promise.all([
-        fetch("/api/agent/clients", { cache: "no-store" }),
-        fetch("/api/agent/applications", { cache: "no-store" }),
-      ]);
-
-      const clientsData = await clientsRes.json();
+      const appsRes = await fetch("/api/agent/applications", { cache: "no-store" });
       const appsData = await appsRes.json();
-
-      if (!clientsRes.ok) throw new Error(clientsData.error || "Failed clients");
       if (!appsRes.ok) throw new Error(appsData.error || "Failed applications");
 
-      setClients(clientsData);
       setApplications(appsData);
-      if (!form.clientEmail && clientsData.length > 0) {
-        setForm((prev) => ({ ...prev, clientEmail: clientsData[0].email }));
-      }
     } catch (err) {
       console.error(err);
       toast.error("Failed to load applications");
@@ -62,31 +40,6 @@ export default function AgentApplicationsPage() {
   useEffect(() => {
     fetchData();
   }, []);
-
-  const canCreate = useMemo(
-    () => Boolean(form.clientEmail && form.product),
-    [form],
-  );
-
-  const createApplication = async () => {
-    try {
-      setSaving(true);
-      const res = await fetch("/api/agent/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create application");
-      setApplications((prev) => [data, ...prev]);
-      toast.success("Application created");
-    } catch (err) {
-      console.error(err);
-      toast.error(err instanceof Error ? err.message : "Failed to create application");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const updateStatus = async (id: string, status: string) => {
     try {
@@ -120,45 +73,11 @@ export default function AgentApplicationsPage() {
       </div>
 
       <div className="rounded-[24px] border border-white/50 bg-white p-5 shadow-sm md:p-6">
-        <h2 className="text-lg font-black text-[#111827]">Create Application</h2>
-        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">Client</label>
-            <select
-              value={form.clientEmail}
-              onChange={(e) => setForm((prev) => ({ ...prev, clientEmail: e.target.value }))}
-              className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-            >
-              <option value="">Select client</option>
-              {clients.map((item) => (
-                <option key={item.id} value={item.email}>
-                  {item.firstName} {item.lastName} ({item.email})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">Product</label>
-            <select
-              value={form.product}
-              onChange={(e) => setForm((prev) => ({ ...prev, product: e.target.value }))}
-              className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-            >
-              <option value="Public Health Insurance">Public Health Insurance</option>
-              <option value="Private Health Insurance">Private Health Insurance</option>
-              <option value="Travel Insurance">Travel Insurance</option>
-            </select>
-          </div>
-        </div>
-
-        <button
-          onClick={createApplication}
-          disabled={!canCreate || saving}
-          className="mt-5 h-11 rounded-xl bg-[#820ad1] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#6f08b2] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {saving ? "Creating..." : "Create Application"}
-        </button>
+        {session?.user?.id ? (
+          <AgentInsurancePurchaseCard agentRef={session.user.id} />
+        ) : (
+          <p className="text-sm text-gray-500">Preparing application flow...</p>
+        )}
       </div>
 
       <div className="rounded-[24px] border border-white/50 bg-white p-5 shadow-sm md:p-6">
@@ -215,4 +134,3 @@ export default function AgentApplicationsPage() {
     </div>
   );
 }
-
