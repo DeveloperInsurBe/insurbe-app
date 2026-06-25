@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { submitTkApplication } from "@/app/providers/tk/submit";
 import { prisma } from "@/lib/prisma";
 import { ensureApplicationUserAccount } from "@/lib/ensureApplicationUserAccount";
+import { resolveReferralAttribution } from "@/lib/referralAttribution";
 
 export const runtime = "nodejs";
 
@@ -16,8 +17,9 @@ export async function POST(req: Request) {
     /**
      * EXTRACT PARTNER REF
      */
-    const partnerRef = body.partnerRef || null;
-    const isPartnerAttributed = Boolean(partnerRef);
+    const referralAttribution = await resolveReferralAttribution(
+      body.partnerRef || null,
+    );
 
     /**
      * CALL PROVIDER FUNCTION
@@ -51,15 +53,17 @@ export async function POST(req: Request) {
 
             userId: body?.personal?.email || "",
 
-            partnerId: partnerRef || null,
+            partnerId: referralAttribution.partnerId,
 
             product: "Public Health Insurance",
 
-            commission: isPartnerAttributed ? 5 : 0,
+            commission: referralAttribution.isAttributed ? 5 : 0,
 
-            commissionStatus: isPartnerAttributed ? "Pending" : "Not Eligible",
+            commissionStatus: referralAttribution.isAttributed
+              ? "Pending"
+              : "Not Eligible",
 
-            source: isPartnerAttributed ? "partner" : "user",
+            source: referralAttribution.source,
 
             status: "Submitted",
 
