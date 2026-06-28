@@ -44,27 +44,7 @@ const navLinks = [
       { name: "Students", href: "/products/students", icon: "🎓" },
     ],
   },
-  {
-    name: "Blocked Account",
-    submenu: [
-      { name: "Blocked Account", href: "/blocked-account", icon: "🏦" },
-      {
-        name: "Travel Health insurance for visa",
-        href: "/blocked-account/travel-health-insurance-for-visa",
-        icon: "✈️",
-      },
-      {
-        name: "Private Health insurance",
-        href: "/blocked-account/private-health-insurance",
-        icon: "🩺",
-      },
-      {
-        name: "Statutory health insurance",
-        href: "/blocked-account/statutory-health-insurance",
-        icon: "📜",
-      },
-    ],
-  },
+  { name: "Enterprise", href: "/enterprise" },
   { name: "Support", href: "/support" },
 ];
 
@@ -149,14 +129,10 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showProducts, setShowProducts] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
-  const [showBlockedAccount, setShowBlockedAccount] = useState(false);
   const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
   const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
-  const [mobileBlockedAccountOpen, setMobileBlockedAccountOpen] =
-    useState(false);
   const productHoverTimeout = useRef<NodeJS.Timeout | null>(null);
   const aboutHoverTimeout = useRef<NodeJS.Timeout | null>(null);
-  const blockedAccountHoverTimeout = useRef<NodeJS.Timeout | null>(null);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -166,7 +142,6 @@ const Header = () => {
     setIsOpen(!isOpen);
     setMobileProductsOpen(false);
     setMobileAboutOpen(false);
-    setMobileBlockedAccountOpen(false);
     // Prevent body scroll when drawer is open
     if (!isOpen) {
       document.body.style.overflow = "hidden";
@@ -179,7 +154,6 @@ const Header = () => {
     if (productHoverTimeout.current) clearTimeout(productHoverTimeout.current);
     setShowProducts(true);
     setShowAbout(false);
-    setShowBlockedAccount(false);
   };
 
   const handleProductMouseLeave = () => {
@@ -192,7 +166,6 @@ const Header = () => {
     if (aboutHoverTimeout.current) clearTimeout(aboutHoverTimeout.current);
     setShowAbout(true);
     setShowProducts(false);
-    setShowBlockedAccount(false);
   };
 
   const handleAboutMouseLeave = () => {
@@ -201,27 +174,11 @@ const Header = () => {
     }, 120);
   };
 
-  const handleBlockedAccountMouseEnter = () => {
-    if (blockedAccountHoverTimeout.current) {
-      clearTimeout(blockedAccountHoverTimeout.current);
-    }
-    setShowBlockedAccount(true);
-    setShowProducts(false);
-    setShowAbout(false);
-  };
-
-  const handleBlockedAccountMouseLeave = () => {
-    blockedAccountHoverTimeout.current = setTimeout(() => {
-      setShowBlockedAccount(false);
-    }, 120);
-  };
-
   // Close drawer when clicking a link
   const handleLinkClick = () => {
     setIsOpen(false);
     setMobileProductsOpen(false);
     setMobileAboutOpen(false);
-    setMobileBlockedAccountOpen(false);
     document.body.style.overflow = "unset";
   };
 
@@ -249,16 +206,12 @@ const Header = () => {
                 onMouseEnter={
                   link.name === "Insurances"
                     ? handleProductMouseEnter
-                    : link.name === "About Us"
-                      ? handleAboutMouseEnter
-                      : handleBlockedAccountMouseEnter
+                    : handleAboutMouseEnter
                 }
                 onMouseLeave={
                   link.name === "Insurances"
                     ? handleProductMouseLeave
-                    : link.name === "About Us"
-                      ? handleAboutMouseLeave
-                      : handleBlockedAccountMouseLeave
+                    : handleAboutMouseLeave
                 }
               >
                 <span
@@ -266,9 +219,7 @@ const Header = () => {
                     (link.name === "Insurances" &&
                       pathname.includes("/products")) ||
                     (link.name === "About Us" &&
-                      (pathname === "/about" || pathname === "/career")) ||
-                    (link.name === "Blocked Account" &&
-                      pathname.startsWith("/blocked-account"))
+                      (pathname === "/about" || pathname === "/career"))
                       ? "text-primary border-b-2 border-primary font-semibold pb-1"
                       : "text-black hover:text-primary transition"
                   }`}
@@ -293,37 +244,6 @@ const Header = () => {
                             key={item.name}
                             href={item.href}
                             onClick={() => setShowAbout(false)}
-                            className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition hover:bg-gray-50 ${
-                              pathname === item.href
-                                ? "bg-primary/10 text-primary"
-                                : "text-gray-700"
-                            }`}
-                          >
-                            <span className="text-lg">{item.icon}</span>
-                            {item.name}
-                          </Link>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                )}
-
-                {/* Blocked Account Dropdown */}
-                {link.name === "Blocked Account" && (
-                  <AnimatePresence>
-                    {showBlockedAccount && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute left-0 top-full mt-2 min-w-[320px] bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50"
-                      >
-                        {link.submenu.map((item) => (
-                          <Link
-                            key={item.name}
-                            href={item.href}
-                            onClick={() => setShowBlockedAccount(false)}
                             className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition hover:bg-gray-50 ${
                               pathname === item.href
                                 ? "bg-primary/10 text-primary"
@@ -610,17 +530,9 @@ const Header = () => {
                               if (link.name === "Insurances") {
                                 setMobileProductsOpen(!mobileProductsOpen);
                                 setMobileAboutOpen(false);
-                                setMobileBlockedAccountOpen(false);
                               } else if (link.name === "About Us") {
                                 setMobileAboutOpen(!mobileAboutOpen);
                                 setMobileProductsOpen(false);
-                                setMobileBlockedAccountOpen(false);
-                              } else if (link.name === "Blocked Account") {
-                                setMobileBlockedAccountOpen(
-                                  !mobileBlockedAccountOpen,
-                                );
-                                setMobileProductsOpen(false);
-                                setMobileAboutOpen(false);
                               }
                             }}
                             className={`w-full flex items-center justify-between px-4 py-3.5 text-base font-semibold rounded-lg transition ${
@@ -628,18 +540,14 @@ const Header = () => {
                                 pathname.includes("/products")) ||
                               (link.name === "About Us" &&
                                 (pathname === "/about" ||
-                                  pathname === "/career")) ||
-                              (link.name === "Blocked Account" &&
-                                pathname.startsWith("/blocked-account"))
+                                  pathname === "/career"))
                                 ? "bg-primary/10 text-primary"
                                 : "text-gray-800 hover:bg-gray-100"
                             }`}
                           >
                             <span className="flex items-center gap-3">
                               <span className="text-xl">
-                                {link.name === "Insurances" && "📦"}
-                                {link.name === "About Us" && "ℹ️"}
-                                {link.name === "Blocked Account" && "🏦"}
+                                {link.name === "Insurances" ? "📦" : "ℹ️"}
                               </span>
                               {link.name}
                             </span>
@@ -648,10 +556,7 @@ const Header = () => {
                                 rotate:
                                   (link.name === "Insurances" &&
                                     mobileProductsOpen) ||
-                                  (link.name === "About Us" &&
-                                    mobileAboutOpen) ||
-                                  (link.name === "Blocked Account" &&
-                                    mobileBlockedAccountOpen)
+                                  (link.name === "About Us" && mobileAboutOpen)
                                     ? 180
                                     : 0,
                               }}
@@ -665,9 +570,7 @@ const Header = () => {
                             {((link.name === "Insurances" &&
                               mobileProductsOpen) ||
                               (link.name === "About Us" &&
-                                mobileAboutOpen) ||
-                              (link.name === "Blocked Account" &&
-                                mobileBlockedAccountOpen)) && (
+                                mobileAboutOpen)) && (
                               <motion.div
                                 initial={{ height: 0, opacity: 0 }}
                                 animate={{ height: "auto", opacity: 1 }}
@@ -721,7 +624,7 @@ const Header = () => {
                         >
                           <span className="flex items-center gap-3">
                             <span className="text-xl">
-                              {link.name === "Blocked Account" && "⛔"}
+                              {link.name === "Enterprise" && "🏢"}
                               {link.name === "Support" && "🆘"}
                             </span>
                             {link.name}
