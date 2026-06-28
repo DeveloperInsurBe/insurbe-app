@@ -10,6 +10,7 @@ const plans = [
     title: "InsurBe World Education",
     subtitle: "For students & educational stays abroad",
     icon: GraduationCap,
+    bookingPath: "/products/visaSeakers/insurbe-world-education",
     points: [
       "For travelers under 30 years of age",
       "Must be taken out before departure",
@@ -260,9 +261,18 @@ export default function VisaSeekersInsurance() {
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">
-                        {plan.title}
-                      </h3>
+                      {plan.bookingPath ? (
+                        <Link
+                          href={plan.bookingPath}
+                          className="font-semibold text-gray-900 hover:text-primary transition"
+                        >
+                          {plan.title}
+                        </Link>
+                      ) : (
+                        <h3 className="font-semibold text-gray-900">
+                          {plan.title}
+                        </h3>
+                      )}
                       <p className="text-sm text-gray-500">{plan.subtitle}</p>
                     </div>
                   </div>
@@ -277,13 +287,33 @@ export default function VisaSeekersInsurance() {
                   </ul>
 
                   <div className="mt-auto space-y-3">
-                    <div className="w-full cursor-not-allowed rounded-full bg-gray-100 py-3 text-center font-semibold text-gray-500">
-                      Coming soon
-                    </div>
+                    {plan.bookingPath ? (
+                      <>
+                        <Link
+                          href={plan.bookingPath}
+                          className="block w-full rounded-full bg-primary py-3 text-center font-semibold text-white transition hover:bg-primary/90"
+                        >
+                          Apply now
+                        </Link>
 
-                    <div className="w-full rounded-full border border-primary py-3 text-center font-semibold text-primary">
-                      Learn more
-                    </div>
+                        <Link
+                          href={plan.bookingPath}
+                          className="block w-full rounded-full border border-primary py-3 text-center font-semibold text-primary transition hover:bg-primary/5"
+                        >
+                          Learn more
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-full cursor-not-allowed rounded-full bg-gray-100 py-3 text-center font-semibold text-gray-500">
+                          Coming soon
+                        </div>
+
+                        <div className="w-full rounded-full border border-primary py-3 text-center font-semibold text-primary">
+                          Learn more
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </motion.div>
