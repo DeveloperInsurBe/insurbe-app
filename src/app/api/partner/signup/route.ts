@@ -77,6 +77,7 @@ export async function POST(req: Request) {
       confirmPassword,
       partnerType,
     } = body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
     // Validation
     if (
@@ -84,7 +85,7 @@ export async function POST(req: Request) {
       !title ||
       !firstName ||
       !lastName ||
-      !email ||
+      !normalizedEmail ||
       !password ||
       !confirmPassword
     ) {
@@ -106,7 +107,7 @@ export async function POST(req: Request) {
 
     // Existing User Check
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -121,7 +122,7 @@ export async function POST(req: Request) {
       // Upgrade existing user to partner
       const updatedUser = await prisma.user.update({
         where: {
-          email,
+          email: normalizedEmail,
         },
         data: {
           companyName,
@@ -171,7 +172,7 @@ export async function POST(req: Request) {
         title,
         firstName,
         lastName,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
 
         role: "partner",

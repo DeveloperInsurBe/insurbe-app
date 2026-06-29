@@ -16,9 +16,23 @@ export const authOptions: AuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+        const normalizedEmail = credentials.email.trim().toLowerCase();
+
+        let user = await prisma.user.findUnique({
+          where: { email: normalizedEmail },
         });
+
+        // Backward-compatible fallback for legacy records that may have mixed-case emails.
+        if (!user) {
+          user = await prisma.user.findFirst({
+            where: {
+              email: {
+                equals: normalizedEmail,
+                mode: "insensitive",
+              },
+            },
+          });
+        }
 
         if (!user) return null;
 

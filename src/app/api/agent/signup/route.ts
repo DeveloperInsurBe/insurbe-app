@@ -15,11 +15,12 @@ export async function POST(req: Request) {
       companyName,
       brokerType,
     } = body || {};
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
     if (
       !firstName ||
       !lastName ||
-      !email ||
+      !normalizedEmail ||
       !password ||
       !confirmPassword ||
       !companyName
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
       }
 
       const updatedUser = await prisma.user.update({
-        where: { email },
+        where: { email: normalizedEmail },
         data: {
           firstName,
           lastName,
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
         firstName,
         lastName,
         companyName,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         role: "agent",
       },
