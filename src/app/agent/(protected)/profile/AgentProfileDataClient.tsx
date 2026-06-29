@@ -58,7 +58,7 @@ const INITIAL_FORM: FormData = {
   position: "",
   firstName: "",
   lastName: "",
-  countryCode: "+91",
+  countryCode: "+49",
   phone: "",
   email: "",
   companyName: "",
@@ -367,15 +367,25 @@ function Field({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-type PartnerDataClientProps = {
+type AgentProfileDataClientProps = {
   initialProfile?: Record<string, unknown> | null;
   initialCountries: Country[];
+  agentEmail: string;
+  agentFirstName: string;
+  agentLastName: string;
+  agentCompanyName: string;
+  agentTitle: string;
 };
 
-export default function PartnerDataClient({
+export default function AgentProfileDataClient({
   initialProfile,
   initialCountries,
-}: PartnerDataClientProps) {
+  agentEmail,
+  agentFirstName,
+  agentLastName,
+  agentCompanyName,
+  agentTitle,
+}: AgentProfileDataClientProps) {
   const router = useRouter();
   const normalizedInitialProfile = Object.fromEntries(
     Object.entries(initialProfile || {}).filter(
@@ -395,6 +405,11 @@ export default function PartnerDataClient({
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     ...INITIAL_FORM,
+    title: agentTitle || INITIAL_FORM.title,
+    firstName: agentFirstName || INITIAL_FORM.firstName,
+    lastName: agentLastName || INITIAL_FORM.lastName,
+    email: agentEmail || INITIAL_FORM.email,
+    companyName: agentCompanyName || INITIAL_FORM.companyName,
     ...normalizedInitialProfile,
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -448,7 +463,7 @@ export default function PartnerDataClient({
     try {
       setSaving(true);
 
-      const savePromise = fetch("/api/partner/save-profile", {
+      const savePromise = fetch("/api/agent/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -458,13 +473,9 @@ export default function PartnerDataClient({
         return result;
       });
 
-      const toastId = toast.loading("Saving partner profile...");
-      const result = await savePromise;
-      toast.success("Partner profile saved successfully", { id: toastId });
-
-      if (!result.mailSent) {
-        toast.message("Profile saved, but acknowledgement email was not sent.");
-      }
+      const toastId = toast.loading("Saving agent profile...");
+      await savePromise;
+      toast.success("Agent profile saved successfully", { id: toastId });
 
       setEditMode(false);
       setTouched({});
@@ -579,7 +590,7 @@ export default function PartnerDataClient({
         </div>
       </div>
 
-      {/* PARTNER INFORMATION */}
+      {/* Partner Information */}
       <div className="rounded-[24px] md:rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-visible">
         <SectionHeader
           icon={User}
@@ -878,15 +889,8 @@ export default function PartnerDataClient({
         </div>
       </div>
 
-      {/* PARTNER PROGRAM PLAN */}
-      <div className="rounded-[24px] md:rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden mb-10 p-4 sm:p-6 md:p-8">
-        <h1 className="text-2xl font-black text-gray-900">Partner Program Plan</h1>
-        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-gray-700 border border-purple-100 py-2 px-4 rounded-xl">
-        <p className="text-gray-600">Public Health Insurance (DAK) </p><p className="font-medium text-gray-800">EUR 30</p>
-
-        </div>
-      </div>
     </div>
   );
 }
+
 

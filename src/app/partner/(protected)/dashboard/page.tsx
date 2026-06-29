@@ -33,64 +33,66 @@ export default async function PartnerDashboard() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  const [statusMetrics, todayClicks, monthClicks, todayApprovedAgg, monthApprovedAgg] =
-    await Promise.all([
-      prisma.application.groupBy({
-        by: ["commissionStatus"],
-        where: {
-          ...baseWhere,
-          commissionStatus: {
-            in: ["Pending", "Approved"],
-          },
-        },
-        _count: {
-          _all: true,
-        },
-        _sum: {
-          commission: true,
-        },
-      }),
-      prisma.application.count({
-        where: {
-          ...baseWhere,
-          createdAt: {
-            gte: todayStart,
-            lt: tomorrowStart,
-          },
-        },
-      }),
-      prisma.application.count({
-        where: {
-          ...baseWhere,
-          createdAt: {
-            gte: monthStart,
-            lt: nextMonthStart,
-          },
-        },
-      }),
-      prisma.application.aggregate({
-        where: {
-          ...baseWhere,
-          commissionStatus: "Approved",
-          createdAt: {
-            gte: todayStart,
-            lt: tomorrowStart,
-          },
-        },
-        _sum: { commission: true },
-      }),
-      prisma.application.aggregate({
-        where: {
-          ...baseWhere,
-          commissionStatus: "Approved",
-          createdAt: {
-            gte: monthStart,
-            lt: nextMonthStart,
-          },
-        },
-        _sum: { commission: true },
-      }),
-    ]);
+  // Keep DB calls sequential to avoid pool timeout issues on low connection limits.
+  const statusMetrics = await prisma.application.groupBy({
+    by: ["commissionStatus"],
+    where: {
+      ...baseWhere,
+      commissionStatus: {
+        in: ["Pending", "Approved"],
+      },
+    },
+    _count: {
+      _all: true,
+    },
+    _sum: {
+      commission: true,
+    },
+  });
+
+  const todayClicks = await prisma.application.count({
+    where: {
+      ...baseWhere,
+      createdAt: {
+        gte: todayStart,
+        lt: tomorrowStart,
+      },
+    },
+  });
+
+  const monthClicks = await prisma.application.count({
+    where: {
+      ...baseWhere,
+      createdAt: {
+        gte: monthStart,
+        lt: nextMonthStart,
+      },
+    },
+  });
+
+  const todayApprovedAgg = await prisma.application.aggregate({
+    where: {
+      ...baseWhere,
+      commissionStatus: "Approved",
+      createdAt: {
+        gte: todayStart,
+        lt: tomorrowStart,
+      },
+    },
+    _sum: { commission: true },
+  });
+
+  const monthApprovedAgg = await prisma.application.aggregate({
+    where: {
+      ...baseWhere,
+      commissionStatus: "Approved",
+      createdAt: {
+        gte: monthStart,
+        lt: nextMonthStart,
+      },
+    },
+    _sum: { commission: true },
+  });
 
   const pendingMetrics = statusMetrics.find(
     (item) => item.commissionStatus === "Pending",

@@ -13,18 +13,24 @@ export default function LayoutWrapper({
 
   const pathname = usePathname();
 
+  const isPartnerAccessRoute =
+    pathname.startsWith("/partner-access");
   const isPartnerRoute =
-    pathname.startsWith("/partner");
+    pathname.startsWith("/partner") && !isPartnerAccessRoute;
   const isAgentRoute =
     pathname.startsWith("/agent");
+  const isPortalRoute =
+    pathname.startsWith("/portal");
 
   return (
     <>
-      {!isPartnerRoute && !isAgentRoute && <Header />}
+      {!isPartnerRoute &&
+        !isAgentRoute &&
+        !isPortalRoute && <Header />}
 
       {children}
 
-      {!isAgentRoute && <Footernew />}
+      {!isAgentRoute && !isPortalRoute && <Footernew />}
     </>
   );
 }

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
+import { ensureApplicationUserAccount } from "@/lib/ensureApplicationUserAccount";
 
 function makeOrderId() {
   return `AGAPP-${Date.now()}`;
@@ -29,11 +30,14 @@ export async function GET() {
       where: {
         source: "agent",
         partnerId: agent.id,
-        status: { not: "client_profile" },
+        status: {
+          in: ["Submitted", "submitted", "processed", "Processed"],
+        },
       },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
+        orderId: true,
         createdAt: true,
         firstName: true,
         lastName: true,
@@ -48,6 +52,7 @@ export async function GET() {
     return NextResponse.json(
       rows.map((item) => ({
         id: item.id,
+        orderId: item.orderId || "",
         createdAt: item.createdAt.toISOString(),
         firstName: item.firstName || "",
         lastName: item.lastName || "",
@@ -189,11 +194,27 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Application not found" }, { status: 404 });
     }
 
+    const normalizedStatus = String(status).trim();
+
     const updated = await prisma.application.update({
       where: { id },
-      data: { status },
-      select: { id: true, status: true },
+      data: { status: normalizedStatus },
+      select: {
+        id: true,
+        status: true,
+        userId: true,
+        firstName: true,
+        lastName: true,
+      },
     });
+
+    if (normalizedStatus.toLowerCase() === "submitted") {
+      await ensureApplicationUserAccount({
+        email: updated.userId,
+        firstName: updated.firstName,
+        lastName: updated.lastName,
+      });
+    }
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -201,4 +222,3 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
-
