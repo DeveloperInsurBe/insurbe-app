@@ -298,7 +298,7 @@ export default function ApplicationsTable({ initialRows }: { initialRows: AppRow
         ) : null}
       </div>
 
-      <div className="hidden overflow-x-auto rounded-2xl border border-gray-200 bg-white xl:block">
+      <div className="hidden max-w-full overflow-x-auto rounded-2xl border border-gray-200 bg-white xl:block">
         <table className="w-full min-w-[1500px]">
           <thead className="bg-gray-50">
             <tr>

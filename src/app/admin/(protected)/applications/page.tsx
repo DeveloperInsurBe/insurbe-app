@@ -90,7 +90,7 @@ export default async function AdminApplicationsPage() {
   });
 
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 space-y-5">
       <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
         <p className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
           Applications

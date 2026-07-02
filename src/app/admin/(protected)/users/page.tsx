@@ -88,7 +88,7 @@ export default async function AdminUsersPage() {
   );
 
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 space-y-5">
       <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
         <p className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
           Users
@@ -146,7 +146,7 @@ export default async function AdminUsersPage() {
         })}
       </div>
 
-      <div className="hidden overflow-x-auto rounded-2xl border border-gray-200 bg-white xl:block">
+      <div className="hidden max-w-full overflow-x-auto rounded-2xl border border-gray-200 bg-white xl:block">
         <table className="w-full min-w-[1080px]">
           <thead className="bg-gray-50">
             <tr>
