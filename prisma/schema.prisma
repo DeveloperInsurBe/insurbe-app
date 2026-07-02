@@ -89,3 +89,26 @@ model InsuranceApplication {
   createdAt         DateTime? @default(now()) @db.Timestamptz(6)
   applicationNumber String?   @unique
 }
+
+model MawsitaRecord {
+  id               String   @id @default(uuid())
+  customerName     String
+  email            String
+  phone            String?
+  planName         String
+  planType         String?
+  startDate        String?
+  endDate          String?
+  premiumAmount    Float?
+  status           String   @default("Purchased")
+  notes            String?
+  documents        Json?
+  createdByAdminId String?
+  createdByEmail   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([email])
+}

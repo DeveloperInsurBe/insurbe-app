@@ -14,7 +14,7 @@ export default function FreeConsultation() {
             {/* LEFT IMAGE */}
             <div className="relative min-h-[320px] lg:min-h-[400px]">
               <Image
-                src="/hero_assets/consultation.png"
+                src="/hero_assets/consultation1.png"
                 alt="Free Consultation"
                 fill
                 priority
