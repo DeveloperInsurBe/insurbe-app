@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { Prisma } from "@prisma/client";
 
 import { authOptions } from "@/lib/authOptions";
 import { normalizeMawsitaDocuments } from "@/lib/mawsitaDocuments";
@@ -16,6 +17,42 @@ function parseStatus(input: unknown) {
   const value = String(input || "").trim();
   if (!value) return "Purchased";
   return ALLOWED_STATUSES.has(value) ? value : "Purchased";
+}
+
+function isMissingMawsitaUserIdColumn(error: unknown) {
+  const message = String(
+    (error as { message?: unknown } | null)?.message || "",
+  ).toLowerCase();
+
+  if (error instanceof Prisma.PrismaClientValidationError) {
+    return message.includes("userid");
+  }
+
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+    return message.includes("userid");
+  }
+
+  if (!["P2022", "P2021"].includes(error.code)) {
+    return message.includes("userid");
+  }
+
+  const meta = error.meta as { column?: unknown } | undefined;
+  const column = String(meta?.column || "").toLowerCase();
+  return column.includes("userid") || message.includes("userid");
+}
+
+async function resolveUserIdByEmail(email: string) {
+  const user = await prisma.user.findFirst({
+    where: {
+      email: {
+        equals: email,
+        mode: "insensitive",
+      },
+    },
+    select: { id: true },
+  });
+
+  return user?.id || null;
 }
 
 export async function GET(req: Request) {
@@ -124,30 +161,60 @@ export async function POST(req: Request) {
     }
 
     const documents = normalizeMawsitaDocuments(body.documents);
+    const userId = await resolveUserIdByEmail(email);
 
-    const row = await prisma.mawsitaRecord.create({
-      data: {
-        customerName,
-        email,
-        phone: phone || null,
-        planName,
-        planType: planType || null,
-        startDate: startDate || null,
-        endDate: endDate || null,
-        premiumAmount,
-        status,
-        notes: notes || null,
-        documents,
-        createdByAdminId: session.user.id || null,
-        createdByEmail: session.user.email,
-      },
-    });
+    let row;
+    try {
+      row = await prisma.mawsitaRecord.create({
+        data: {
+          userId,
+          customerName,
+          email,
+          phone: phone || null,
+          planName,
+          planType: planType || null,
+          startDate: startDate || null,
+          endDate: endDate || null,
+          premiumAmount,
+          status,
+          notes: notes || null,
+          documents,
+          createdByAdminId: session.user.id || null,
+          createdByEmail: session.user.email,
+        },
+      });
+    } catch (createError) {
+      if (!isMissingMawsitaUserIdColumn(createError)) throw createError;
+      row = await prisma.mawsitaRecord.create({
+        data: {
+          customerName,
+          email,
+          phone: phone || null,
+          planName,
+          planType: planType || null,
+          startDate: startDate || null,
+          endDate: endDate || null,
+          premiumAmount,
+          status,
+          notes: notes || null,
+          documents,
+          createdByAdminId: session.user.id || null,
+          createdByEmail: session.user.email,
+        },
+      });
+    }
 
     return NextResponse.json(row, { status: 201 });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "Failed to create Mawsita record" },
+      {
+        error: "Failed to create Mawsita record",
+        details:
+          process.env.NODE_ENV === "development"
+            ? String((error as { message?: unknown } | null)?.message || "")
+            : undefined,
+      },
       { status: 500 },
     );
   }

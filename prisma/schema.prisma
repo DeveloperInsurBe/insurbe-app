@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -22,6 +23,7 @@ model User {
   firstName        String?
   lastName         String?
   partnerProfile   PartnerProfile?
+  mawsitaRecords   MawsitaRecord[]
 }
 
 model PartnerProfile {
@@ -92,6 +94,7 @@ model InsuranceApplication {
 
 model MawsitaRecord {
   id               String   @id @default(uuid())
+  userId           String?
   customerName     String
   email            String
   phone            String?
@@ -107,8 +110,10 @@ model MawsitaRecord {
   createdByEmail   String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now()) @updatedAt
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@index([status])
   @@index([email])
+  @@index([userId])
 }

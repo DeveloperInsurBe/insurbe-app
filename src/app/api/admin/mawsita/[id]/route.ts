@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { Prisma } from "@prisma/client";
 
 import { authOptions } from "@/lib/authOptions";
 import {
@@ -18,6 +19,42 @@ const ALLOWED_STATUSES = new Set([
   "Cancelled",
   "On Hold",
 ]);
+
+function isMissingMawsitaUserIdColumn(error: unknown) {
+  const message = String(
+    (error as { message?: unknown } | null)?.message || "",
+  ).toLowerCase();
+
+  if (error instanceof Prisma.PrismaClientValidationError) {
+    return message.includes("userid");
+  }
+
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+    return message.includes("userid");
+  }
+
+  if (!["P2022", "P2021"].includes(error.code)) {
+    return message.includes("userid");
+  }
+
+  const meta = error.meta as { column?: unknown } | undefined;
+  const column = String(meta?.column || "").toLowerCase();
+  return column.includes("userid") || message.includes("userid");
+}
+
+async function resolveUserIdByEmail(email: string) {
+  const user = await prisma.user.findFirst({
+    where: {
+      email: {
+        equals: email,
+        mode: "insensitive",
+      },
+    },
+    select: { id: true },
+  });
+
+  return user?.id || null;
+}
 
 export async function PATCH(
   req: Request,
@@ -95,38 +132,76 @@ export async function PATCH(
     }
 
     const documents = normalizeMawsitaDocuments(body.documents);
+    const userId = await resolveUserIdByEmail(email);
 
-    const updated = await prisma.mawsitaRecord.update({
-      where: { id },
-      data: {
-        customerName,
-        email,
-        phone: phone || null,
-        planName,
-        planType: planType || null,
-        startDate: startDate || null,
-        endDate: endDate || null,
-        premiumAmount,
-        status,
-        notes: notes || null,
-        documents,
-      },
-      select: {
-        id: true,
-        customerName: true,
-        email: true,
-        phone: true,
-        planName: true,
-        planType: true,
-        startDate: true,
-        endDate: true,
-        premiumAmount: true,
-        status: true,
-        notes: true,
-        documents: true,
-        updatedAt: true,
-      },
-    });
+    let updated;
+    try {
+      updated = await prisma.mawsitaRecord.update({
+        where: { id },
+        data: {
+          userId,
+          customerName,
+          email,
+          phone: phone || null,
+          planName,
+          planType: planType || null,
+          startDate: startDate || null,
+          endDate: endDate || null,
+          premiumAmount,
+          status,
+          notes: notes || null,
+          documents,
+        },
+        select: {
+          id: true,
+          customerName: true,
+          email: true,
+          phone: true,
+          planName: true,
+          planType: true,
+          startDate: true,
+          endDate: true,
+          premiumAmount: true,
+          status: true,
+          notes: true,
+          documents: true,
+          updatedAt: true,
+        },
+      });
+    } catch (updateError) {
+      if (!isMissingMawsitaUserIdColumn(updateError)) throw updateError;
+      updated = await prisma.mawsitaRecord.update({
+        where: { id },
+        data: {
+          customerName,
+          email,
+          phone: phone || null,
+          planName,
+          planType: planType || null,
+          startDate: startDate || null,
+          endDate: endDate || null,
+          premiumAmount,
+          status,
+          notes: notes || null,
+          documents,
+        },
+        select: {
+          id: true,
+          customerName: true,
+          email: true,
+          phone: true,
+          planName: true,
+          planType: true,
+          startDate: true,
+          endDate: true,
+          premiumAmount: true,
+          status: true,
+          notes: true,
+          documents: true,
+          updatedAt: true,
+        },
+      });
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

@@ -41,6 +41,84 @@ interface Document {
   mimeType?: string;
 }
 
+interface MawsitaDocumentRef {
+  name: string;
+  type: string;
+  size: number | null;
+  uploadedAt: string;
+  source: "external-link" | "supabase";
+  url?: string;
+  bucket?: string;
+  storagePath?: string;
+}
+
+interface MawsitaRecord {
+  id: string;
+  customerName: string;
+  email: string;
+  phone: string | null;
+  planName: string;
+  planType: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  premiumAmount: number | null;
+  status: string;
+  notes: string | null;
+  documents: unknown;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface MawsitaDashboardDocument {
+  id: string;
+  recordId: string;
+  title: string;
+  uploadedAt: string;
+  source: "external-link" | "supabase";
+  url?: string;
+  bucket?: string;
+  storagePath?: string;
+}
+
+function normalizeMawsitaDocuments(input: unknown): MawsitaDocumentRef[] {
+  const docs = Array.isArray(input) ? input : [];
+
+  return docs
+    .map((doc) => {
+      const candidate = (doc || {}) as Record<string, unknown>;
+      const name = String(candidate.name || "").trim();
+      const sourceRaw = String(candidate.source || "").trim();
+      const source =
+        sourceRaw === "supabase"
+          ? ("supabase" as const)
+          : ("external-link" as const);
+      const url = String(candidate.url || "").trim();
+      const bucket = String(candidate.bucket || "").trim();
+      const storagePath = String(candidate.storagePath || "").trim();
+      if (!name) return null;
+      if (source === "external-link" && !url) return null;
+      if (source === "supabase" && (!bucket || !storagePath)) return null;
+
+      const sizeRaw = candidate.size;
+      const parsedSize =
+        typeof sizeRaw === "number"
+          ? sizeRaw
+          : Number.parseInt(String(sizeRaw || ""), 10);
+
+      return {
+        name,
+        type: String(candidate.type || "").trim() || "application/octet-stream",
+        size: Number.isFinite(parsedSize) && parsedSize > 0 ? parsedSize : null,
+        uploadedAt: String(candidate.uploadedAt || "").trim() || new Date().toISOString(),
+        source,
+        url: url || undefined,
+        bucket: bucket || undefined,
+        storagePath: storagePath || undefined,
+      };
+    })
+    .filter(Boolean) as MawsitaDocumentRef[];
+}
+
 const STATUS_META: Record<
   string,
   {
@@ -193,6 +271,11 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [mawsitaRecords, setMawsitaRecords] = useState<MawsitaRecord[]>([]);
+  const [mawsitaDocuments, setMawsitaDocuments] = useState<MawsitaDashboardDocument[]>(
+    [],
+  );
+  const [openingMawsitaDocId, setOpeningMawsitaDocId] = useState("");
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const hasFetchedRef = useRef(false);
@@ -234,6 +317,15 @@ export default function DashboardPage() {
 
         const data = await res.json();
         const apps = Array.isArray(data) ? data : data.applications || [];
+
+        const mawsitaRes = await fetch("/api/mawsita/user", {
+          headers: { "Cache-Control": "no-cache" },
+          signal: controller.signal,
+        });
+        const mawsitaData = mawsitaRes.ok ? await mawsitaRes.json() : { rows: [] };
+        const mawsitaRows = Array.isArray(mawsitaData?.rows)
+          ? (mawsitaData.rows as MawsitaRecord[])
+          : [];
         if (!isMounted) return;
 
         setPolicies(
@@ -300,9 +392,25 @@ export default function DashboardPage() {
           });
 
         setDocuments(hallescheDocuments);
+        setMawsitaRecords(mawsitaRows);
+        setMawsitaDocuments(
+          mawsitaRows.flatMap((row) => {
+            const docs = normalizeMawsitaDocuments(row.documents);
+            return docs.map((doc, index) => ({
+              id: `${row.id}-${doc.storagePath || doc.url || index}`,
+              recordId: row.id,
+              title: doc.name,
+              uploadedAt: new Date(row.createdAt).toDateString(),
+              source: doc.source,
+              url: doc.url,
+              bucket: doc.bucket,
+              storagePath: doc.storagePath,
+            }));
+          }),
+        );
         hasFetchedRef.current = true;
       } catch (err: any) {
-        if (err?.name !== "AbortError") console.error("❌", err);
+        if (err?.name !== "AbortError") console.error("Error:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -363,6 +471,42 @@ export default function DashboardPage() {
     }
   };
 
+  const openMawsitaDocument = async (doc: MawsitaDashboardDocument) => {
+    if (doc.source === "external-link" && doc.url) {
+      window.open(doc.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    if (!doc.bucket || !doc.storagePath) {
+      alert("Document reference is invalid.");
+      return;
+    }
+
+    setOpeningMawsitaDocId(doc.id);
+    try {
+      const response = await fetch("/api/mawsita/document-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recordId: doc.recordId,
+          bucket: doc.bucket,
+          storagePath: doc.storagePath,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.signedUrl) {
+        throw new Error("Unable to open Mawista document");
+      }
+
+      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    } catch {
+      alert("Could not open document.");
+    } finally {
+      setOpeningMawsitaDocId("");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
@@ -370,7 +514,7 @@ export default function DashboardPage() {
           <Shield className="w-5 h-5 text-white" />
         </div>
         <p className="text-sm font-medium text-gray-500 mb-4">
-          Loading your dashboard…
+          Loading your dashboard...
         </p>
         <div className="w-32 h-1 bg-gray-200 rounded-full overflow-hidden">
           <div className="h-full w-1/2 bg-blue-500 rounded-full animate-pulse" />
@@ -470,12 +614,12 @@ export default function DashboardPage() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <h1 className="text-xl font-bold text-gray-900">
-                  Good day, {displayName} 👋
+                  Good day, {displayName}
                 </h1>
                 <p className="text-sm text-gray-400 mt-1">
                   {inProgress > 0
                     ? `You have ${inProgress} application${inProgress > 1 ? "s" : ""} that need your attention.`
-                    : "Everything looks great — all applications are up to date."}
+                    : "Everything looks great - all applications are up to date."}
                 </p>
               </motion.div>
 
@@ -704,7 +848,7 @@ export default function DashboardPage() {
                                       }
                                       className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-gray-600 text-xs font-semibold rounded-xl hover:bg-gray-50 transition-colors"
                                     >
-                                      ✏️ Edit
+                                      Edit
                                     </motion.button>
                                   </>
                                 ) : (
@@ -731,7 +875,7 @@ export default function DashboardPage() {
                                 className={`text-[11px] font-semibold mb-0.5 ${isCompleted ? "text-emerald-600" : "text-blue-600"}`}
                               >
                                 {isCompleted
-                                  ? "✓ Policy submitted"
+                                  ? "Policy submitted"
                                   : "Next step"}
                               </p>
                               <p className="text-xs text-gray-600">
@@ -787,7 +931,7 @@ export default function DashboardPage() {
                                     }
                                     className="px-4 py-2.5 border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl"
                                   >
-                                    ✏️ Edit
+                                    Edit
                                   </motion.button>
                                 </>
                               ) : (
@@ -813,8 +957,107 @@ export default function DashboardPage() {
             </motion.div>
           )}
 
+          {(activePage === "Home" || activePage === "Insurance") &&
+          mawsitaRecords.length > 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
+                  Mawista Policies
+                </h2>
+                <span className="text-xs text-gray-400">
+                  {mawsitaRecords.length} total
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {mawsitaRecords.map((row) => {
+                  const docs = normalizeMawsitaDocuments(row.documents);
+                  return (
+                    <div
+                      key={row.id}
+                      className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{row.planName}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Mawista record - Read-only
+                          </p>
+                        </div>
+                        <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-[11px] font-semibold text-violet-700">
+                          {row.status || "Purchased"}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 text-sm">
+                        <div>
+                          <p className="text-[11px] uppercase text-gray-400">Customer</p>
+                          <p className="font-medium text-gray-800">{row.customerName}</p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] uppercase text-gray-400">Email</p>
+                          <p className="font-medium text-gray-800 break-all">{row.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] uppercase text-gray-400">Coverage</p>
+                          <p className="font-medium text-gray-800">
+                            {row.startDate || "-"} to {row.endDate || "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] uppercase text-gray-400">Premium</p>
+                          <p className="font-medium text-gray-800">
+                            {row.premiumAmount != null ? `EUR ${row.premiumAmount}` : "-"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {docs.length ? (
+                        <div className="mt-4 flex flex-wrap items-center gap-2">
+                          {docs.map((doc, index) => {
+                            const buttonId = `${row.id}-${doc.storagePath || doc.url || index}`;
+                            return (
+                              <button
+                                key={buttonId}
+                                type="button"
+                                onClick={() =>
+                                  void openMawsitaDocument({
+                                    id: buttonId,
+                                    recordId: row.id,
+                                    title: doc.name,
+                                    uploadedAt: row.createdAt,
+                                    source: doc.source,
+                                    url: doc.url,
+                                    bucket: doc.bucket,
+                                    storagePath: doc.storagePath,
+                                  })
+                                }
+                                className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-100"
+                              >
+                                {openingMawsitaDocId === buttonId
+                                  ? "Opening..."
+                                  : doc.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="mt-4 text-xs text-gray-500">No Mawista documents</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          ) : null}
+
           {/* Documents */}
-          {activePage === "Documents" && documents.length > 0 && (
+          {activePage === "Documents" &&
+          (documents.length > 0 || mawsitaDocuments.length > 0) && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -826,11 +1069,45 @@ export default function DashboardPage() {
                 </h2>
 
                 <span className="text-xs text-gray-400">
-                  {documents.length} total
+                  {documents.length + mawsitaDocuments.length} total
                 </span>
               </div>
 
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                {mawsitaDocuments.map((doc, i) => (
+                  <motion.div
+                    key={doc.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-4 border-b border-gray-50 hover:bg-gray-50/60 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-4 h-4 text-violet-500" />
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 truncate">
+                          {doc.title}
+                        </p>
+
+                        <p className="text-[11px] text-gray-400">
+                          Mawista document - {doc.uploadedAt}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => void openMawsitaDocument(doc)}
+                      className="w-full sm:w-auto justify-center flex items-center gap-1.5 px-3.5 py-2 bg-violet-700 hover:bg-violet-800 text-white text-xs font-semibold rounded-xl flex-shrink-0 transition-colors"
+                    >
+                      <Download className="w-3 h-3" />
+                      {openingMawsitaDocId === doc.id ? "Opening..." : "Open"}
+                    </button>
+                  </motion.div>
+                ))}
+
                 {documents.map((doc, i) => (
                   <motion.div
                     key={doc.id}
@@ -850,7 +1127,7 @@ export default function DashboardPage() {
                         </p>
 
                         <p className="text-[11px] text-gray-400">
-                          Application created • {doc.uploadedAt}
+                          Application created - {doc.uploadedAt}
                         </p>
                       </div>
                     </div>
@@ -897,7 +1174,7 @@ export default function DashboardPage() {
           </motion.div>
 
           <p className="text-center text-[11px] text-gray-300 pb-4">
-            🔒 Your data is encrypted and never shared
+            Your data is encrypted and never shared
           </p>
         </main>
       </div>

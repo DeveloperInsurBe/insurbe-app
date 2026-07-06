@@ -4,13 +4,13 @@ import { useMemo, useState } from "react";
 
 type DocRef = {
   name: string;
-  url?: string | null;
+  url?: string;
   type: string;
   size: number | null;
   uploadedAt: string;
   source: "external-link" | "supabase";
-  bucket?: string | null;
-  storagePath?: string | null;
+  bucket?: string;
+  storagePath?: string;
 };
 
 type MawsitaRow = {
@@ -101,7 +101,7 @@ function normalizeDocs(input: unknown): DocRef[] {
 
       return {
         name,
-        url: String(candidate.url || "").trim() || null,
+        url: String(candidate.url || "").trim() || undefined,
         type: String(candidate.type || "").trim() || "external-link",
         size:
           typeof candidate.size === "number"
@@ -109,8 +109,8 @@ function normalizeDocs(input: unknown): DocRef[] {
             : Number.parseInt(String(candidate.size || ""), 10) || null,
         uploadedAt: String(candidate.uploadedAt || "").trim() || new Date().toISOString(),
         source,
-        bucket: bucket || null,
-        storagePath: storagePath || null,
+        bucket: bucket || undefined,
+        storagePath: storagePath || undefined,
       };
     })
     .filter(Boolean) as DocRef[];
