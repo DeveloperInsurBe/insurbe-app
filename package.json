@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
-    "admin:create": "tsx scripts/createAdmin.ts"
+    "admin:create": "tsx scripts/createAdmin.ts",
+    "mawsita:backfill-users": "tsx scripts/backfillMawsitaUserLinks.ts",
+    "mawsita:rollout": "npx prisma migrate deploy && npm run mawsita:backfill-users"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
