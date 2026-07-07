@@ -22,6 +22,7 @@ const COUNTRIES = [
   { code: "RO", name: "Romania", flag: "🇷🇴" },
   { code: "NL", name: "Netherlands", flag: "🇳🇱" },
   { code: "BR", name: "Brazil", flag: "🇧🇷" },
+  { code: "CO", name: "Colombia", flag: "🇨🇴" },
   { code: "PK", name: "Pakistan", flag: "🇵🇰" },
   { code: "NG", name: "Nigeria", flag: "🇳🇬" },
   { code: "UA", name: "Ukraine", flag: "🇺🇦" },

@@ -1,6 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { PDFTextField, PDFRadioGroup, PDFCheckBox, PDFDocument } from "pdf-lib";
 import zlib from "zlib";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
+const GLOBAL_AGENT_SIGNATURE_PATH =
+  process.env.GLOBAL_AGENT_SIGNATURE_PATH ||
+  "public/signatures/agent-signature.png";
+const GLOBAL_AGENT_SIGNATURE_BASE64 = process.env.GLOBAL_AGENT_SIGNATURE_BASE64;
+
+const AGENT_SIGNATURE_FIELD_NAME = "Unterschrift-Antrag-Vermittler";
 
 const getCityFromCoords = async (lat: number, lng: number) => {
   try {
@@ -662,6 +671,32 @@ export async function POST(
       await drawSignature("Unterschrift-Datenschutz-Antragsteller", signature);
       await drawSignature("Unterschrift-IN4-Kontoinhaber", signature);
       await drawSignature("UnterschriftVG26", signature);
+    }
+
+    // Global agent signature (same PNG for every generated PDF).
+    try {
+      let signatureBase64 = "";
+
+      if (GLOBAL_AGENT_SIGNATURE_BASE64) {
+        signatureBase64 = GLOBAL_AGENT_SIGNATURE_BASE64.replace(
+          /^data:image\/\w+;base64,/,
+          "",
+        ).trim();
+      } else {
+        const absoluteSignaturePath = path.resolve(
+          process.cwd(),
+          GLOBAL_AGENT_SIGNATURE_PATH,
+        );
+        const signatureBytes = await readFile(absoluteSignaturePath);
+        signatureBase64 = signatureBytes.toString("base64");
+      }
+
+      await drawSignature(
+        AGENT_SIGNATURE_FIELD_NAME,
+        `data:image/png;base64,${signatureBase64}`,
+      );
+    } catch (agentSignatureError) {
+      console.warn("⚠️ Global agent signature skipped:", agentSignatureError);
     }
 
     form.flatten();
