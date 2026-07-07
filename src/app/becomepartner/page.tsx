@@ -20,8 +20,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function BecomePartnerPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -360,149 +362,6 @@ export default function BecomePartnerPage() {
           </div>
         </section>
 
-        {/* Application Form */}
-        <section id="application-form" className="py-20 px-4 bg-white">
-          <div className="max-w-3xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-                Apply Now
-              </h2>
-              <p className="text-lg text-gray-600">
-                Fill out the form below and start earning today
-              </p>
-            </motion.div>
-
-            <motion.form
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              onSubmit={handleSubmit}
-              className="bg-gradient-to-br from-purple-50 to-purple-50 rounded-3xl p-8 sm:p-12 shadow-2xl border border-purple-100"
-            >
-              <div className="space-y-6">
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 focus:outline-none transition-all"
-                      placeholder="John Doe"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 focus:outline-none transition-all"
-                      placeholder="john@example.com"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Company Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.company}
-                      onChange={(e) =>
-                        setFormData({ ...formData, company: e.target.value })
-                      }
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 focus:outline-none transition-all"
-                      placeholder="Your Company"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 focus:outline-none transition-all"
-                      placeholder="+49 123 456 7890"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Website / Social Media
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.website}
-                    onChange={(e) =>
-                      setFormData({ ...formData, website: e.target.value })
-                    }
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 focus:outline-none transition-all"
-                    placeholder="https://yourwebsite.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Tell us about your audience
-                  </label>
-                  <textarea
-                    value={formData.message}
-                    onChange={(e) =>
-                      setFormData({ ...formData, message: e.target.value })
-                    }
-                    rows={4}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 focus:outline-none transition-all resize-none"
-                    placeholder="Tell us about your marketing channels, audience size, and why you'd be a great partner..."
-                  />
-                </div>
-
-                <motion.button
-                  type="submit"
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-600 text-white rounded-full font-bold text-lg shadow-xl hover:shadow-2xl hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2"
-                >
-                  <Sparkles className="w-5 h-5" />
-                  Submit Application
-                  <ArrowRight className="w-5 h-5" />
-                </motion.button>
-
-                <p className="text-center text-sm text-gray-500">
-                  We'll review your application and get back to you within 24
-                  hours
-                </p>
-              </div>
-            </motion.form>
-          </div>
-        </section>
 
         {/* CTA Section */}
         <section className="py-20 px-4">
@@ -526,11 +385,9 @@ export default function BecomePartnerPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() =>
-                    document
-                      .getElementById("application-form")
-                      ?.scrollIntoView({ behavior: "smooth" })
+                    router.push("/partner-access/signup?type=partner")
                   }
-                  className="px-8 py-4 bg-white text-purple-600 rounded-full font-bold shadow-xl hover:shadow-2xl transition-all"
+                  className="px-8 py-4 cursor-pointer bg-white text-purple-600 rounded-full font-bold shadow-xl hover:shadow-2xl transition-all"
                 >
                   Apply Now
                 </motion.button>
