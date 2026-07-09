@@ -295,6 +295,17 @@ export default function ComparePlans() {
   };
 
   const recommendedPlanId = getRecommendedPlanId();
+  const hasExactSpecialComparisonSet = useMemo(() => {
+    if (plans.length !== 3) return false;
+
+    const ids = new Set(plans.map((plan) => plan.id));
+
+    return (
+      ids.has("tk") &&
+      ids.has("hallesche-premium") &&
+      ids.has("hallesche-expat")
+    );
+  }, [plans]);
 
   // Set initial hover state to recommended plan
   useEffect(() => {
@@ -545,72 +556,11 @@ export default function ComparePlans() {
               </span>
             </h1>
 
-            {/* Buttons */}
-            {/* <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="flex flex-wrap justify-center gap-4 mt-8"
-            >
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleDefaultClick}
-                className="
-          inline-flex items-center gap-2
-          px-8 py-3
-          rounded-full
-          font-semibold
-          text-white
-          bg-gradient-to-r from-primary to-purple-600
-          shadow-md hover:shadow-lg
-          transition
-          focus:outline-none focus:ring-2 focus:ring-purple-300
-        "
-              >
-                Default
-                <ArrowRight className="w-4 h-4" />
-              </motion.button>
-
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handlePersonalizedCalculationClick}
-                className="
-          inline-flex items-center gap-2
-          px-8 py-3
-          rounded-full
-          font-semibold
-          text-purple-600
-          border-2 border-purple-600
-          bg-white
-          hover:bg-purple-50
-          transition
-          focus:outline-none focus:ring-2 focus:ring-purple-300
-        "
-              >
-                Personalized Calculation
-              </motion.button>
-            </motion.div> */}
+        
           </motion.div>
         </div>
 
-        {/* Insurance Calculator */}
-        {/* <AnimatePresence>
-          {showCalculator && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-              animate={{ opacity: 1, height: "auto", marginBottom: 40 }}
-              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-              transition={{ duration: 0.3 }}
-              className="overflow-hidden border"
-            >
-              <InsuranceCalculatorPrivate setPremium={setPremium} premium={premium} />
-            </motion.div>
-          )}
-        </AnimatePresence> */}
+       
 
         {/* Product Count Badge */}
         <motion.div
@@ -890,7 +840,14 @@ export default function ComparePlans() {
               transition={{ duration: 0.4 }}
               className="mt-10"
             >
-              <PlansCompare plans={plans} />
+              <PlansCompare
+                plans={plans}
+                comparisonMode={
+                  hasExactSpecialComparisonSet
+                    ? "special_tk_hallesche_combo"
+                    : "default"
+                }
+              />
             </motion.div>
           )}
         </AnimatePresence>

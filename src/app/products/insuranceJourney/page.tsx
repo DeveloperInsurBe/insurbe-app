@@ -35,7 +35,7 @@ interface CountryAPI {
 
 interface Country {
   name: string;
-  flag: string;
+  flag: string | null;
   code: string;
 }
 
@@ -88,9 +88,64 @@ const INCOME_OPTIONS = [
 ] as const;
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
+const COUNTRIES_CACHE_KEY = "countries_cache_v2";
 const POPUP_DURATION = 3000;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\+?[\d\s-]{10,}$/;
+
+const getValidFlagUrl = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  if (!normalized) return null;
+  if (
+    normalized.startsWith("/") ||
+    normalized.startsWith("http://") ||
+    normalized.startsWith("https://")
+  ) {
+    return normalized;
+  }
+  return null;
+};
+
+const normalizeCountry = (entry: unknown): Country | null => {
+  if (!entry || typeof entry !== "object") return null;
+
+  const source = entry as {
+    name?: { common?: unknown } | unknown;
+    flags?: { svg?: unknown; png?: unknown };
+    flag?: unknown;
+    cca2?: unknown;
+    code?: unknown;
+  };
+
+  const name =
+    typeof source.name === "object" &&
+    source.name !== null &&
+    "common" in source.name &&
+    typeof source.name.common === "string"
+      ? source.name.common.trim()
+      : typeof source.name === "string"
+        ? source.name.trim()
+        : "";
+
+  const code =
+    typeof source.cca2 === "string"
+      ? source.cca2.trim()
+      : typeof source.code === "string"
+        ? source.code.trim()
+        : "";
+
+  if (!name || !code) return null;
+
+  return {
+    name,
+    code,
+    flag:
+      getValidFlagUrl(source.flags?.svg) ??
+      getValidFlagUrl(source.flags?.png) ??
+      getValidFlagUrl(source.flag),
+  };
+};
 
 const EU_COUNTRIES = [
   "Austria",
@@ -374,28 +429,36 @@ export default function InsuranceJourney() {
     let mounted = true;
     async function load() {
       try {
-        const cached = localStorage.getItem("countries_cache");
+        const cached = localStorage.getItem(COUNTRIES_CACHE_KEY);
         if (cached) {
-          const { data, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < CACHE_DURATION) {
-            if (mounted) setCountries(data);
+          const { data, timestamp } = JSON.parse(cached) as {
+            data?: unknown;
+            timestamp?: unknown;
+          };
+          const sanitizedCached = Array.isArray(data)
+            ? data
+                .map((item) => normalizeCountry(item))
+                .filter((item): item is Country => Boolean(item))
+            : [];
+          if (
+            typeof timestamp === "number" &&
+            Date.now() - timestamp < CACHE_DURATION &&
+            sanitizedCached.length
+          ) {
+            if (mounted) setCountries(sanitizedCached);
             return;
           }
         }
         const res = await fetch("/api/countries?fields=name,flags,cca2");
         const data: CountryAPI[] = await res.json();
         const list = data
-          .map((c) => ({
-            name: c.name.common,
-            flag: c.flags.svg || c.flags.png,
-            code: c.cca2,
-          }))
-          .filter((c) => c.name.trim())
+          .map((c) => normalizeCountry(c))
+          .filter((c): c is Country => Boolean(c))
           .sort((a, b) => a.name.localeCompare(b.name));
         if (mounted) {
           setCountries(list);
           localStorage.setItem(
-            "countries_cache",
+            COUNTRIES_CACHE_KEY,
             JSON.stringify({ data: list, timestamp: Date.now() }),
           );
         }
@@ -1158,13 +1221,20 @@ if (step === 5)
             <div className="flex items-center gap-3">
               {selectedCountryData ? (
                 <>
-                  <Image
-                    src={selectedCountryData.flag}
-                    alt={selectedCountryData.name}
-                    width={22}
-                    height={14}
-                    className="rounded object-cover"
-                  />
+                  {selectedCountryData.flag ? (
+                    <Image
+                      src={selectedCountryData.flag}
+                      alt={selectedCountryData.name}
+                      width={22}
+                      height={14}
+                      className="rounded object-cover"
+                    />
+                  ) : (
+                    <span
+                      className="w-[22px] h-[14px] rounded border border-gray-200 bg-gray-100 shrink-0"
+                      aria-hidden="true"
+                    />
+                  )}
 
                   <span className="text-gray-800 font-medium">
                     {selectedCountryData.name}
@@ -1223,13 +1293,20 @@ if (step === 5)
                           : "hover:bg-[#faf5ff]"
                       }`}
                     >
-                      <Image
-                        src={country.flag}
-                        alt={country.name}
-                        width={22}
-                        height={14}
-                        className="rounded object-cover shrink-0"
-                      />
+                      {country.flag ? (
+                        <Image
+                          src={country.flag}
+                          alt={country.name}
+                          width={22}
+                          height={14}
+                          className="rounded object-cover shrink-0"
+                        />
+                      ) : (
+                        <span
+                          className="w-[22px] h-[14px] rounded border border-gray-200 bg-gray-100 shrink-0"
+                          aria-hidden="true"
+                        />
+                      )}
 
                       <span className="text-gray-700 font-medium">
                         {country.name}
