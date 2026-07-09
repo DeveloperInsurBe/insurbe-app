@@ -115,9 +115,66 @@ interface CountryAPI {
 
 interface Country {
   name: string;
-  flag: string;
+  flag: string | null;
   code: string;
 }
+
+const COUNTRIES_CACHE_KEY = "countries_cache_v2";
+const COUNTRIES_CACHE_DURATION = 24 * 60 * 60 * 1000;
+
+const getValidFlagUrl = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  if (!normalized) return null;
+  if (
+    normalized.startsWith("/") ||
+    normalized.startsWith("http://") ||
+    normalized.startsWith("https://")
+  ) {
+    return normalized;
+  }
+  return null;
+};
+
+const normalizeCountry = (entry: unknown): Country | null => {
+  if (!entry || typeof entry !== "object") return null;
+
+  const source = entry as {
+    name?: { common?: unknown } | unknown;
+    flags?: { svg?: unknown; png?: unknown };
+    flag?: unknown;
+    cca2?: unknown;
+    code?: unknown;
+  };
+
+  const name =
+    typeof source.name === "object" &&
+    source.name !== null &&
+    "common" in source.name &&
+    typeof source.name.common === "string"
+      ? source.name.common.trim()
+      : typeof source.name === "string"
+        ? source.name.trim()
+        : "";
+
+  const code =
+    typeof source.cca2 === "string"
+      ? source.cca2.trim()
+      : typeof source.code === "string"
+        ? source.code.trim()
+        : "";
+
+  if (!name || !code) return null;
+
+  return {
+    name,
+    code,
+    flag:
+      getValidFlagUrl(source.flags?.svg) ??
+      getValidFlagUrl(source.flags?.png) ??
+      getValidFlagUrl(source.flag),
+  };
+};
 
 export default function ComprehensiveInsuranceForm() {
   const router = useRouter();
@@ -231,36 +288,43 @@ export default function ComprehensiveInsuranceForm() {
   // Add this useEffect to fetch countries
   useEffect(() => {
     let isMounted = true;
-    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
     async function fetchCountries() {
       try {
-        const cached = localStorage.getItem("countries_cache");
+        const cached = localStorage.getItem(COUNTRIES_CACHE_KEY);
         if (cached) {
-          const { data, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < CACHE_DURATION) {
-            if (isMounted) setCountries(data);
+          const { data, timestamp } = JSON.parse(cached) as {
+            data?: unknown;
+            timestamp?: unknown;
+          };
+          const sanitizedCached = Array.isArray(data)
+            ? data
+                .map((item) => normalizeCountry(item))
+                .filter((item): item is Country => Boolean(item))
+            : [];
+          if (
+            typeof timestamp === "number" &&
+            Date.now() - timestamp < COUNTRIES_CACHE_DURATION &&
+            sanitizedCached.length
+          ) {
+            if (isMounted) setCountries(sanitizedCached);
             return;
           }
         }
 
         const res = await fetch("/api/countries?fields=name,flags,cca2");
 
-        const data = await res.json();
+        const data: CountryAPI[] = await res.json();
 
         const list = data
-          .map((c: any) => ({
-            name: c.name.common,
-            flag: c.flags?.svg || c.flags?.png,
-            code: c.cca2,
-          }))
-          .filter((c: any) => c.name)
-          .sort((a: any, b: any) => a.name.localeCompare(b.name));
+          .map((c) => normalizeCountry(c))
+          .filter((c): c is Country => Boolean(c))
+          .sort((a, b) => a.name.localeCompare(b.name));
 
         if (isMounted) {
           setCountries(list);
           localStorage.setItem(
-            "countries_cache",
+            COUNTRIES_CACHE_KEY,
             JSON.stringify({ data: list, timestamp: Date.now() }),
           );
         }
