@@ -525,19 +525,19 @@ const GROUPED_STEPS = [
         label:
           "Have you had dental examinations or treatment during the last 3 years?",
         subtitle: "Including dental check-ups.",
-        redirectOnYes: false,
+        redirectOnYes: true,
       },
       {
         key: "dentalOngoing",
         label:
           "Are you in dental treatment at the moment, or is treatment for dental regulation, periodontosis or dentures necessary or intended?",
-        redirectOnYes: false,
+        redirectOnYes: true,
       },
       {
         key: "gumDisease",
         label:
           "Does a gum disease (e.g. periodontosis, periodontitis) or an anomalous position of the teeth or jaw exist?",
-        redirectOnYes: false,
+        redirectOnYes: true,
       },
     ],
   },
