@@ -6,6 +6,7 @@ import { Check, X, Star } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import PlansCompare from "./PlanCompares";
+import PlanDocumentDownloads from "./PlanDocumentDownloads";
 import { usePremiumStore } from "@/app/stores/premiumStore";
 import { useJourneyStore } from "@/app/stores/journeyStore";
 import { useDocumentStore } from "@/app/stores/documentStore";
@@ -214,17 +215,17 @@ export default function ComparePlans() {
         available = false;
       } else if (product.id === "hallesche-premium") {
         logo = "/icons/H.svg";
-        bgColor =
-          "bg-gradient-to-br from-purple-200 via-purple-300 to-pink-200  hover:from-purple-200 hover:via-purple-300 hover:to-pink-300";
+        bgColor = "bg-white";
         textColor = "text-purple-900";
-        buttonColor = "bg-white text-purple-600";
+        buttonColor =
+          "bg-gradient-to-r from-purple-600 to-purple-700 text-white";
         available = true;
       } else if (product.id === "hallesche-expat") {
         logo = "/icons/H.svg";
-        bgColor = "bg-white";
+        bgColor =
+          "bg-gradient-to-br from-purple-200 via-purple-300 to-pink-200  hover:from-purple-200 hover:via-purple-300 hover:to-pink-300";
         textColor = "text-black";
-        buttonColor =
-          "bg-gradient-to-r from-purple-600 to-purple-700 text-white";
+        buttonColor = "bg-white text-purple-600";
         available = true;
       }
 
@@ -288,6 +289,10 @@ export default function ComparePlans() {
     const dakExists = plans.some((p) => p.id === "dak");
     if (dakExists) return "dak";
 
+    // Prefer Expat whenever it is available in the comparison set.
+    const expatExists = plans.some((p) => p.id === "hallesche-expat");
+    if (expatExists) return "hallesche-expat";
+
     if (incomeRange === ">77400") {
       return "hallesche-premium";
     }
@@ -295,6 +300,19 @@ export default function ComparePlans() {
   };
 
   const recommendedPlanId = getRecommendedPlanId();
+  const displayPlans = useMemo(() => {
+    if (plans.length !== 3) return plans;
+
+    const recommendedIndex = plans.findIndex((p) => p.id === recommendedPlanId);
+    if (recommendedIndex <= 0) return plans;
+
+    const reordered = [...plans];
+    const [recommendedPlan] = reordered.splice(recommendedIndex, 1);
+    reordered.splice(1, 0, recommendedPlan);
+
+    return reordered;
+  }, [plans, recommendedPlanId]);
+
   const hasExactSpecialComparisonSet = useMemo(() => {
     if (plans.length !== 3) return false;
 
@@ -590,7 +608,7 @@ export default function ComparePlans() {
             ${plans.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}
           `}
         >
-          {plans.map((plan, index) => {
+          {displayPlans.map((plan, index) => {
             const isRecommended = plan.id === recommendedPlanId;
             const isHovered = hoveredCard === plan.id;
 
@@ -847,6 +865,12 @@ export default function ComparePlans() {
                     ? "special_tk_hallesche_combo"
                     : "default"
                 }
+              />
+              <PlanDocumentDownloads
+                plans={plans.map((plan) => ({
+                  id: plan.id,
+                  name: plan.name,
+                }))}
               />
             </motion.div>
           )}

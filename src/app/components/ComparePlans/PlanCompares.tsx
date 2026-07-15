@@ -127,52 +127,94 @@ export default function PlansCompare({
 
   if (shouldRenderSpecial) {
     return (
-      <div className="w-full py-8">
-        <div className="overflow-x-auto">
-          <div className="min-w-[1120px] overflow-hidden rounded-2xl border border-violet-200 bg-white shadow-xl">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-violet-900 text-white">
-                  <th className="w-[260px] border border-violet-200 px-4 py-3 text-left text-lg font-bold">
-                    Feature
-                  </th>
-                  {specialColumns.map((column) => (
-                    <th
-                      key={column.id}
-                      className="border border-violet-200 px-4 py-3 text-left text-lg font-bold"
-                    >
-                      {column.header}
+      <div className="w-full py-6 sm:py-8">
+        <div className="rounded-3xl border border-violet-200/80 bg-gradient-to-br from-violet-50 via-white to-purple-50 p-3 sm:p-4 shadow-xl">
+          <div className="mb-3 flex items-center justify-between gap-3 px-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-700">
+              Plan Feature Comparison
+            </p>
+            <span className="hidden rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700 md:inline-flex">
+              Compare side by side
+            </span>
+          </div>
+
+          <div className="hidden md:block overflow-x-auto">
+            <div className="min-w-[980px] overflow-hidden rounded-2xl border border-violet-200 bg-white shadow-sm">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-violet-900 text-white">
+                    <th className="sticky left-0 z-20 w-[260px] border border-violet-200 bg-violet-900 px-5 py-4 text-left text-base font-bold">
+                      Feature
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {specialRows.map((row, index) => (
-                  <tr
-                    key={row.feature}
-                    className={index % 2 === 0 ? "bg-violet-50/40" : "bg-white"}
-                  >
-                    <td className="border border-violet-200 bg-violet-50 px-4 py-3 text-2xl font-bold text-black">
-                      {row.feature}
-                    </td>
                     {specialColumns.map((column) => (
-                      <td
+                      <th
                         key={column.id}
-                        className="border border-violet-200 px-4 py-3 text-2xl text-gray-900"
+                        className="border border-violet-200 px-5 py-4 text-left text-base font-bold"
                       >
-                        {row.values[column.id]}
-                      </td>
+                        {column.header}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <div className="border-t border-violet-200 px-4 py-4 text-lg text-gray-600">
-              Benefit summary for website comparison. Final coverage is subject
-              to insurer tariff terms, eligibility, underwriting, and legally
-              binding policy documents.
+                </thead>
+                <tbody>
+                  {specialRows.map((row, index) => (
+                    <tr
+                      key={row.feature}
+                      className={
+                        index % 2 === 0
+                          ? "bg-violet-50/30 hover:bg-violet-50/60"
+                          : "bg-white hover:bg-violet-50/40"
+                      }
+                    >
+                      <td className="sticky left-0 z-10 border border-violet-200 bg-violet-100 px-5 py-4 text-xl font-bold leading-snug text-black">
+                        {row.feature}
+                      </td>
+                      {specialColumns.map((column) => (
+                        <td
+                          key={column.id}
+                          className="border border-violet-200 px-5 py-4 text-xl leading-snug text-gray-900"
+                        >
+                          {row.values[column.id]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          </div>
+
+          <div className="space-y-3 md:hidden">
+            {specialRows.map((row) => (
+              <div
+                key={row.feature}
+                className="overflow-hidden rounded-2xl border border-violet-200 bg-white shadow-sm"
+              >
+                <div className="bg-violet-100 px-4 py-3">
+                  <h3 className="text-lg font-bold leading-snug text-black">
+                    {row.feature}
+                  </h3>
+                </div>
+                <div className="divide-y divide-violet-100">
+                  {specialColumns.map((column) => (
+                    <div key={column.id} className="px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
+                        {column.header}
+                      </p>
+                      <p className="mt-1 text-base font-medium leading-relaxed text-gray-900">
+                        {row.values[column.id]}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm sm:text-base text-gray-600">
+            Benefit summary for website comparison. Final coverage is subject to
+            insurer tariff terms, eligibility, underwriting, and legally
+            binding policy documents.
           </div>
         </div>
       </div>
