@@ -100,7 +100,7 @@ export default function AgentClientsPage() {
       <div className="rounded-[24px] border border-white/50 bg-white p-5 shadow-sm md:p-6">
         <h2 className="text-lg font-black text-[#111827]">Client List</h2>
         {loading ? (
-          <p className="mt-4 text-sm text-gray-500">Loading clients...</p>
+          <ClientsTableSkeleton />
         ) : items.length === 0 ? (
           <p className="mt-4 text-sm text-gray-500">No clients added yet.</p>
         ) : (
@@ -132,6 +132,19 @@ export default function AgentClientsPage() {
   );
 }
 
+function ClientsTableSkeleton() {
+  return (
+    <div className="mt-4 animate-pulse">
+      <div className="space-y-3">
+        <div className="h-10 rounded-xl bg-gray-100" />
+        <div className="h-10 rounded-xl bg-gray-100" />
+        <div className="h-10 rounded-xl bg-gray-100" />
+        <div className="h-10 rounded-xl bg-gray-100" />
+      </div>
+    </div>
+  );
+}
+
 function Input({
   label,
   value,
@@ -152,4 +165,3 @@ function Input({
     </div>
   );
 }
-

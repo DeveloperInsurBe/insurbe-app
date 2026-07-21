@@ -89,7 +89,7 @@ export default function AgentSidebar({ agent }: AgentSidebarProps) {
                 <Link
                   key={item.name}
                   href={item.href}
-                  prefetch
+                  prefetch={false}
                   className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
                     active
                       ? "bg-[#820ad1]/12 text-[#820ad1]"
@@ -138,7 +138,7 @@ export default function AgentSidebar({ agent }: AgentSidebarProps) {
                 <Link
                   key={item.name}
                   href={item.href}
-                  prefetch
+                  prefetch={false}
                   className={`group flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-200 ${
                     active
                       ? "bg-[#820ad1]/10 text-[#820ad1]"
