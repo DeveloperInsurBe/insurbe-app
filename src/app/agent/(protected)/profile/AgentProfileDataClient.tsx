@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Edit3,
@@ -386,7 +385,6 @@ export default function AgentProfileDataClient({
   agentCompanyName,
   agentTitle,
 }: AgentProfileDataClientProps) {
-  const router = useRouter();
   const normalizedInitialProfile = Object.fromEntries(
     Object.entries(initialProfile || {}).filter(
       ([, value]) => typeof value === "string",
@@ -414,24 +412,53 @@ export default function AgentProfileDataClient({
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
-  const [countries] = useState<Country[]>(initialCountries);
-  const countriesLoading = false;
+  const [countries, setCountries] = useState<Country[]>(initialCountries);
+  const [countriesLoading, setCountriesLoading] = useState(
+    initialCountries.length === 0,
+  );
 
   useEffect(() => {
-    const handleFocusRefresh = () => {
-      if (document.visibilityState === "visible") {
-        router.refresh();
+    if (initialCountries.length > 0) return;
+
+    let active = true;
+
+    const loadCountries = async () => {
+      try {
+        const res = await fetch("/api/meta/countries");
+        const data = await res.json();
+
+        if (!res.ok || !Array.isArray(data)) {
+          throw new Error("Failed to fetch countries");
+        }
+
+        if (active) {
+          setCountries(
+            data.filter(
+              (country): country is Country =>
+                typeof country?.name === "string" &&
+                typeof country?.code === "string" &&
+                typeof country?.dialCode === "string" &&
+                typeof country?.flag === "string",
+            ),
+          );
+        }
+      } catch {
+        if (active) {
+          setCountries([]);
+        }
+      } finally {
+        if (active) {
+          setCountriesLoading(false);
+        }
       }
     };
 
-    window.addEventListener("focus", handleFocusRefresh);
-    document.addEventListener("visibilitychange", handleFocusRefresh);
+    loadCountries();
 
     return () => {
-      window.removeEventListener("focus", handleFocusRefresh);
-      document.removeEventListener("visibilitychange", handleFocusRefresh);
+      active = false;
     };
-  }, [router]);
+  }, [initialCountries.length]);
 
   function validateAll(): ValidationErrors {
     const newErrors: ValidationErrors = {};

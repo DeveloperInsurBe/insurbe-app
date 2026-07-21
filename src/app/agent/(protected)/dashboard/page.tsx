@@ -21,69 +21,87 @@ export default async function AgentDashboardPage() {
   todayStart.setHours(0, 0, 0, 0);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const clientCount = await prisma.application.count({
-    where: {
-      source: "agent",
-      partnerId: agent.id,
-      status: "client_profile",
-    },
-  });
+  const applicationWhere = {
+    source: "agent" as const,
+    partnerId: agent.id,
+    status: { not: "client_profile" },
+  };
 
-  const applications = await prisma.application.findMany({
-    where: {
-      source: "agent",
-      partnerId: agent.id,
-      status: { not: "client_profile" },
-    },
-    select: {
-      createdAt: true,
-      commission: true,
-      commissionStatus: true,
-    },
-  });
+  const [
+    clientCount,
+    applicationAggregate,
+    commissionGrouped,
+    todayAggregate,
+    monthAggregate,
+    todayApprovedAggregate,
+    monthApprovedAggregate,
+  ] = await Promise.all([
+    prisma.application.count({
+      where: {
+        source: "agent",
+        partnerId: agent.id,
+        status: "client_profile",
+      },
+    }),
+    prisma.application.aggregate({
+      where: applicationWhere,
+      _count: { _all: true },
+      _sum: { commission: true },
+    }),
+    prisma.application.groupBy({
+      by: ["commissionStatus"],
+      where: applicationWhere,
+      _count: { _all: true },
+      _sum: { commission: true },
+    }),
+    prisma.application.aggregate({
+      where: {
+        ...applicationWhere,
+        createdAt: { gte: todayStart },
+      },
+      _count: { _all: true },
+    }),
+    prisma.application.aggregate({
+      where: {
+        ...applicationWhere,
+        createdAt: { gte: monthStart },
+      },
+      _count: { _all: true },
+    }),
+    prisma.application.aggregate({
+      where: {
+        ...applicationWhere,
+        createdAt: { gte: todayStart },
+        commissionStatus: "Approved",
+      },
+      _sum: { commission: true },
+    }),
+    prisma.application.aggregate({
+      where: {
+        ...applicationWhere,
+        createdAt: { gte: monthStart },
+        commissionStatus: "Approved",
+      },
+      _sum: { commission: true },
+    }),
+  ]);
 
-  const applicationCount = applications.length;
-  let totalCommission = 0;
-  let pendingCount = 0;
-  let approvedCount = 0;
-  let pendingCommission = 0;
-  let approvedCommission = 0;
-  let todayApps = 0;
-  let monthApps = 0;
-  let todayApprovedCommission = 0;
-  let monthApprovedCommission = 0;
+  const findCommissionStatus = (status: string) =>
+    commissionGrouped.find((item) => item.commissionStatus === status);
 
-  for (const app of applications) {
-    const createdAt = new Date(app.createdAt);
-    const commission = app.commission || 0;
-    const status = app.commissionStatus || "";
+  const pending = findCommissionStatus("Pending");
+  const approved = findCommissionStatus("Approved");
 
-    totalCommission += commission;
-
-    if (status === "Pending") {
-      pendingCount += 1;
-      pendingCommission += commission;
-    }
-
-    if (status === "Approved") {
-      approvedCount += 1;
-      approvedCommission += commission;
-    }
-
-    if (createdAt >= todayStart) {
-      todayApps += 1;
-      if (status === "Approved") {
-        todayApprovedCommission += commission;
-      }
-    }
-
-    if (createdAt >= monthStart) {
-      monthApps += 1;
-      if (status === "Approved") {
-        monthApprovedCommission += commission;
-      }
-    }
-  }
+  const applicationCount = applicationAggregate._count._all || 0;
+  const totalCommission = applicationAggregate._sum.commission || 0;
+  const pendingCount = pending?._count._all || 0;
+  const approvedCount = approved?._count._all || 0;
+  const pendingCommission = pending?._sum.commission || 0;
+  const approvedCommission = approved?._sum.commission || 0;
+  const todayApps = todayAggregate._count._all || 0;
+  const monthApps = monthAggregate._count._all || 0;
+  const todayApprovedCommission = todayApprovedAggregate._sum.commission || 0;
+  const monthApprovedCommission = monthApprovedAggregate._sum.commission || 0;
 
   const fullName =
     `${agent?.firstName || ""} ${agent?.lastName || ""}`.trim() || "Agent";

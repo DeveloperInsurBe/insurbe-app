@@ -66,7 +66,7 @@ export default function AgentApplicationsPage() {
         <h2 className="text-lg font-black text-[#111827]">Submitted Applications</h2>
 
         {loading ? (
-          <p className="mt-4 text-sm text-gray-500">Loading applications...</p>
+          <ApplicationsTableSkeleton />
         ) : applications.length === 0 ? (
           <p className="mt-4 text-sm text-gray-500">
             No submitted applications yet. Once an application is submitted successfully, it will appear here.
@@ -103,6 +103,20 @@ export default function AgentApplicationsPage() {
             </table>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ApplicationsTableSkeleton() {
+  return (
+    <div className="mt-4 animate-pulse">
+      <div className="space-y-3">
+        <div className="h-10 rounded-xl bg-gray-100" />
+        <div className="h-10 rounded-xl bg-gray-100" />
+        <div className="h-10 rounded-xl bg-gray-100" />
+        <div className="h-10 rounded-xl bg-gray-100" />
+        <div className="h-10 rounded-xl bg-gray-100" />
       </div>
     </div>
   );
