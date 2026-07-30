@@ -1,5 +1,9 @@
 import { buildGetOrderXML } from "@/app/utils/buildGetOrderXML";
 
+const HALLESCHE_URL_FAMILY =
+  process.env.HALLESCHE_URL_FAMILY ||
+  "https://www.hallesche.de/appserver/KrankenService_2/GC_KrankenServiceFamily.svc";
+
 export async function POST(req: Request) {
 
   const body = await req.json();
@@ -7,7 +11,7 @@ export async function POST(req: Request) {
   const soapXML = buildGetOrderXML(body);
 
   const soapRes = await fetch(
-    "https://www.kv-rechner0.de/HallescheVVG_Net/GC_KrankenServiceFamily.svc",
+    HALLESCHE_URL_FAMILY,
     {
       method: "POST",
       headers: {

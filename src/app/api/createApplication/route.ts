@@ -5,8 +5,8 @@ import http from "node:http";
 import https from "node:https";
 
 const HALLESCHE_URL =
-  process.env.HALLESCHE_URL ||
-  "https://www.kv-rechner0.de/HallescheVVG_Net/GC_KrankenService.svc";
+  process.env.HALLESCHE_URL_EINZEL ||
+  "https://www.hallesche.de/appserver/KrankenService_2/GC_KrankenService.svc";
 
 // ✅ Use getOfferEinzel (same as premium calculation, but with document request)
 const SOAP_ACTION = 'GEWA.COMP.VVGService/IGC_KrankenService_WCF/getOfferEinzel';

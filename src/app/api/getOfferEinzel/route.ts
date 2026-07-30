@@ -7,8 +7,8 @@ import path from "path";
 import os from "os";
 
 const HALLESCHE_URL =
-  process.env.HALLESCHE_URL ||
-  "https://www.kv-rechner0.de/HallescheVVG_Net/GC_KrankenService.svc";
+  process.env.HALLESCHE_URL_EINZEL ||
+  "https://www.hallesche.de/appserver/KrankenService_2/GC_KrankenService.svc";
 const SOAP_ACTION = "GEWA.COMP.VVGService/IGC_KrankenService_WCF/getOffer";
 
 function escapeXml(str = ""): string {
