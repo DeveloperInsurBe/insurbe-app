@@ -63,20 +63,211 @@ const BackButton = memo(({ onClick }: { onClick: () => void }) => (
 ));
 BackButton.displayName = "BackButton";
 
-type NormalizedEmployment = "self-employed" | "employed" | "other";
+const AGE_YOUNG_MAX = 34;
+const INCOME_LOW_MAX = 30000;
+const INCOME_MID_MAX = 77400;
+
+type AlreadyInGermany = "yes" | "no" | "";
+type UniversityType = "public" | "private" | "";
+type IncomeBucket = "low" | "mid" | "high";
+type NormalizedEmployment =
+  | "self"
+  | "student"
+  | "aupair_worktravel"
+  | "employed"
+  | "others";
 
 const getNormalizedEmployment = (
   status: string | null,
 ): NormalizedEmployment => {
-  if (!status) return "other";
-  const lower = status.toLowerCase();
-  if (lower.includes("self")) return "self-employed";
+  if (!status) return "others";
+  const lower = status.trim().toLowerCase();
+  if (
+    lower.includes("au pair") ||
+    lower.includes("work and travel") ||
+    lower.includes("work & travel") ||
+    lower.includes("work&travel")
+  ) {
+    return "aupair_worktravel";
+  }
+  if (lower.includes("student")) return "student";
+  if (lower.includes("self") || lower.includes("freelance")) return "self";
   if (lower.includes("employ")) return "employed";
-  return "other";
+  return "others";
+};
+
+type JourneyProduct = {
+  id: string;
+  name: string;
+  provider: string;
+  type: string;
+  description: string;
+  features: string[];
+  loading: boolean;
+  premium?: number | null;
+  tariffIds?: string[];
+  documentCount?: number;
+  recommended?: boolean;
+};
+
+type BuildProductsContext = {
+  alreadyInGermany: AlreadyInGermany;
+  employmentStatus: string | null;
+  incomeRange?: string;
+  actualIncome?: number | null;
+  age: number;
+  universityType?: UniversityType;
+  currentFlowProducts: JourneyProduct[];
+  tkPremium?: number;
+};
+
+const buildHMRProduct = (age: number): JourneyProduct => {
+  const isYoung = age <= AGE_YOUNG_MAX;
+  if (isYoung) {
+    return {
+      id: "hansemerkur-young-travel",
+      name: "HanseMerkur Young Travel",
+      provider: "HanseMerkur",
+      type: "incoming-young",
+      premium: null,
+      loading: false,
+      documentCount: 0,
+      description: "Incoming coverage for young travelers",
+      features: [
+        "Student-friendly incoming coverage",
+        "Travel-focused health protection",
+        "Easy onboarding for young applicants",
+      ],
+    };
+  }
+  return {
+    id: "hansemerkur-incoming",
+    name: "HanseMerkur Normal Insurance",
+    provider: "HanseMerkur",
+    type: "incoming",
+    premium: null,
+    loading: false,
+    documentCount: 0,
+    description: "Standard incoming insurance coverage",
+    features: [
+      "Incoming insurance for visitors",
+      "Flexible protection period",
+      "Designed for short and mid stays",
+    ],
+  };
+};
+
+const buildTKProduct = (premium: number): JourneyProduct => ({
+  id: "tk",
+  name: "TK Public Insurance",
+  provider: "Techniker Krankenkasse",
+  type: "public",
+  premium,
+  description: "German public health insurance",
+  features: [
+    "Statutory health coverage",
+    "Income-based premium",
+    "Family insurance available",
+  ],
+  loading: false,
+});
+
+const buildDAKProduct = (premium: number): JourneyProduct => ({
+  id: "dak",
+  name: "DAK Gesundheit",
+  provider: "DAK-Gesundheit",
+  type: "public",
+  premium: premium * 1.02,
+  description: "Germany's most popular public health insurance",
+  features: [
+    "Comprehensive health coverage",
+    "Income-based premium",
+    "Family insurance included",
+    "Digital health services",
+  ],
+  loading: false,
+  recommended: true,
+});
+
+const buildHallescheExpatProduct = (): JourneyProduct => ({
+  id: "hallesche-expat",
+  name: "Hallesche Expat",
+  provider: "Hallesche",
+  type: "expat",
+  tariffIds: ["35057", "35063", "24332", "1803"],
+  premium: null,
+  loading: true,
+  documentCount: 0,
+  description: "Hi.Germany L + Hi.Dental L",
+  features: [
+    "Expat-specific coverage",
+    "English language support",
+    "Budget-friendly option",
+    "Essential health protection",
+    "Care insurance included",
+  ],
+});
+
+const getIncomeBucket = (
+  incomeRange?: string,
+  actualIncome?: number | null,
+): IncomeBucket => {
+  if (typeof actualIncome === "number" && !Number.isNaN(actualIncome)) {
+    if (actualIncome <= INCOME_LOW_MAX) return "low";
+    if (actualIncome <= INCOME_MID_MAX) return "mid";
+    return "high";
+  }
+  if (incomeRange === "<30000") return "low";
+  if (incomeRange === "30001-77400") return "mid";
+  return "high";
+};
+
+const buildProductsForJourney = (
+  context: BuildProductsContext,
+): JourneyProduct[] => {
+  const employment = getNormalizedEmployment(context.employmentStatus);
+  const incomeBucket = getIncomeBucket(context.incomeRange, context.actualIncome);
+  const hmrProduct = buildHMRProduct(context.age);
+  const tkPremium = context.tkPremium ?? 0;
+
+  // Rule: if already in Germany, no HMR logic.
+  // Student-like profiles keep special handling without HMR:
+  // public university => TK + DAK.
+  if (context.alreadyInGermany === "yes") {
+    if (employment === "student" || employment === "aupair_worktravel") {
+      if (context.universityType === "public") {
+        return [buildTKProduct(tkPremium), buildDAKProduct(tkPremium)];
+      }
+    }
+    return [...context.currentFlowProducts];
+  }
+
+  if (employment === "self") {
+    if (incomeBucket === "low") return [hmrProduct];
+    if (incomeBucket === "mid") {
+      return [buildTKProduct(tkPremium), buildHallescheExpatProduct(), hmrProduct];
+    }
+    return [...context.currentFlowProducts];
+  }
+
+  if (employment === "student" || employment === "aupair_worktravel") {
+    if (context.universityType === "public") {
+      return [buildTKProduct(tkPremium), buildDAKProduct(tkPremium), hmrProduct];
+    }
+    if (context.universityType === "private") {
+      return [hmrProduct];
+    }
+    return [...context.currentFlowProducts];
+  }
+
+  // Employed + Others remain unchanged.
+  return [...context.currentFlowProducts];
 };
 
 const EMPLOYMENT_OPTIONS = [
   { label: "Self-employed/Freelancer", icon: UserCircle },
+  { label: "Students", icon: User },
+  { label: "Au Pair / Work & Travel", icon: Briefcase },
   { label: " Employed", icon: Building2 },
   { label: "Others", icon: Users },
 ] as const;
@@ -86,6 +277,20 @@ const INCOME_OPTIONS = [
   { label: "€30,001 – €77,400", value: "30001-77400" },
   { label: "> €77,400", value: ">77400" },
 ] as const;
+
+const UNIVERSITY_OPTIONS = [
+  { label: "Public University", value: "public" as const },
+  { label: "Private University", value: "private" as const },
+] as const;
+
+const STEP_ALREADY_IN_GERMANY = 1;
+const STEP_EMPLOYMENT = 2;
+const STEP_INCOME = 3;
+const STEP_CHILDREN = 4;
+const STEP_DOB = 5;
+const STEP_UNIVERSITY = 6;
+const STEP_COUNTRY = 7;
+const STEP_OTHER_CONTACT = 99;
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
 const COUNTRIES_CACHE_KEY = "countries_cache_v2";
@@ -385,16 +590,20 @@ export default function InsuranceJourney() {
   const router = useRouter();
 
   const {
+    alreadyInGermany,
     employmentStatus,
     otherEmployment,
+    universityType,
     incomeRange,
     email,
     phone,
     selectedCountry,
     dob,
     actualIncome,
+    setAlreadyInGermany,
     setEmploymentStatus,
     setOtherEmployment,
+    setUniversityType,
     setIncomeRange,
     setActualIncome,
     setEmail,
@@ -406,7 +615,7 @@ export default function InsuranceJourney() {
   const { setTKPremium } = usePremiumStore();
   const { setHalleschePremiumDocs, setHallescheExpatDocs } = useDocumentStore();
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(STEP_ALREADY_IN_GERMANY);
   const [countries, setCountries] = useState<Country[]>([]);
   const [popup, setPopup] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -416,11 +625,13 @@ export default function InsuranceJourney() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const getProgressStep = useCallback((s: number) => {
-    if (s === 1) return 1;
-    if (s === 2 || s === 99 || s === 98) return 2;
-    if (s === 3) return 3;
-    if (s === 4) return 4;
-    if (s === 5) return 5;
+    if (s === STEP_ALREADY_IN_GERMANY) return 1;
+    if (s === STEP_EMPLOYMENT || s === STEP_OTHER_CONTACT) return 2;
+    if (s === STEP_INCOME) return 3;
+    if (s === STEP_CHILDREN) return 4;
+    if (s === STEP_DOB) return 5;
+    if (s === STEP_UNIVERSITY) return 6;
+    if (s === STEP_COUNTRY) return 7;
     return 1;
   }, []);
 
@@ -492,30 +703,100 @@ export default function InsuranceJourney() {
   }, [popup]);
 
   const handleBack = useCallback(() => {
-    if (step === 1) {
-      router.push("/products/privateProducts"); // or wherever you want to go
-    } else if (step === 2) {
-      setStep(1);
-    } else if (step === 3) {
-      setStep(2);
-    } else if (step === 4) {
-      setStep(3);
-    } else if (step === 5) {
-      setStep(4);
-    } else if (step === 98) {
-      setStep(2);
-    } else if (step === 99) {
-      setStep(1);
+    const normalizedEmployment = getNormalizedEmployment(employmentStatus);
+    const plannedToCome = alreadyInGermany === "no";
+
+    if (step === STEP_ALREADY_IN_GERMANY) {
+      router.push("/products/privateProducts");
+      return;
     }
-  }, [step, router]);
+
+    if (step === STEP_EMPLOYMENT) {
+      setStep(STEP_ALREADY_IN_GERMANY);
+      return;
+    }
+
+    if (step === STEP_INCOME) {
+      setStep(STEP_EMPLOYMENT);
+      return;
+    }
+
+    if (step === 98) {
+      setStep(STEP_INCOME);
+      return;
+    }
+
+    if (step === STEP_CHILDREN) {
+      setStep(STEP_INCOME);
+      return;
+    }
+
+    if (step === STEP_DOB) {
+      if (normalizedEmployment === "student" || normalizedEmployment === "aupair_worktravel") {
+        setStep(STEP_EMPLOYMENT);
+        return;
+      }
+      if (plannedToCome && normalizedEmployment === "self") {
+        setStep(STEP_INCOME);
+        return;
+      }
+      setStep(STEP_CHILDREN);
+      return;
+    }
+
+    if (step === STEP_UNIVERSITY) {
+      setStep(STEP_DOB);
+      return;
+    }
+
+    if (step === STEP_COUNTRY) {
+      if (normalizedEmployment === "student" || normalizedEmployment === "aupair_worktravel") {
+        setStep(STEP_UNIVERSITY);
+        return;
+      }
+      setStep(STEP_DOB);
+      return;
+    }
+
+    if (step === STEP_OTHER_CONTACT) {
+      setStep(STEP_EMPLOYMENT);
+    }
+  }, [step, router, employmentStatus, alreadyInGermany]);
 
   // ── Handlers ─────────────────────────────────────────
+  const handleAlreadyInGermanySelect = useCallback(
+    (value: AlreadyInGermany) => {
+      setAlreadyInGermany(value);
+      setStep(STEP_EMPLOYMENT);
+    },
+    [setAlreadyInGermany],
+  );
+
   const handleEmploymentSelect = useCallback(
     (val: string) => {
       setEmploymentStatus(val);
-      setStep(val === "Others" ? 99 : 2);
+      const normalizedEmployment = getNormalizedEmployment(val);
+      const isStudentLike =
+        normalizedEmployment === "student" ||
+        normalizedEmployment === "aupair_worktravel";
+
+      if (!isStudentLike) {
+        setUniversityType("");
+      }
+
+      if (normalizedEmployment === "others") {
+        setStep(STEP_OTHER_CONTACT);
+        return;
+      }
+
+      if (isStudentLike) {
+        setStep(STEP_DOB);
+        return;
+      }
+
+      setStep(STEP_INCOME);
     },
-    [setEmploymentStatus],
+    [setEmploymentStatus, alreadyInGermany, setUniversityType],
   );
 
   const handleIncomeSelect = useCallback(
@@ -524,17 +805,31 @@ export default function InsuranceJourney() {
       let income = 50000;
       if (val === "<30000") {
         income = 30000;
-        setStep(98);
       } else if (val === "30001-77400") {
         income = 54000;
-        setStep(3);
       } else if (val === ">77400") {
         income = 6500 * 12;
-        setStep(3);
       }
       setActualIncome(income);
+      const normalizedEmployment = getNormalizedEmployment(employmentStatus);
+      const followsCurrentFlow =
+        alreadyInGermany === "yes" || normalizedEmployment === "employed";
+
+      // Keep legacy behavior for current-flow under-30k paths:
+      // show personalized assistance instead of direct recommendation flow.
+      if (val === "<30000" && followsCurrentFlow) {
+        setStep(98);
+        return;
+      }
+
+      if (followsCurrentFlow) {
+        setStep(STEP_CHILDREN);
+        return;
+      }
+
+      setStep(STEP_DOB);
     },
-    [setIncomeRange, setActualIncome],
+    [setIncomeRange, setActualIncome, employmentStatus, alreadyInGermany],
   );
 
   const handleOtherSubmit = useCallback(() => {
@@ -560,13 +855,41 @@ export default function InsuranceJourney() {
 
   const handleChildrenSelection = useCallback((v: boolean) => {
     setHasChildren(v);
-    setStep(4);
+    setStep(STEP_DOB);
   }, []);
 
   const handleDobSubmit = useCallback(() => {
     if (!dob) return setPopup("Please select your birth year");
-    setStep(5);
-  }, [dob]);
+    const normalizedEmployment = getNormalizedEmployment(employmentStatus);
+
+    if (normalizedEmployment === "student" || normalizedEmployment === "aupair_worktravel") {
+      setStep(STEP_UNIVERSITY);
+      return;
+    }
+
+    setStep(STEP_COUNTRY);
+  }, [dob, employmentStatus]);
+
+  const handleUniversitySelect = useCallback(
+    (value: UniversityType) => {
+      setUniversityType(value);
+      const normalizedEmployment = getNormalizedEmployment(employmentStatus);
+      const isStudentLike =
+        normalizedEmployment === "student" ||
+        normalizedEmployment === "aupair_worktravel";
+
+      if (
+        alreadyInGermany === "yes" &&
+        isStudentLike &&
+        value === "private"
+      ) {
+        setStep(98);
+        return;
+      }
+      setStep(STEP_COUNTRY);
+    },
+    [setUniversityType, alreadyInGermany, employmentStatus],
+  );
 
   const handleCountrySelect = useCallback(
     (name: string) => {
@@ -599,6 +922,7 @@ export default function InsuranceJourney() {
       const isEU = EU_COUNTRIES.includes(sc as any);
       const age = d ? new Date().getFullYear() - parseInt(d) : 25;
       const normalizedEmp = getNormalizedEmployment(es);
+      const isStudent = normalizedEmp === "student";
       const result = calculateTKPremium(
         (ai || 50000) / 12,
         age,
@@ -613,7 +937,7 @@ export default function InsuranceJourney() {
       const isMidIncome = ir === "30001-77400";
       const shouldShowDAK = isEmployed && isMidIncome;
 
-      const products: any[] = [
+      let products: any[] = [
         {
           id: "tk",
           name: "TK Public Insurance",
@@ -650,7 +974,10 @@ export default function InsuranceJourney() {
         });
       }
 
-      if (ir === ">77400" || normalizedEmp === "self-employed") {
+      const shouldIncludeHallesche =
+        isStudent || ir === ">77400" || normalizedEmp === "self";
+
+      if (shouldIncludeHallesche) {
         products.push({
           id: "hallesche-premium",
           name: "Hallesche Premium",
@@ -669,7 +996,7 @@ export default function InsuranceJourney() {
             "Care insurance included",
           ],
         });
-        if (!isEU)
+        if (!isEU || isStudent)
           products.push({
             id: "hallesche-expat",
             name: "Hallesche Expat",
@@ -689,8 +1016,19 @@ export default function InsuranceJourney() {
             ],
           });
       }
+      const resolvedProducts = buildProductsForJourney({
+        alreadyInGermany: store.alreadyInGermany,
+        employmentStatus: es,
+        incomeRange: ir,
+        actualIncome: ai,
+        age,
+        universityType: store.universityType,
+        currentFlowProducts: products as JourneyProduct[],
+        tkPremium: adjusted,
+      });
+
       useJourneyStore.setState({
-        availableProducts: products,
+        availableProducts: resolvedProducts,
         selectedCountry: sc,
       });
       setIsNavigating(true);
@@ -767,7 +1105,7 @@ export default function InsuranceJourney() {
 
       {/* Progress */}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-6">
-        <ProgressBar current={getProgressStep(stepNum)} total={5} />
+        <ProgressBar current={getProgressStep(stepNum)} total={7} />
       </div>
 
       {/* Card grid */}
@@ -808,10 +1146,43 @@ export default function InsuranceJourney() {
   // ══════════════════════════════════════════════════════
 
   /* Step 1 */
-  if (step === 1)
+  if (step === STEP_ALREADY_IN_GERMANY)
     return (
-      <Shell stepNum={1}>
+      <Shell stepNum={STEP_ALREADY_IN_GERMANY}>
         <StepLabel n={1} />
+        <motion.h2
+          variants={itemVariants}
+          className="text-2xl font-bold text-gray-900 mb-1"
+        >
+          Are you already in Germany?
+        </motion.h2>
+        <motion.p
+          variants={itemVariants}
+          className="text-sm text-gray-400 mb-6"
+        >
+          If yes, we keep you on the current recommendation flow.
+        </motion.p>
+
+        <div className="flex flex-col gap-3 mt-2">
+          <OptionRow
+            label="Yes, I am already in Germany"
+            icon={CheckCircle2}
+            onClick={() => handleAlreadyInGermanySelect("yes")}
+          />
+          <OptionRow
+            label="No, I am planning to come to Germany"
+            icon={Globe}
+            onClick={() => handleAlreadyInGermanySelect("no")}
+          />
+        </div>
+      </Shell>
+    );
+
+  /* Step 2 — Employment */
+  if (step === STEP_EMPLOYMENT)
+    return (
+      <Shell stepNum={STEP_EMPLOYMENT}>
+        <StepLabel n={2} />
         <motion.h2
           variants={itemVariants}
           className="text-2xl font-bold text-gray-900 mb-1"
@@ -835,13 +1206,13 @@ export default function InsuranceJourney() {
             />
           ))}
         </div>
+        <BackButton onClick={handleBack} />
       </Shell>
     );
 
-  /* Step 99 — Other employment */
-  if (step === 99)
+  if (step === STEP_OTHER_CONTACT)
     return (
-      <Shell stepNum={99}>
+      <Shell stepNum={STEP_OTHER_CONTACT}>
         <motion.div variants={itemVariants} className="w-full max-w-xl mx-auto">
           <div className="relative overflow-hidden rounded-3xl border border-violet-100 bg-white shadow-[0_20px_60px_rgba(124,58,237,0.08)]">
             {/* Top Gradient */}
@@ -953,10 +1324,10 @@ export default function InsuranceJourney() {
     );
 
   /* Step 2 — Income */
-  if (step === 2)
+  if (step === STEP_INCOME)
     return (
-      <Shell stepNum={2}>
-        <StepLabel n={2} />
+      <Shell stepNum={STEP_INCOME}>
+        <StepLabel n={3} />
         <motion.h2
           variants={itemVariants}
           className="text-2xl font-bold text-gray-900 mb-1"
@@ -985,10 +1356,10 @@ export default function InsuranceJourney() {
     );
 
   /* Step 3 — Children */
-  if (step === 3)
+  if (step === STEP_CHILDREN)
     return (
-      <Shell stepNum={3}>
-        <StepLabel n={3} />
+      <Shell stepNum={STEP_CHILDREN}>
+        <StepLabel n={4} />
         <motion.h2
           variants={itemVariants}
           className="text-2xl font-bold text-gray-900 mb-1"
@@ -1061,9 +1432,9 @@ export default function InsuranceJourney() {
                 variants={itemVariants}
                 className="text-sm sm:text-base text-slate-500 leading-relaxed max-w-md mb-8"
               >
-                Based on your income range, one of our insurance specialists
-                will help you explore the most suitable coverage options
-                available for you.
+                Based on your profile, one of our insurance specialists will
+                help you explore the most suitable coverage options available
+                for you.
               </motion.p>
 
               {/* Info Card */}
@@ -1130,10 +1501,10 @@ export default function InsuranceJourney() {
     );
 
   /* Step 4 — Birth Year */
-  if (step === 4)
+  if (step === STEP_DOB)
     return (
-      <Shell stepNum={4}>
-        <StepLabel n={4} />
+      <Shell stepNum={STEP_DOB}>
+        <StepLabel n={5} />
         <motion.h2
           variants={itemVariants}
           className="text-2xl font-bold text-gray-900 mb-1"
@@ -1182,11 +1553,43 @@ export default function InsuranceJourney() {
       </Shell>
     );
 
-  /* Step 5 — Country */
-if (step === 5)
+  /* Step 6 — University */
+  if (step === STEP_UNIVERSITY)
+    return (
+      <Shell stepNum={STEP_UNIVERSITY}>
+        <StepLabel n={6} />
+        <motion.h2
+          variants={itemVariants}
+          className="text-2xl font-bold text-gray-900 mb-1"
+        >
+          Which type of university are you enrolled in?
+        </motion.h2>
+        <motion.p
+          variants={itemVariants}
+          className="text-sm text-gray-400 mb-6"
+        >
+          This helps us decide public vs private student eligibility.
+        </motion.p>
+
+        <div className="flex flex-col gap-3 mt-2">
+          {UNIVERSITY_OPTIONS.map((item) => (
+            <OptionRow
+              key={item.value}
+              label={item.label}
+              icon={Building2}
+              onClick={() => handleUniversitySelect(item.value)}
+            />
+          ))}
+        </div>
+        <BackButton onClick={handleBack} />
+      </Shell>
+    );
+
+  /* Step 7 — Country */
+if (step === STEP_COUNTRY)
   return (
-    <Shell stepNum={5}>
-      <StepLabel n={5} />
+    <Shell stepNum={STEP_COUNTRY}>
+      <StepLabel n={7} />
 
       <motion.h2
         variants={itemVariants}
@@ -1199,7 +1602,7 @@ if (step === 5)
         variants={itemVariants}
         className="text-sm text-gray-400 mb-6"
       >
-        Your country determines available plan types.
+        We use this as informational context for your profile.
       </motion.p>
 
       <div className="flex flex-col gap-3">

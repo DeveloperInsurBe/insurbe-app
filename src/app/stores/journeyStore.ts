@@ -14,8 +14,10 @@ export interface Product {
 }
 
 interface JourneyState {
+  alreadyInGermany: "yes" | "no" | "";
   employmentStatus: string;
   otherEmployment: string;
+  universityType: "public" | "private" | "";
   incomeRange: string;
   actualIncome: number | null;
   email: string;
@@ -29,8 +31,10 @@ interface JourneyState {
   // ✅ FIX: store full product instead of string
   selectedPlan: Product | null;
 
+  setAlreadyInGermany: (value: "yes" | "no" | "") => void;
   setEmploymentStatus: (status: string) => void;
   setOtherEmployment: (other: string) => void;
+  setUniversityType: (value: "public" | "private" | "") => void;
   setIncomeRange: (range: string) => void;
   setActualIncome: (income: number | null) => void;
   setEmail: (email: string) => void;
@@ -51,8 +55,10 @@ interface JourneyState {
 export const useJourneyStore = create<JourneyState>()(
   persist(
     (set) => ({
+      alreadyInGermany: "",
       employmentStatus: "",
       otherEmployment: "",
+      universityType: "",
       incomeRange: "",
       actualIncome: null,
       email: "",
@@ -64,8 +70,10 @@ export const useJourneyStore = create<JourneyState>()(
       availableProducts: [],
       selectedPlan: null,
 
+      setAlreadyInGermany: (value) => set({ alreadyInGermany: value }),
       setEmploymentStatus: (status) => set({ employmentStatus: status }),
       setOtherEmployment: (other) => set({ otherEmployment: other }),
+      setUniversityType: (value) => set({ universityType: value }),
       setIncomeRange: (range) => set({ incomeRange: range }),
       setActualIncome: (income) => set({ actualIncome: income }),
       setEmail: (email) => set({ email }),
@@ -87,8 +95,10 @@ export const useJourneyStore = create<JourneyState>()(
 
       clearJourneyData: () =>
         set({
+          alreadyInGermany: "",
           employmentStatus: "",
           otherEmployment: "",
+          universityType: "",
           incomeRange: "",
           actualIncome: null,
           email: "",
