@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getCurrentPartnerAccess } from "@/lib/applicationAccess";
-import { prisma } from "@/lib/prisma";
+import { getPartnerDashboardSummary } from "@/lib/portalDashboardSummary";
 import ReferralShareCard from "./ReferralShareCard";
 
 export default async function PartnerDashboard() {
@@ -15,98 +15,16 @@ export default async function PartnerDashboard() {
     redirect("/");
   }
 
-  const baseWhere = {
-    partnerId: partner.partnerId,
-    source: "partner",
-    status: {
-      not: "incomplete",
-    },
-  } as const;
-
-  const now = new Date();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-
-  const tomorrowStart = new Date(todayStart);
-  tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-  // Keep DB calls sequential to avoid pool timeout issues on low connection limits.
-  const statusMetrics = await prisma.application.groupBy({
-    by: ["commissionStatus"],
-    where: {
-      ...baseWhere,
-      commissionStatus: {
-        in: ["Pending", "Approved"],
-      },
-    },
-    _count: {
-      _all: true,
-    },
-    _sum: {
-      commission: true,
-    },
-  });
-
-  const todayClicks = await prisma.application.count({
-    where: {
-      ...baseWhere,
-      createdAt: {
-        gte: todayStart,
-        lt: tomorrowStart,
-      },
-    },
-  });
-
-  const monthClicks = await prisma.application.count({
-    where: {
-      ...baseWhere,
-      createdAt: {
-        gte: monthStart,
-        lt: nextMonthStart,
-      },
-    },
-  });
-
-  const todayApprovedAgg = await prisma.application.aggregate({
-    where: {
-      ...baseWhere,
-      commissionStatus: "Approved",
-      createdAt: {
-        gte: todayStart,
-        lt: tomorrowStart,
-      },
-    },
-    _sum: { commission: true },
-  });
-
-  const monthApprovedAgg = await prisma.application.aggregate({
-    where: {
-      ...baseWhere,
-      commissionStatus: "Approved",
-      createdAt: {
-        gte: monthStart,
-        lt: nextMonthStart,
-      },
-    },
-    _sum: { commission: true },
-  });
-
-  const pendingMetrics = statusMetrics.find(
-    (item) => item.commissionStatus === "Pending",
-  );
-  const approvedMetrics = statusMetrics.find(
-    (item) => item.commissionStatus === "Approved",
-  );
-
-  const pendingCount = pendingMetrics?._count._all || 0;
-  const approvedCount = approvedMetrics?._count._all || 0;
-  const pendingCommission = pendingMetrics?._sum.commission || 0;
-  const approvedCommission = approvedMetrics?._sum.commission || 0;
-  const todayApprovedCommission = todayApprovedAgg._sum.commission || 0;
-  const monthApprovedCommission = monthApprovedAgg._sum.commission || 0;
+  const {
+    pendingCount,
+    approvedCount,
+    pendingCommission,
+    approvedCommission,
+    todayClicks,
+    monthClicks,
+    todayApprovedCommission,
+    monthApprovedCommission,
+  } = await getPartnerDashboardSummary(partner.partnerId);
 
   const baseUrl = process.env.NEXTAUTH_URL || "https://insurbe.com";
   const referralLink = `${baseUrl}/insurance/public-health?ref=${partner.partnerId}#provider-comparison`;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import {
@@ -30,16 +30,33 @@ type ConversionItem = {
 type ConversionsClientProps = {
   initialData: ConversionItem[];
   partnerRef: string;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
 };
+
+const PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
 
 export default function ConversionsClient({
   initialData,
   partnerRef,
+  page,
+  pageSize,
+  totalCount,
+  totalPages,
 }: ConversionsClientProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [data] = useState<ConversionItem[]>(initialData);
   const [openModal, setOpenModal] = useState(false);
+
+  const pageStart = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const pageEnd = Math.min(page * pageSize, totalCount);
+  const hasPrev = page > 1;
+  const hasNext = page < totalPages;
 
   // Keep list fresh when user returns to this tab/window.
   // This avoids stale data without bringing back initial-page loading states.
@@ -58,6 +75,22 @@ export default function ConversionsClient({
       document.removeEventListener("visibilitychange", handleFocusRefresh);
     };
   }, [router]);
+
+  const handlePageChange = (targetPage: number) => {
+    if (targetPage < 1 || targetPage > totalPages || targetPage === page) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(targetPage));
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handlePageSizeChange = (nextSize: number) => {
+    if (nextSize === pageSize) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("pageSize", String(nextSize));
+    params.set("page", "1");
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   const handleDownload = () => {
     if (!data.length) return;
@@ -233,8 +266,22 @@ export default function ConversionsClient({
               </p>
             </div>
 
-            <div className="w-fit inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#820ad1]/10 text-[#820ad1] text-sm font-semibold">
-              {data.length} Total
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-semibold text-gray-500">Rows</label>
+              <select
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                className="h-9 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 outline-none focus:border-[#820ad1] focus:ring-2 focus:ring-[#820ad1]/10"
+              >
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <div className="w-fit inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#820ad1]/10 text-[#820ad1] text-sm font-semibold">
+                {totalCount} Total
+              </div>
             </div>
           </div>
 
@@ -465,19 +512,31 @@ export default function ConversionsClient({
               {/* FOOTER */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 sm:px-6 md:px-8 py-5 border-t border-gray-100 bg-white">
                 <div className="text-sm text-gray-500">
-                  Showing{" "}
+                  Showing {pageStart}-{pageEnd} of{" "}
                   <span className="font-semibold text-gray-900">
-                    {data.length}
+                    {totalCount}
                   </span>{" "}
                   conversions
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <button className="w-10 h-10 rounded-2xl border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-all">
+                  <button
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={!hasPrev}
+                    className="w-10 h-10 rounded-2xl border border-gray-200 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
                     <ChevronLeft size={18} />
                   </button>
 
-                  <button className="w-10 h-10 rounded-2xl border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-all">
+                  <span className="text-xs font-semibold text-gray-500">
+                    Page {page} / {totalPages}
+                  </span>
+
+                  <button
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={!hasNext}
+                    className="w-10 h-10 rounded-2xl border border-gray-200 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
                     <ChevronRight size={18} />
                   </button>
                 </div>
