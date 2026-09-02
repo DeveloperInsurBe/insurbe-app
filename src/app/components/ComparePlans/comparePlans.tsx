@@ -27,8 +27,7 @@ export default function ComparePlans() {
   // const { setPremium, setTKPremium } = usePremiumStore();
   const { premium, setPremium, setTKPremium } = usePremiumStore();
   const { setHalleschePremiumDocs, setHallescheExpatDocs } = useDocumentStore();
-  const { incomeRange, employmentStatus, dob, selectedCountry } =
-    useJourneyStore();
+  const { incomeRange, employmentStatus, dob } = useJourneyStore();
 
   const [viewMode, setViewMode] = useState("default");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -65,48 +64,8 @@ export default function ComparePlans() {
     const fetchPremiums = async () => {
       if (!availableProducts || availableProducts.length === 0) return;
 
-      const currentYear = new Date().getFullYear();
       const fullDob = dob ? `${dob}-01-01` : "2000-01-01";
       const coverageStart = new Date().toISOString().split("T")[0];
-
-      const EU_COUNTRIES = [
-        "Austria",
-        "Belgium",
-        "Bulgaria",
-        "Croatia",
-        "Cyprus",
-        "Czech Republic",
-        "Denmark",
-        "Estonia",
-        "Finland",
-        "France",
-        "Germany",
-        "Greece",
-        "Hungary",
-        "Ireland",
-        "Italy",
-        "Latvia",
-        "Lithuania",
-        "Luxembourg",
-        "Malta",
-        "Netherlands",
-        "Poland",
-        "Portugal",
-        "Romania",
-        "Slovakia",
-        "Slovenia",
-        "Spain",
-        "Sweden",
-        "Iceland",
-        "Liechtenstein",
-        "Norway",
-        "Switzerland",
-        "United Kingdom",
-      ];
-
-      const isEU = selectedCountry
-        ? EU_COUNTRIES.includes(selectedCountry)
-        : true;
 
       const requests: Promise<any>[] = [];
 
@@ -115,7 +74,7 @@ export default function ComparePlans() {
       );
 
       const expatProduct = availableProducts.find(
-        (p: any) => p.id === "hallesche-expat" && p.loading && !isEU,
+        (p: any) => p.id === "hallesche-expat" && p.loading,
       );
 
       if (premiumProduct) {
@@ -227,6 +186,20 @@ export default function ComparePlans() {
         textColor = "text-black";
         buttonColor = "bg-white text-purple-600";
         available = true;
+      } else if (product.id === "hansemerkur-incoming") {
+        logo = "/partners_asset/hansemerkur.webp";
+        bgColor = "bg-gradient-to-br from-purple-50 via-violet-50 to-white";
+        textColor = "text-gray-800";
+        buttonColor =
+          "bg-gradient-to-r from-purple-600 to-purple-700 text-white";
+        available = true;
+      } else if (product.id === "hansemerkur-young-travel") {
+        logo = "/partners_asset/hansemerkur.webp";
+        bgColor = "bg-gradient-to-br from-indigo-50 via-purple-50 to-white";
+        textColor = "text-gray-800";
+        buttonColor =
+          "bg-gradient-to-r from-indigo-600 to-purple-600 text-white";
+        available = true;
       }
 
       const isEmployed =
@@ -285,6 +258,16 @@ export default function ComparePlans() {
 
   // Determine which card should be highlighted initially
   const getRecommendedPlanId = () => {
+    const hanseYoungExists = plans.some(
+      (p) => p.id === "hansemerkur-young-travel",
+    );
+    if (hanseYoungExists) return "hansemerkur-young-travel";
+
+    const hanseIncomingExists = plans.some(
+      (p) => p.id === "hansemerkur-incoming",
+    );
+    if (hanseIncomingExists) return "hansemerkur-incoming";
+
     // Check if DAK is available
     const dakExists = plans.some((p) => p.id === "dak");
     if (dakExists) return "dak";
@@ -479,15 +462,6 @@ export default function ComparePlans() {
     }
 
     if (!plan.available) {
-      setSelectedPlanName(plan.name);
-      setShowComingSoonModal(true);
-      return;
-    }
-
-    const isSelfEmployed =
-      employmentStatus?.toLowerCase().includes("self") || false;
-
-    if (!isSelfEmployed && incomeRange !== ">77400") {
       setSelectedPlanName(plan.name);
       setShowComingSoonModal(true);
       return;
@@ -732,12 +706,12 @@ export default function ComparePlans() {
                     initial={{ rotate: -180, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     transition={{ delay: index * 0.1 + 0.5, duration: 0.5 }}
-                    className="bg-white rounded-2xl p-3 shadow-md"
+                    className="rounded-2xl p-3"
                   >
                     <Image
                       src={plan.logo}
-                      width={50}
-                      height={50}
+                      width={80}
+                      height={80}
                       alt={`${plan.name} logo`}
                       className="object-contain"
                     />

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { Users, FileText, Euro } from "lucide-react";
 
 import { getCurrentAgentAccess } from "@/lib/agentAccess";
-import { prisma } from "@/lib/prisma";
+import { getAgentDashboardSummary } from "@/lib/portalDashboardSummary";
 import AgentReferralShareCard from "./AgentReferralShareCard";
 
 export default async function AgentDashboardPage() {
@@ -16,92 +16,19 @@ export default async function AgentDashboardPage() {
     redirect("/");
   }
 
-  const now = new Date();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  const applicationWhere = {
-    source: "agent" as const,
-    partnerId: agent.id,
-    status: { not: "client_profile" },
-  };
-
-  const [
+  const {
     clientCount,
-    applicationAggregate,
-    commissionGrouped,
-    todayAggregate,
-    monthAggregate,
-    todayApprovedAggregate,
-    monthApprovedAggregate,
-  ] = await Promise.all([
-    prisma.application.count({
-      where: {
-        source: "agent",
-        partnerId: agent.id,
-        status: "client_profile",
-      },
-    }),
-    prisma.application.aggregate({
-      where: applicationWhere,
-      _count: { _all: true },
-      _sum: { commission: true },
-    }),
-    prisma.application.groupBy({
-      by: ["commissionStatus"],
-      where: applicationWhere,
-      _count: { _all: true },
-      _sum: { commission: true },
-    }),
-    prisma.application.aggregate({
-      where: {
-        ...applicationWhere,
-        createdAt: { gte: todayStart },
-      },
-      _count: { _all: true },
-    }),
-    prisma.application.aggregate({
-      where: {
-        ...applicationWhere,
-        createdAt: { gte: monthStart },
-      },
-      _count: { _all: true },
-    }),
-    prisma.application.aggregate({
-      where: {
-        ...applicationWhere,
-        createdAt: { gte: todayStart },
-        commissionStatus: "Approved",
-      },
-      _sum: { commission: true },
-    }),
-    prisma.application.aggregate({
-      where: {
-        ...applicationWhere,
-        createdAt: { gte: monthStart },
-        commissionStatus: "Approved",
-      },
-      _sum: { commission: true },
-    }),
-  ]);
-
-  const findCommissionStatus = (status: string) =>
-    commissionGrouped.find((item) => item.commissionStatus === status);
-
-  const pending = findCommissionStatus("Pending");
-  const approved = findCommissionStatus("Approved");
-
-  const applicationCount = applicationAggregate._count._all || 0;
-  const totalCommission = applicationAggregate._sum.commission || 0;
-  const pendingCount = pending?._count._all || 0;
-  const approvedCount = approved?._count._all || 0;
-  const pendingCommission = pending?._sum.commission || 0;
-  const approvedCommission = approved?._sum.commission || 0;
-  const todayApps = todayAggregate._count._all || 0;
-  const monthApps = monthAggregate._count._all || 0;
-  const todayApprovedCommission = todayApprovedAggregate._sum.commission || 0;
-  const monthApprovedCommission = monthApprovedAggregate._sum.commission || 0;
+    applicationCount,
+    totalCommission,
+    pendingCount,
+    approvedCount,
+    pendingCommission,
+    approvedCommission,
+    todayApps,
+    monthApps,
+    todayApprovedCommission,
+    monthApprovedCommission,
+  } = await getAgentDashboardSummary(agent.id);
 
   const fullName =
     `${agent?.firstName || ""} ${agent?.lastName || ""}`.trim() || "Agent";
