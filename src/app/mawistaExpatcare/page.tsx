@@ -85,42 +85,43 @@ export default function MawistaExpatcarePage() {
                   Complete the form below to apply for MAWISTA Expatcare.
                 </p>
               </div>
-               <div className="flex justify-center">
-            <div className="rounded-2xl border border-white/60 px-6 py-4 backdrop-blur-xl">
-              <Image
-                src="/partners_asset/mawista.svg"
-                alt="MAWISTA"
-                width={200}
-                height={50}
-                className="h-10 w-auto object-contain"
-                unoptimized
-              />
-            </div>
-          </div>
+              <div className="flex justify-center">
+                <div className="rounded-2xl border border-white/60 px-6 py-4 backdrop-blur-xl">
+                  <Image
+                    src="/partners_asset/mawista.svg"
+                    alt="MAWISTA"
+                    width={200}
+                    height={50}
+                    className="h-10 w-auto object-contain"
+                    unoptimized
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="space-y-5 px-6 pb-8 pt-6 md:px-8 md:pb-10">
             <div className="rounded-2xl border border-[#e9d5ff] bg-[#faf5ff] p-4 text-sm text-[#4b5563]">
               <p className="font-semibold text-[#111827]">
-                Start your secure application
+                Application temporarily unavailable
               </p>
+
               <p className="mt-1">
-                Continue to the official MAWISTA form to complete your Expatcare
-                application 
+                We’re currently updating the application process. The MAWISTA
+                Expatcare application will be available shortly. Thank you for
+                your patience.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <a
-                href={mawistaFormUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-[#820ad1] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#6f08b2]"
+              <button
+                type="button"
+                disabled
+                className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-500"
               >
                 <Globe className="h-4 w-4" />
                 Continue Application
-              </a>
+              </button>
             </div>
           </div>
         </motion.div>
