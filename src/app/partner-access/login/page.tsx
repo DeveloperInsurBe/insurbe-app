@@ -87,30 +87,36 @@ export default function PartnerAccessLoginPage() {
           Login to your partner or agent portal.
         </p>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setAccountType("partner")}
-            className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
-              accountType === "partner"
-                ? "border-[#820ad1] bg-[#820ad1]/10 text-[#820ad1]"
-                : "border-gray-200 text-gray-600 hover:bg-gray-50"
-            }`}
-          >
+        <div className="mt-6">
+          <h2 className="text-center text-lg font-semibold text-gray-800">
             Institution / Referral Partner
-          </button>
+          </h2>
 
-          <button
-            type="button"
-            onClick={() => setAccountType("agent")}
-            className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
-              accountType === "agent"
-                ? "border-[#820ad1] bg-[#820ad1]/10 text-[#820ad1]"
-                : "border-gray-200 text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Insurance Agent / Broker Agent
-          </button>
+          {/* <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setAccountType("partner")}
+              className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
+                accountType === "partner"
+                  ? "border-[#820ad1] bg-[#820ad1]/10 text-[#820ad1]"
+                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              Institution / Referral Partner
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setAccountType("agent")}
+              className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
+                accountType === "agent"
+                  ? "border-[#820ad1] bg-[#820ad1]/10 text-[#820ad1]"
+                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              Insurance Agent / Broker Agent
+            </button>
+          </div> */}
         </div>
 
         {error ? (

@@ -314,8 +314,6 @@ export default function InsuranceSignupFlow() {
       case "streetNo":
         if (!value.trim()) {
           error = "Street address is required";
-        } else if (value.trim().length < 3) {
-          error = "Address too short";
         }
         break;
 
@@ -431,14 +429,17 @@ export default function InsuranceSignupFlow() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const hasPreviousInsurance = Boolean(selectPlan.insuredBefore);
+  const previousInsuranceComplete =
+    !hasPreviousInsurance ||
+    (selectPlan.previousInsuranceType && selectPlan.previousProviderName);
+
   const canProceedPlan =
     selectPlan.reason &&
     selectPlan.dob &&
     selectPlan.provider &&
-    selectPlan.insuredBefore &&
     selectPlan.institutionName &&
-    selectPlan.previousInsuranceType &&
-    selectPlan.previousProviderName &&
+    previousInsuranceComplete &&
     documents.passport &&
     documents.contract &&
     documents.photo;
@@ -765,7 +766,7 @@ export default function InsuranceSignupFlow() {
                 {/* Previous Insurance */}
                 <div className="mb-6">
                   <p className="font-medium mb-2">
-                    Where were you insured before? *
+                    Where were you insured before?
                   </p>
                   <div className="flex gap-3">
                     {["Abroad", "Germany"].map((v) => (
