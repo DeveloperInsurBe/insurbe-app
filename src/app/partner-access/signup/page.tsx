@@ -137,44 +137,42 @@ export default function PartnerAccessSignupPage() {
           Partner Access
         </p>
         <h1 className="mt-3 text-3xl font-black text-gray-900">
-          {isInstitutionFlow ? "Partner Signup" : "Agent Signup"}
+          Partner Signup
         </h1>
         <p className="mt-2 text-sm text-gray-500">
-          {isInstitutionFlow
-            ? "Institution / referral partner onboarding"
-            : "Insurance agent / broker onboarding"}
+          Institution / referral partner onboarding
         </p>
 
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <h2 className="mb-3 text-sm font-semibold text-gray-700">
             Select Partner Type
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setType("institution_referral_partner")}
-            className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
-              partnerType === "institution_referral_partner"
-                ? "border-[#820ad1] bg-[#820ad1]/10 text-[#820ad1]"
-                : "border-gray-200 text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Institution / Referral Partner
-          </button>
+            <button
+              type="button"
+              onClick={() => setType("institution_referral_partner")}
+              className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
+                partnerType === "institution_referral_partner"
+                  ? "border-[#820ad1] bg-[#820ad1]/10 text-[#820ad1]"
+                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              Institution / Referral Partner
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setType("insurance_agent_broker")}
-            className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
-              partnerType === "insurance_agent_broker"
-                ? "border-[#0f8a5f] bg-[#0f8a5f]/10 text-[#0f8a5f]"
-                : "border-gray-200 text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Insurance Agent / Broker Agent
-          </button>
+            <button
+              type="button"
+              onClick={() => setType("insurance_agent_broker")}
+              className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
+                partnerType === "insurance_agent_broker"
+                  ? "border-[#0f8a5f] bg-[#0f8a5f]/10 text-[#0f8a5f]"
+                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              Insurance Agent / Broker Agent
+            </button>
           </div>
-        </div>
+        </div> */}
 
         {error ? (
           <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
