@@ -11,6 +11,15 @@ import {
   User,
   AlertCircle,
 } from "lucide-react";
+import {
+  CURRENCIES,
+  fieldsForMethod,
+  payoutMethodForCountry,
+  suggestCurrency,
+  validateBankField,
+  type BankField,
+  type PayoutMethod,
+} from "@/lib/bankDetails";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,9 +47,20 @@ interface FormData {
   recipientCountry: string;
   iban: string;
   bicSwift: string;
+  accountNumber: string;
+  ifscCode: string;
+  bankName: string;
   currency: string;
   additionalInfo: string;
 }
+
+const SAVE_FAILED_MESSAGE =
+  "We could not save your details right now. Please try again in a moment.";
+const NETWORK_ERROR_MESSAGE =
+  "We could not reach the server. Please check your internet connection and try again.";
+
+// Bank inputs are shown in upper case (IBAN / BIC / IFSC are case-insensitive codes).
+const UPPERCASE_FIELDS: (keyof FormData)[] = ["iban", "bicSwift", "ifscCode"];
 
 type ValidationErrors = Partial<Record<keyof FormData, string>>;
 
@@ -77,6 +97,9 @@ const INITIAL_FORM: FormData = {
   recipientCountry: "",
   iban: "",
   bicSwift: "",
+  accountNumber: "",
+  ifscCode: "",
+  bankName: "",
   currency: "EUR",
   additionalInfo: "",
 };
@@ -85,8 +108,6 @@ const INITIAL_FORM: FormData = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[0-9]{6,15}$/;
-const IBAN_RE = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{4,30}$/;
-const BIC_RE = /^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/;
 const POSTAL_RE = /^[A-Z0-9\s\-]{3,12}$/i;
 
 function validateField(name: keyof FormData, value: string): string {
@@ -111,13 +132,10 @@ function validateField(name: keyof FormData, value: string): string {
       if (value && !POSTAL_RE.test(value)) return "Please enter a valid postal code.";
       return "";
     case "iban":
-      if (value && !IBAN_RE.test(value.replace(/\s/g, "").toUpperCase()))
-        return "Please enter a valid IBAN.";
-      return "";
     case "bicSwift":
-      if (value && !BIC_RE.test(value.toUpperCase()))
-        return "Please enter a valid BIC/SWIFT code.";
-      return "";
+    case "accountNumber":
+    case "ifscCode":
+      return validateBankField(name, value);
     default:
       return "";
   }
@@ -379,7 +397,11 @@ export default function PartnerDataClient({
   const router = useRouter();
   const normalizedInitialProfile = Object.fromEntries(
     Object.entries(initialProfile || {}).filter(
-      ([, value]) => typeof value === "string",
+      ([key, value]) =>
+        typeof value === "string" &&
+        key !== "id" &&
+        key !== "userId" &&
+        key !== "payoutMethod",
     ),
   ) as Partial<FormData>;
 
@@ -401,6 +423,9 @@ export default function PartnerDataClient({
   const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
   const [countries] = useState<Country[]>(initialCountries);
   const countriesLoading = false;
+
+  // The recipient country alone decides which bank fields are shown.
+  const payoutMethod = payoutMethodForCountry(formData.recipientCountry);
 
   useEffect(() => {
     const handleFocusRefresh = () => {
@@ -424,42 +449,63 @@ export default function PartnerDataClient({
       const err = validateField(field, String(formData[field] ?? ""));
       if (err) newErrors[field] = err;
     });
-    (["postalCode", "iban", "bicSwift"] as (keyof FormData)[]).forEach((field) => {
-      const val = String(formData[field] ?? "");
-      if (val) {
-        const err = validateField(field, val);
-        if (err) newErrors[field] = err;
-      }
-    });
+    // Only the bank fields of the selected payout method are validated.
+    (["postalCode", ...fieldsForMethod(payoutMethod)] as (keyof FormData)[]).forEach(
+      (field) => {
+        const val = String(formData[field] ?? "");
+        if (val) {
+          const err = validateField(field, val);
+          if (err) newErrors[field] = err;
+        }
+      },
+    );
     return newErrors;
+  }
+
+  function findCountryCode(countryName: string): string {
+    const match = countries.find((c) => c.name === countryName);
+    if (match) return match.code;
+    // Country list unavailable (plain text input): fall back to the one we special-case.
+    return countryName.trim().toLowerCase() === "india" ? "IN" : "";
   }
 
   async function handleSave() {
     const allErrors = validateAll();
     if (Object.keys(allErrors).length > 0) {
       setErrors(allErrors);
-      const allTouched = REQUIRED_FIELDS.reduce(
+      const allTouched = [...REQUIRED_FIELDS, ...(Object.keys(allErrors) as (keyof FormData)[])].reduce(
         (acc, f) => ({ ...acc, [f]: true }),
         {} as typeof touched
       );
       setTouched((prev) => ({ ...prev, ...allTouched }));
+      toast.error("Please check the highlighted fields and try again.");
       return;
     }
+    let toastId: string | number | undefined;
     try {
       setSaving(true);
 
-      const savePromise = fetch("/api/partner/save-profile", {
+      toastId = toast.loading("Saving partner profile...");
+      const res = await fetch("/api/partner/save-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-      }).then(async (res) => {
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.error || "Failed to save profile");
-        return result;
       });
+      const result = await res.json();
 
-      const toastId = toast.loading("Saving partner profile...");
-      const result = await savePromise;
+      if (!res.ok) {
+        const fieldErrors = result.fieldErrors as ValidationErrors | undefined;
+        if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+          setErrors(fieldErrors);
+          setTouched((prev) => ({
+            ...prev,
+            ...Object.fromEntries(Object.keys(fieldErrors).map((f) => [f, true])),
+          }));
+        }
+        toast.error(result.error || SAVE_FAILED_MESSAGE, { id: toastId });
+        return;
+      }
+
       toast.success("Partner profile saved successfully", { id: toastId });
 
       if (!result.mailSent) {
@@ -471,24 +517,55 @@ export default function PartnerDataClient({
       setErrors({});
     } catch (error) {
       console.error(error);
+      // Never surface technical error text (e.g. "Failed to fetch") to the user.
       toast.error(
-        error instanceof Error ? error.message : "Something went wrong",
+        error instanceof TypeError ? NETWORK_ERROR_MESSAGE : SAVE_FAILED_MESSAGE,
+        { id: toastId },
       );
     } finally {
       setSaving(false);
     }
   }
 
+  // Clears errors of the bank fields that a method does not use, so hidden
+  // fields can't keep the form in an error state.
+  function clearHiddenBankErrors(method: PayoutMethod) {
+    const visible = new Set<string>(fieldsForMethod(method));
+    const hidden = (["iban", "bicSwift", "accountNumber", "ifscCode"] as BankField[]).filter(
+      (f) => !visible.has(f),
+    );
+    setErrors((prev) => {
+      const next = { ...prev };
+      hidden.forEach((f) => delete next[f]);
+      return next;
+    });
+  }
+
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-      const { name, value } = e.target;
-      setFormData((prev) => ({ ...prev, [name]: value }));
-      if (touched[name as keyof FormData]) {
-        const err = validateField(name as keyof FormData, value);
-        setErrors((prev) => ({ ...prev, [name]: err }));
+      const { name } = e.target;
+      const field = name as keyof FormData;
+      const value = UPPERCASE_FIELDS.includes(field)
+        ? e.target.value.toUpperCase()
+        : e.target.value;
+
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      if (touched[field]) {
+        const err = validateField(field, value);
+        setErrors((prev) => ({ ...prev, [field]: err }));
+      }
+
+      // Picking the recipient country switches the bank fields and suggests the
+      // currency (the currency stays editable).
+      if (field === "recipientCountry") {
+        const currency = suggestCurrency(findCountryCode(value));
+        if (currency) setFormData((prev) => ({ ...prev, currency }));
+        clearHiddenBankErrors(payoutMethodForCountry(value));
       }
     },
-    [touched]
+    // findCountryCode / clearHiddenBankErrors only read `countries` (constant state).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [touched, countries]
   );
 
   const handleBlur = useCallback(
@@ -834,33 +911,59 @@ export default function PartnerDataClient({
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-6">Account Details</h3>
             <div className="grid md:grid-cols-2 gap-6">
-              <Field label="IBAN / Account Number" error={touched.iban ? errors.iban : ""}>
-                <input
-                  type="text"
-                  {...inputProps("iban", { placeholder: "DE89 3704 0044 0532 0130 00" })}
-                  className={inputCls("iban")}
-                  onChange={(e) => {
-                    const synth = { ...e, target: { ...e.target, value: e.target.value.toUpperCase() } };
-                    handleChange(synth as any);
-                  }}
-                />
-              </Field>
+              {payoutMethod === "account_ifsc" ? (
+                <>
+                  <Field label="Account Number" error={touched.accountNumber ? errors.accountNumber : ""}>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      {...inputProps("accountNumber", { placeholder: "123456789012" })}
+                      className={inputCls("accountNumber")}
+                    />
+                  </Field>
 
-              <Field label="BIC / Swift Code" error={touched.bicSwift ? errors.bicSwift : ""}>
+                  <Field label="IFSC Code" error={touched.ifscCode ? errors.ifscCode : ""}>
+                    <input
+                      type="text"
+                      {...inputProps("ifscCode", { placeholder: "HDFC0001234", maxLength: 11 })}
+                      className={inputCls("ifscCode")}
+                    />
+                  </Field>
+                </>
+              ) : (
+                <>
+                  <Field label="IBAN" error={touched.iban ? errors.iban : ""}>
+                    <input
+                      type="text"
+                      {...inputProps("iban", { placeholder: "DE89 3704 0044 0532 0130 00" })}
+                      className={inputCls("iban")}
+                    />
+                  </Field>
+
+                  <Field label="BIC / Swift Code" error={touched.bicSwift ? errors.bicSwift : ""}>
+                    <input
+                      type="text"
+                      {...inputProps("bicSwift", { placeholder: "COBADEFFXXX" })}
+                      className={inputCls("bicSwift")}
+                    />
+                  </Field>
+                </>
+              )}
+
+              <Field label="Bank Name">
                 <input
                   type="text"
-                  {...inputProps("bicSwift", { placeholder: "COBADEFFXXX" })}
-                  className={inputCls("bicSwift")}
-                  onChange={(e) => {
-                    const synth = { ...e, target: { ...e.target, value: e.target.value.toUpperCase() } };
-                    handleChange(synth as any);
-                  }}
+                  {...inputProps("bankName", { placeholder: "Bank Name" })}
+                  className={inputCls()}
                 />
               </Field>
 
               <Field label="Currency">
                 <select {...selectProps("currency")} className={selectCls()}>
-                  {["EUR", "USD", "GBP", "INR", "CHF", "JPY", "AUD", "CAD"].map((c) => (
+                  {(CURRENCIES.includes(formData.currency)
+                    ? CURRENCIES
+                    : [formData.currency, ...CURRENCIES]
+                  ).map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>

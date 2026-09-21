@@ -52,6 +52,9 @@ model PartnerProfile {
   recipientCountry   String?
   iban               String?
   bicSwift           String?
+  accountNumber      String?
+  ifscCode           String?
+  bankName           String?
   currency           String?
   additionalInfo     String?
   createdAt          DateTime @default(now())

@@ -58,6 +58,68 @@ body {
   }
 }
 
+/* Modal open animations (used by the Create Application modal) */
+@keyframes modal-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-panel-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes modal-item-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modal-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(10px, -18px, 0) scale(1.08); }
+}
+
+@keyframes modal-ring {
+  0% { transform: scale(1); opacity: 0.45; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+.modal-overlay-in { animation: modal-overlay-in 180ms ease-out both; }
+.modal-panel-in { animation: modal-panel-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.modal-item-in { animation: modal-item-in 480ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.modal-float { animation: modal-float 9s ease-in-out infinite; }
+.modal-ring { animation: modal-ring 2.6s ease-out infinite; }
+
+/* Dashboard animations (reuse the keyframes above) */
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes shine-sweep {
+  0% { transform: translateX(-140%) skewX(-20deg); }
+  55%, 100% { transform: translateX(360%) skewX(-20deg); }
+}
+
+.rise-in { animation: modal-item-in 560ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.float-slow { animation: modal-float 9s ease-in-out infinite; }
+.pulse-ring { animation: modal-ring 2.6s ease-out infinite; }
+.bar-grow { transform-origin: left; animation: bar-grow 900ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.shine-sweep { animation: shine-sweep 4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay-in,
+  .modal-panel-in,
+  .modal-item-in,
+  .modal-float,
+  .modal-ring,
+  .rise-in,
+  .float-slow,
+  .pulse-ring,
+  .bar-grow,
+  .shine-sweep { animation: none; }
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

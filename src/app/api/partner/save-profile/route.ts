@@ -4,8 +4,45 @@ import { Resend } from "resend";
 
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/authOptions";
+import {
+  normalizeBankDetails,
+  payoutMethodForCountry,
+  validateBankDetails,
+} from "@/lib/bankDetails";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Only these columns may be written from the client (never id / userId).
+const EDITABLE_FIELDS = [
+  "title",
+  "position",
+  "firstName",
+  "lastName",
+  "countryCode",
+  "phone",
+  "email",
+  "companyName",
+  "companyDescription",
+  "addressType",
+  "streetName",
+  "streetNumber",
+  "postalCode",
+  "city",
+  "careOfAddress",
+  "country",
+  "accountHolder",
+  "recipientStreet",
+  "recipientZip",
+  "recipientCity",
+  "recipientCountry",
+  "iban",
+  "bicSwift",
+  "accountNumber",
+  "ifscCode",
+  "bankName",
+  "currency",
+  "additionalInfo",
+] as const;
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,7 +51,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.email) {
       return NextResponse.json(
         {
-          error: "Unauthorized",
+          error: "Your session has expired. Please log in again.",
         },
         {
           status: 401,
@@ -22,7 +59,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        {
+          error:
+            "We could not read your details. Please refresh the page and try again.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
 
     const user = await prisma.user.findUnique({
       where: {
@@ -33,7 +82,7 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json(
         {
-          error: "User not found",
+          error: "We could not find your account. Please log in again.",
         },
         {
           status: 404,
@@ -41,18 +90,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const data: Record<string, string> = {};
+    for (const field of EDITABLE_FIELDS) {
+      if (typeof body?.[field] === "string") data[field] = body[field];
+    }
+
+    // The recipient country alone decides the payout format (never the client).
+    const payoutMethod = payoutMethodForCountry(data.recipientCountry);
+
+    const fieldErrors = validateBankDetails(payoutMethod, data);
+    if (Object.keys(fieldErrors).length > 0) {
+      return NextResponse.json(
+        {
+          error: Object.values(fieldErrors)[0] ?? "Please check your bank details and try again.",
+          fieldErrors,
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    Object.assign(data, normalizeBankDetails(payoutMethod, data));
+
     const profile = await prisma.partnerProfile.upsert({
       where: {
         userId: user.id,
       },
 
-      update: {
-        ...body,
-      },
+      update: data,
 
       create: {
         userId: user.id,
-        ...body,
+        ...data,
       },
     });
 
@@ -118,7 +188,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error: "Something went wrong",
+        error: "We could not save your details right now. Please try again in a moment.",
       },
       {
         status: 500,
