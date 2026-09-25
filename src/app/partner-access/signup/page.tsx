@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { AlertCircle, ArrowRight, Loader2 } from "lucide-react";
+
+import AccessBrandPanel from "../AccessBrandPanel";
 
 type AccountType = "partner" | "agent";
 type PartnerTypeOption =
@@ -130,16 +133,46 @@ export default function PartnerAccessSignupPage() {
         ring: "focus:ring-[#0f8a5f]/10",
       };
 
+  // Input look shared by every field (focus colours unchanged).
+  const inputCls =
+    "h-12 w-full rounded-xl border border-[#efe3fb] bg-white text-sm outline-none transition-all hover:border-[#d8b4fe] focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10";
+  const fieldIconCls =
+    "pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-[#820ad1]";
+
   return (
-    <div className="min-h-screen bg-[#f7f5fb] px-4 py-12">
-      <div className="mx-auto w-full max-w-2xl rounded-3xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className={`text-xs font-bold uppercase tracking-[2px] ${accent.text}`}>
+    <div className="relative min-h-screen overflow-hidden bg-[#f7f5fb] px-4 py-10 sm:py-14">
+      {/* soft animated page background */}
+      <div className="modal-float pointer-events-none absolute -left-24 top-10 h-80 w-80 rounded-full bg-[#820ad1]/10 blur-3xl" />
+      <div
+        className="modal-float pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-[#a855f7]/10 blur-3xl"
+        style={{ animationDelay: "-4s" }}
+      />
+
+      <div className="modal-panel-in relative mx-auto flex w-full max-w-6xl flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_24px_70px_rgba(130,10,209,0.12)] ring-1 ring-[#f0e6fb] md:flex-row md:rounded-[32px]">
+        <AccessBrandPanel
+          variant="signup"
+          title="Become an InsurBe partner"
+          description="Create your partner account to start referring clients and tracking your commissions."
+          tone={isInstitutionFlow ? "purple" : "green"}
+        />
+
+        <div className="flex-1 p-6 sm:p-8 md:p-10 lg:p-12">
+        <p
+          className={`modal-item-in text-xs font-bold uppercase tracking-[2px] ${accent.text}`}
+          style={{ animationDelay: "160ms" }}
+        >
           Partner Access
         </p>
-        <h1 className="mt-3 text-3xl font-black text-gray-900">
+        <h1
+          className="modal-item-in mt-3 text-3xl font-black text-gray-900"
+          style={{ animationDelay: "220ms" }}
+        >
           Partner Signup
         </h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <p
+          className="modal-item-in mt-2 text-sm text-gray-500"
+          style={{ animationDelay: "280ms" }}
+        >
           Institution / referral partner onboarding
         </p>
 
@@ -175,13 +208,14 @@ export default function PartnerAccessSignupPage() {
         </div> */}
 
         {error ? (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+          <div className="modal-item-in mt-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+            <AlertCircle size={16} className="shrink-0" />
             {error}
           </div>
         ) : null}
 
         <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2">
+          <div className="modal-item-in sm:col-span-2" style={{ animationDelay: "340ms" }}>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Company Name
             </label>
@@ -191,12 +225,12 @@ export default function PartnerAccessSignupPage() {
               onChange={(e) => handleChange(e.target.name, e.target.value)}
               required
               placeholder="Enter company name"
-              className="h-12 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+              className={`${inputCls} px-4`}
             />
           </div>
 
           {accountType === "partner" ? (
-            <div>
+            <div className="modal-item-in" style={{ animationDelay: "390ms" }}>
               <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Title
               </label>
@@ -204,7 +238,7 @@ export default function PartnerAccessSignupPage() {
                 name="title"
                 value={formData.title}
                 onChange={(e) => handleChange(e.target.name, e.target.value)}
-                className="h-12 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+                className={`${inputCls} cursor-pointer px-4`}
                 required
               >
                 <option value="Mr">Mr</option>
@@ -214,7 +248,7 @@ export default function PartnerAccessSignupPage() {
             </div>
           ) : null}
 
-          <div>
+          <div className="modal-item-in" style={{ animationDelay: "440ms" }}>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               First Name
             </label>
@@ -224,11 +258,11 @@ export default function PartnerAccessSignupPage() {
               onChange={(e) => handleChange(e.target.name, e.target.value)}
               required
               placeholder="Enter first name"
-              className="h-12 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+              className={`${inputCls} px-4`}
             />
           </div>
 
-          <div>
+          <div className="modal-item-in" style={{ animationDelay: "490ms" }}>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Last Name
             </label>
@@ -238,22 +272,22 @@ export default function PartnerAccessSignupPage() {
               onChange={(e) => handleChange(e.target.name, e.target.value)}
               required
               placeholder="Enter last name"
-              className="h-12 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+              className={`${inputCls} px-4`}
             />
           </div>
 
-          <div className="sm:col-span-2">
+          <div className="modal-item-in sm:col-span-2" style={{ animationDelay: "540ms" }}>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Email
             </label>
-            <div className="relative">
+            <div className="group relative">
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.8"
-                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                className={fieldIconCls}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.75A1.75 1.75 0 0 1 4.75 6h14.5A1.75 1.75 0 0 1 21 7.75v8.5A1.75 1.75 0 0 1 19.25 18H4.75A1.75 1.75 0 0 1 3 16.25v-8.5Z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="m3.5 7 7.65 6.12a1.35 1.35 0 0 0 1.7 0L20.5 7" />
@@ -265,23 +299,23 @@ export default function PartnerAccessSignupPage() {
                 onChange={(e) => handleChange(e.target.name, e.target.value)}
                 required
                 placeholder="Enter your email address"
-                className="h-12 w-full rounded-xl border border-gray-200 pl-11 pr-4 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+                className={`${inputCls} pl-11 pr-4`}
               />
             </div>
           </div>
 
-          <div>
+          <div className="modal-item-in" style={{ animationDelay: "590ms" }}>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Password
             </label>
-            <div className="relative">
+            <div className="group relative">
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.8"
-                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                className={fieldIconCls}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 10V8a5 5 0 0 1 10 0v2" />
                 <rect x="5" y="10" width="14" height="10" rx="2" />
@@ -293,13 +327,13 @@ export default function PartnerAccessSignupPage() {
                 onChange={(e) => handleChange(e.target.name, e.target.value)}
                 required
                 placeholder="Create a password"
-                className="h-12 w-full rounded-xl border border-gray-200 pl-11 pr-11 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+                className={`${inputCls} pl-11 pr-11`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 transition-colors hover:text-gray-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 transition-colors hover:text-[#820ad1]"
               >
                 {showPassword ? (
                   <svg
@@ -332,18 +366,18 @@ export default function PartnerAccessSignupPage() {
             </div>
           </div>
 
-          <div>
+          <div className="modal-item-in" style={{ animationDelay: "640ms" }}>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Confirm Password
             </label>
-            <div className="relative">
+            <div className="group relative">
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.8"
-                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                className={fieldIconCls}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 10V8a5 5 0 0 1 10 0v2" />
                 <rect x="5" y="10" width="14" height="10" rx="2" />
@@ -355,7 +389,7 @@ export default function PartnerAccessSignupPage() {
                 onChange={(e) => handleChange(e.target.name, e.target.value)}
                 required
                 placeholder="Re-enter your password"
-                className="h-12 w-full rounded-xl border border-gray-200 pl-11 pr-11 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+                className={`${inputCls} pl-11 pr-11`}
               />
               <button
                 type="button"
@@ -363,7 +397,7 @@ export default function PartnerAccessSignupPage() {
                 aria-label={
                   showConfirmPassword ? "Hide confirm password" : "Show confirm password"
                 }
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 transition-colors hover:text-gray-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 transition-colors hover:text-[#820ad1]"
               >
                 {showConfirmPassword ? (
                   <svg
@@ -396,22 +430,29 @@ export default function PartnerAccessSignupPage() {
             </div>
           </div>
 
-          <div className="sm:col-span-2">
+          <div className="modal-item-in sm:col-span-2" style={{ animationDelay: "690ms" }}>
             <button
               type="submit"
               disabled={loading}
-              className={`h-12 w-full cursor-pointer rounded-xl text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+              className={`group flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 ${
                 isInstitutionFlow
-                  ? "bg-[#820ad1] hover:bg-[#6f08b2]"
-                  : "bg-[#0f8a5f] hover:bg-[#0d744f]"
+                  ? "bg-gradient-to-r from-[#820ad1] to-[#a855f7] shadow-[#820ad1]/25 hover:shadow-[#820ad1]/30"
+                  : "bg-gradient-to-r from-[#0f8a5f] to-[#10b981] shadow-[#0f8a5f]/25 hover:shadow-[#0f8a5f]/30"
               }`}
             >
+              {loading ? <Loader2 size={16} className="animate-spin" /> : null}
               {loading ? "Creating Account..." : "Create Account"}
+              {!loading ? (
+                <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+              ) : null}
             </button>
           </div>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p
+          className="modal-item-in mt-6 text-center text-sm text-gray-500"
+          style={{ animationDelay: "740ms" }}
+        >
           Already have an account?{" "}
           <Link
             href={`/partner-access/login?type=${accountType}`}
@@ -420,6 +461,7 @@ export default function PartnerAccessSignupPage() {
             Login
           </Link>
         </p>
+        </div>
       </div>
     </div>
   );

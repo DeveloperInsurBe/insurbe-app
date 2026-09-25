@@ -3,25 +3,51 @@ import { Megaphone } from "lucide-react";
 export default function MarketingAssetsPage() {
   return (
     <div className="space-y-6 md:space-y-8">
-      <div className="text-sm text-gray-500">
+      <div className="modal-item-in text-sm text-gray-500">
         Partner Portal / <span className="font-semibold text-black">Marketing Assets</span>
       </div>
 
-      <div className="relative overflow-hidden rounded-[24px] md:rounded-[32px] border border-white/50 bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] p-5 sm:p-6 md:p-8 shadow-[0_12px_40px_rgba(130,10,209,0.08)]">
-        <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-[#820ad1]/10 blur-3xl pointer-events-none" />
+      <section className="modal-panel-in relative overflow-hidden rounded-[28px] md:rounded-[32px] border border-[#f0e6fb] bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] px-5 py-5 sm:px-7 sm:py-6 md:px-9 md:py-7 text-[#111827] shadow-[0_12px_40px_rgba(130,10,209,0.08)]">
+        {/* animated background shapes */}
+        <div className="modal-float pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-[#820ad1]/10 blur-2xl" />
+        <div
+          className="modal-float pointer-events-none absolute -bottom-24 -right-16 h-72 w-72 rounded-full bg-[#a855f7]/15 blur-3xl"
+          style={{ animationDelay: "-4s" }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.10]"
+          style={{
+            backgroundImage: "radial-gradient(circle, #820ad1 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+          }}
+        />
 
         <div className="relative z-10 flex items-start gap-4">
-          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-[#820ad1]/10 text-[#820ad1]">
-            <Megaphone size={24} />
+          <div
+            className="modal-item-in relative h-11 w-11 shrink-0 sm:h-12 sm:w-12"
+            style={{ animationDelay: "120ms" }}
+          >
+            <span className="modal-ring absolute inset-0 rounded-2xl bg-[#820ad1]/25" />
+            <span className="relative flex h-full w-full items-center justify-center rounded-2xl bg-gradient-to-br from-[#820ad1] to-[#a855f7] text-white shadow-lg shadow-[#820ad1]/25">
+              <Megaphone size={22} />
+            </span>
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#111827]">Marketing Assets</h1>
-            <p className="mt-2 text-sm md:text-base text-[#667085] max-w-2xl">
+            <h1
+              className="modal-item-in text-xl font-extrabold leading-tight tracking-tight sm:text-2xl md:text-[26px]"
+              style={{ animationDelay: "200ms" }}
+            >
+              Marketing Assets
+            </h1>
+            <p
+              className="modal-item-in mt-1 max-w-xl text-[13px] leading-relaxed text-[#667085] md:mt-1.5 md:text-sm"
+              style={{ animationDelay: "280ms" }}
+            >
               This section is being prepared with banners, social creatives, and ready-to-use partner materials.
             </p>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

@@ -107,6 +107,39 @@ body {
 .bar-grow { transform-origin: left; animation: bar-grow 900ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 .shine-sweep { animation: shine-sweep 4s ease-in-out infinite; }
 
+/* Partner access (login / signup) brand icons */
+/* login: a light bar sweeps over the fingerprint while the tile glows */
+@keyframes scan-sweep {
+  0% { transform: translateY(-120%); opacity: 0; }
+  15% { opacity: 1; }
+  50% { transform: translateY(120%); opacity: 1; }
+  65%, 100% { transform: translateY(120%); opacity: 0; }
+}
+
+@keyframes glow-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.35); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+}
+
+/* signup: icon bobs while "+1" badges pop up and float away */
+@keyframes icon-bob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.06); }
+}
+
+@keyframes badge-rise {
+  0% { transform: translateY(6px) scale(0.4); opacity: 0; }
+  18% { transform: translateY(0) scale(1.1); opacity: 1; }
+  28% { transform: translateY(-2px) scale(1); opacity: 1; }
+  70% { transform: translateY(-22px) scale(0.95); opacity: 0; }
+  100% { transform: translateY(-22px) scale(0.95); opacity: 0; }
+}
+
+.scan-sweep { animation: scan-sweep 2.6s ease-in-out infinite; }
+.glow-breathe { animation: glow-breathe 2.6s ease-in-out infinite; }
+.icon-bob { animation: icon-bob 2.8s ease-in-out infinite; }
+.badge-rise { animation: badge-rise 3s ease-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   .modal-overlay-in,
   .modal-panel-in,
@@ -117,7 +150,11 @@ body {
   .float-slow,
   .pulse-ring,
   .bar-grow,
-  .shine-sweep { animation: none; }
+  .shine-sweep,
+  .scan-sweep,
+  .glow-breathe,
+  .icon-bob,
+  .badge-rise { animation: none; }
 }
 
 .scrollbar-hide::-webkit-scrollbar {
