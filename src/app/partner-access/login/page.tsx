@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSession, signIn, signOut } from "next-auth/react";
 import { toast } from "sonner";
+import { AlertCircle, ArrowRight, Loader2 } from "lucide-react";
+
+import AccessBrandPanel from "../AccessBrandPanel";
 
 type AccountType = "partner" | "agent";
 
@@ -77,18 +80,47 @@ export default function PartnerAccessLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f5fb] px-4 py-12">
-      <div className="mx-auto w-full max-w-xl rounded-3xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
+    <div className="relative min-h-screen overflow-hidden bg-[#f7f5fb] px-4 py-10 sm:py-14">
+      {/* soft animated page background */}
+      <div className="modal-float pointer-events-none absolute -left-24 top-10 h-80 w-80 rounded-full bg-[#820ad1]/10 blur-3xl" />
+      <div
+        className="modal-float pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-[#a855f7]/10 blur-3xl"
+        style={{ animationDelay: "-4s" }}
+      />
+
+      <div className="modal-panel-in relative mx-auto flex w-full max-w-5xl flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_24px_70px_rgba(130,10,209,0.12)] ring-1 ring-[#f0e6fb] md:flex-row md:rounded-[32px]">
+        <AccessBrandPanel
+          variant="login"
+          title="Welcome back, partner"
+          description="Track referrals, conversions and commission earnings in real-time."
+        />
+
+        <div className="flex-1 p-6 sm:p-8 md:p-10 lg:p-12">
+        <p
+          className="modal-item-in text-xs font-bold uppercase tracking-[2px] text-[#820ad1]"
+          style={{ animationDelay: "160ms" }}
+        >
           Partner Access
         </p>
-        <h1 className="mt-3 text-3xl font-black text-gray-900">Login</h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <h1
+          className="modal-item-in mt-3 text-3xl font-black text-gray-900"
+          style={{ animationDelay: "220ms" }}
+        >
+          Login
+        </h1>
+        <p
+          className="modal-item-in mt-2 text-sm text-gray-500"
+          style={{ animationDelay: "280ms" }}
+        >
           Login to your partner or agent portal.
         </p>
 
-        <div className="mt-6">
-          <h2 className="text-center text-lg font-semibold text-gray-800">
+        <div className="modal-item-in mt-6" style={{ animationDelay: "340ms" }}>
+          <h2 className="flex items-center justify-center gap-2 rounded-2xl border border-[#efe3fb] bg-gradient-to-r from-[#faf7ff] to-[#f3e8ff] px-4 py-3 text-center text-base font-semibold text-[#820ad1] sm:text-lg">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
             Institution / Referral Partner
           </h2>
 
@@ -120,24 +152,25 @@ export default function PartnerAccessLoginPage() {
         </div>
 
         {error ? (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+          <div className="modal-item-in mt-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+            <AlertCircle size={16} className="shrink-0" />
             {error}
           </div>
         ) : null}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <div>
+          <div className="modal-item-in" style={{ animationDelay: "400ms" }}>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Email
             </label>
-            <div className="relative">
+            <div className="group relative">
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.8"
-                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-[#820ad1]"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.75A1.75 1.75 0 0 1 4.75 6h14.5A1.75 1.75 0 0 1 21 7.75v8.5A1.75 1.75 0 0 1 19.25 18H4.75A1.75 1.75 0 0 1 3 16.25v-8.5Z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="m3.5 7 7.65 6.12a1.35 1.35 0 0 0 1.7 0L20.5 7" />
@@ -148,23 +181,23 @@ export default function PartnerAccessLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="Enter your email address"
-                className="h-12 w-full rounded-xl border border-gray-200 pl-11 pr-4 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+                className="h-12 w-full rounded-xl border border-[#efe3fb] bg-white pl-11 pr-4 text-sm outline-none transition-all hover:border-[#d8b4fe] focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
               />
             </div>
           </div>
 
-          <div>
+          <div className="modal-item-in" style={{ animationDelay: "460ms" }}>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Password
             </label>
-            <div className="relative">
+            <div className="group relative">
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.8"
-                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-[#820ad1]"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 10V8a5 5 0 0 1 10 0v2" />
                 <rect x="5" y="10" width="14" height="10" rx="2" />
@@ -175,13 +208,13 @@ export default function PartnerAccessLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Enter your password"
-                className="h-12 w-full rounded-xl border border-gray-200 pl-11 pr-11 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+                className="h-12 w-full rounded-xl border border-[#efe3fb] bg-white pl-11 pr-11 text-sm outline-none transition-all hover:border-[#d8b4fe] focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 transition-colors hover:text-gray-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 transition-colors hover:text-[#820ad1]"
               >
                 {showPassword ? (
                   <svg
@@ -214,21 +247,31 @@ export default function PartnerAccessLoginPage() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 h-12 w-full cursor-pointer rounded-xl bg-[#820ad1] text-sm font-semibold text-white transition-colors hover:bg-[#6f08b2] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
+          <div className="modal-item-in" style={{ animationDelay: "520ms" }}>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#820ad1] to-[#a855f7] text-sm font-semibold text-white shadow-lg shadow-[#820ad1]/25 transition-all duration-300 hover:shadow-xl hover:shadow-[#820ad1]/30 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+              {loading ? "Logging in..." : "Login"}
+              {!loading ? (
+                <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+              ) : null}
+            </button>
+          </div>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p
+          className="modal-item-in mt-6 text-center text-sm text-gray-500"
+          style={{ animationDelay: "580ms" }}
+        >
           Do not have an account?{" "}
           <Link href={`/partner-access/signup?type=${accountType}`} className="font-semibold text-[#820ad1] hover:underline">
             Create Account
           </Link>
         </p>
+        </div>
       </div>
     </div>
   );

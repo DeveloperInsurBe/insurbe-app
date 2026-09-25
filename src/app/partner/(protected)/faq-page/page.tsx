@@ -57,58 +57,95 @@ export default function Page() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <div className="space-y-4 md:space-y-5">
-      <div className="text-xs md:text-sm text-gray-500">
+    <div className="space-y-6 md:space-y-8">
+      <div className="modal-item-in text-sm text-gray-500">
         Partner Help / <span className="font-semibold text-black">FAQ</span>
       </div>
 
-      <div className="relative overflow-hidden rounded-[16px] md:rounded-[22px] border border-white/50 bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] p-4 md:p-5 shadow-[0_10px_28px_rgba(130,10,209,0.08)]">
-        <div className="absolute top-0 right-0 h-56 w-56 rounded-full bg-[#820ad1]/10 blur-3xl pointer-events-none" />
+      <section className="modal-panel-in relative overflow-hidden rounded-[28px] md:rounded-[32px] border border-[#f0e6fb] bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] px-5 py-5 sm:px-7 sm:py-6 md:px-9 md:py-7 text-[#111827] shadow-[0_12px_40px_rgba(130,10,209,0.08)]">
+        {/* animated background shapes */}
+        <div className="modal-float pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-[#820ad1]/10 blur-2xl" />
+        <div
+          className="modal-float pointer-events-none absolute -bottom-24 -right-16 h-72 w-72 rounded-full bg-[#a855f7]/15 blur-3xl"
+          style={{ animationDelay: "-4s" }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.10]"
+          style={{
+            backgroundImage: "radial-gradient(circle, #820ad1 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+          }}
+        />
 
         <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#ead7ff] bg-[#f8f1ff] px-3 py-1 text-[10px] md:text-xs font-bold uppercase tracking-[1.6px] text-[#820ad1]">
+          <div
+            className="modal-item-in inline-flex items-center gap-2.5 rounded-full border border-[#ead7ff] bg-[#f8f1ff] px-3.5 py-1 text-[11px] font-bold uppercase tracking-[2px] text-[#820ad1]"
+            style={{ animationDelay: "120ms" }}
+          >
             <CircleHelp size={12} />
             Frequently Asked Questions
           </div>
 
-          <h1 className="mt-3 text-xl sm:text-2xl md:text-4xl font-black tracking-tight text-[#111827]">
+          <h1
+            className="modal-item-in mt-2 md:mt-2.5 text-xl sm:text-2xl md:text-[26px] font-extrabold leading-tight tracking-tight text-[#111827]"
+            style={{ animationDelay: "200ms" }}
+          >
             Partner FAQ
           </h1>
 
-          <p className="mt-2 text-xs sm:text-sm text-[#667085] leading-relaxed">
+          <p
+            className="modal-item-in mt-1 md:mt-1.5 max-w-xl text-[13px] md:text-sm text-[#667085] leading-relaxed"
+            style={{ animationDelay: "280ms" }}
+          >
             Find quick answers to the most common partner questions about
             commissions, payments, and marketing support at InsurBe.
           </p>
         </div>
-      </div>
+      </section>
 
-      <div className="rounded-[16px] md:rounded-[22px] bg-white border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-2.5 sm:p-3 md:p-4 space-y-2">
+      <div
+        className="modal-item-in rounded-[24px] md:rounded-[32px] bg-white border border-[#f0e6fb] shadow-[0_10px_35px_rgba(130,10,209,0.06)] overflow-hidden"
+        style={{ animationDelay: "200ms" }}
+      >
+        <div className="p-3 sm:p-4 md:p-5 space-y-2.5">
           {FAQS.map((item, index) => {
             const isOpen = openIndex === index;
 
             return (
               <div
                 key={item.question}
-                className="rounded-lg md:rounded-xl border border-gray-100 bg-[#fcfcfd] overflow-hidden"
+                style={{ animationDelay: `${260 + Math.min(index, 12) * 50}ms` }}
+                className={[
+                  "modal-item-in rounded-2xl border overflow-hidden transition-all duration-300",
+                  isOpen
+                    ? "border-[#e9d7ff] bg-gradient-to-r from-[#faf7ff] to-[#f3e8ff] shadow-[0_12px_30px_rgba(130,10,209,0.10)]"
+                    : "border-[#efe3fb] bg-white hover:border-[#e9d7ff] hover:bg-[#faf7ff]",
+                ].join(" ")}
               >
                 <button
                   type="button"
                   onClick={() => setOpenIndex(isOpen ? null : index)}
-                  className="w-full px-3.5 md:px-4 py-3 md:py-3.5 flex items-center justify-between gap-2.5 md:gap-3 text-left hover:bg-[#f8f1ff] transition-colors"
+                  className="group w-full cursor-pointer px-4 md:px-5 py-3.5 md:py-4 flex items-center justify-between gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#820ad1]/40"
                 >
-                  <span className="text-[13px] sm:text-sm md:text-lg font-semibold text-[#1f2937] leading-snug">
+                  <span className="text-sm md:text-base font-semibold text-[#111827] leading-snug">
                     {item.question}
                   </span>
 
-                  <span className="shrink-0 w-8 h-8 md:w-9 md:h-9 rounded-lg border border-[#e8d7fa] bg-white flex items-center justify-center text-[#820ad1]">
+                  <span
+                    className={[
+                      "shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full border flex items-center justify-center transition-colors duration-300",
+                      isOpen
+                        ? "border-transparent bg-[#820ad1] text-white"
+                        : "border-[#e9d7ff] bg-white text-[#820ad1] group-hover:border-transparent group-hover:bg-[#820ad1] group-hover:text-white",
+                    ].join(" ")}
+                  >
                     {isOpen ? <Minus size={16} /> : <Plus size={16} />}
                   </span>
                 </button>
 
                 {isOpen && (
-                  <div className="px-3.5 md:px-4 pb-3 md:pb-4">
-                    <div className="rounded-lg md:rounded-xl bg-white border border-[#f3e8ff] px-3.5 py-3 text-xs sm:text-sm md:text-[15px] text-[#475467] leading-relaxed">
+                  <div className="modal-item-in px-4 md:px-5 pb-4 md:pb-5">
+                    <div className="rounded-xl bg-white border border-[#efe3fb] px-4 py-3 text-[13px] md:text-sm text-[#475467] leading-relaxed">
                       {item.answer}
                     </div>
                   </div>

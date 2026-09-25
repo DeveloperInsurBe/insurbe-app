@@ -213,7 +213,7 @@ function PhoneInput({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-bold tracking-[2px] uppercase text-gray-600 block">
+      <label className="text-xs font-bold tracking-[2px] uppercase text-[#820ad1] block">
         Phone Number
       </label>
 
@@ -224,7 +224,7 @@ function PhoneInput({
             "flex h-14 rounded-2xl border overflow-visible transition-all",
             error
               ? "border-red-400 focus-within:ring-4 focus-within:ring-red-400/10"
-              : "border-gray-200 focus-within:border-[#820ad1] focus-within:ring-4 focus-within:ring-[#820ad1]/10",
+              : "border-[#efe3fb] focus-within:border-[#820ad1] focus-within:ring-4 focus-within:ring-[#820ad1]/10",
             !editMode ? "bg-gray-50" : "bg-white",
           ].join(" ")}
         >
@@ -235,7 +235,7 @@ function PhoneInput({
             onClick={() => editMode && setOpen((o) => !o)}
             className={[
               "flex items-center gap-1.5 pl-3 pr-2 border-r shrink-0 transition-colors rounded-l-2xl select-none",
-              error ? "border-red-300" : "border-gray-200",
+              error ? "border-red-300" : "border-[#efe3fb]",
               !editMode
                 ? "text-gray-400 cursor-not-allowed bg-gray-50"
                 : "text-gray-700 hover:bg-[#820ad1]/5 cursor-pointer",
@@ -277,15 +277,15 @@ function PhoneInput({
 
         {/* Dropdown */}
         {open && editMode && (
-          <div className="absolute z-50 mt-2 w-72 rounded-2xl border border-gray-100 bg-white shadow-2xl shadow-gray-200/80 overflow-hidden">
-            <div className="p-2.5 border-b border-gray-100">
+          <div className="modal-panel-in absolute z-50 mt-2 w-72 rounded-2xl border border-[#efe3fb] bg-white shadow-2xl shadow-[#820ad1]/10 overflow-hidden">
+            <div className="p-2.5 border-b border-[#f4ecfc]">
               <input
                 ref={searchRef}
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search country or code..."
-                className="w-full h-9 px-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#820ad1] focus:ring-2 focus:ring-[#820ad1]/10"
+                className="w-full h-9 px-3 rounded-xl border border-[#e9d7ff] text-sm outline-none focus:border-[#820ad1] focus:ring-2 focus:ring-[#820ad1]/10"
               />
             </div>
             <ul className="max-h-56 overflow-y-auto">
@@ -342,13 +342,16 @@ function SectionHeader({
   subtitle: string;
 }) {
   return (
-    <div className="p-4 sm:p-6 md:p-8 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-4">
-      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#820ad1]/10 flex items-center justify-center shrink-0">
-        <Icon className="text-[#820ad1]" size={26} />
+    <div className="p-4 sm:p-6 md:p-8 border-b border-[#f4ecfc] flex flex-col sm:flex-row sm:items-center gap-4">
+      <div className="relative w-12 h-12 shrink-0">
+        <span className="modal-ring absolute inset-0 rounded-2xl bg-[#820ad1]/20" />
+        <span className="relative flex h-full w-full items-center justify-center rounded-2xl bg-gradient-to-br from-[#820ad1] to-[#a855f7] text-white shadow-lg shadow-[#820ad1]/25">
+          <Icon size={22} />
+        </span>
       </div>
       <div>
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900">{title}</h2>
-        <p className="text-gray-500 mt-1 text-sm">{subtitle}</p>
+        <h2 className="text-xl sm:text-2xl font-black text-[#111827]">{title}</h2>
+        <p className="text-[#667085] mt-1 text-[13px] md:text-sm">{subtitle}</p>
       </div>
     </div>
   );
@@ -369,7 +372,7 @@ function Field({
 }) {
   return (
     <div className={"flex flex-col gap-1.5 " + className}>
-      <label className="text-xs font-bold tracking-[2px] uppercase text-gray-600 block">
+      <label className="text-xs font-bold tracking-[2px] uppercase text-[#820ad1] block">
         {label}
       </label>
       {children}
@@ -614,7 +617,7 @@ export default function PartnerDataClient({
       "focus:ring-4 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed",
       hasErr
         ? "border-red-400 bg-red-50/40 focus:border-red-400 focus:ring-red-400/10"
-        : "border-gray-200 bg-white focus:border-[#820ad1] focus:ring-[#820ad1]/10",
+        : "border-[#efe3fb] bg-white enabled:hover:border-[#d8b4fe] focus:border-[#820ad1] focus:ring-[#820ad1]/10",
     ].join(" ");
   }
 
@@ -626,26 +629,54 @@ export default function PartnerDataClient({
   return (
     <div className="space-y-6 md:space-y-8">
       {/* BREADCRUMB */}
-      <div className="text-sm text-gray-500">
+      <div className="modal-item-in text-sm text-gray-500">
         Your Profile / <span className="font-semibold text-black">Partner Data</span>
       </div>
 
       {/* HERO */}
-      <div className="relative overflow-hidden rounded-[24px] md:rounded-[32px] border border-white/50 bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] p-4 sm:p-6 md:p-8 shadow-[0_12px_40px_rgba(130,10,209,0.08)]">
-        <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-[#820ad1]/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 md:gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#ead7ff] bg-[#f8f1ff] px-4 py-1.5 text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
+      <section className="modal-panel-in relative overflow-hidden rounded-[28px] md:rounded-[32px] border border-[#f0e6fb] bg-gradient-to-br from-white via-[#faf7ff] to-[#f3e8ff] px-5 py-5 sm:px-7 sm:py-6 md:px-9 md:py-7 text-[#111827] shadow-[0_12px_40px_rgba(130,10,209,0.08)]">
+        {/* animated background shapes */}
+        <div className="modal-float pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-[#820ad1]/10 blur-2xl" />
+        <div
+          className="modal-float pointer-events-none absolute -bottom-24 -right-16 h-72 w-72 rounded-full bg-[#a855f7]/15 blur-3xl"
+          style={{ animationDelay: "-4s" }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.10]"
+          style={{
+            backgroundImage: "radial-gradient(circle, #820ad1 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+          }}
+        />
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-8">
+          <div className="max-w-2xl">
+            <div
+              className="modal-item-in inline-flex items-center gap-2.5 rounded-full border border-[#ead7ff] bg-[#f8f1ff] px-3.5 py-1 text-[11px] font-bold uppercase tracking-[2px] text-[#820ad1]"
+              style={{ animationDelay: "120ms" }}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
               Partner Account
             </div>
-            <h1 className="mt-4 sm:mt-5 text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-[#111827]">
+            <h1
+              className="modal-item-in mt-2 md:mt-2.5 text-xl sm:text-2xl md:text-[26px] font-extrabold leading-tight tracking-tight text-[#111827]"
+              style={{ animationDelay: "200ms" }}
+            >
               Partner Data
             </h1>
-            <p className="mt-3 max-w-2xl text-sm md:text-base text-[#667085] leading-relaxed">
+            <p
+              className="modal-item-in mt-1 md:mt-1.5 max-w-xl text-[13px] md:text-sm text-[#667085] leading-relaxed"
+              style={{ animationDelay: "280ms" }}
+            >
               Manage your company information, address and payout details.
             </p>
           </div>
-          <div className="flex flex-col items-start lg:items-end gap-2 w-full lg:w-auto">
+          <div
+            className="modal-item-in flex flex-col items-start lg:items-end gap-2 w-full lg:w-auto"
+            style={{ animationDelay: "360ms" }}
+          >
             {editMode && hasErrors && (
               <span className="flex items-center gap-1.5 text-xs text-red-500 font-semibold">
                 <AlertCircle size={14} />
@@ -655,17 +686,24 @@ export default function PartnerDataClient({
             <button
               onClick={() => (editMode ? handleSave() : setEditMode(true))}
               disabled={saving}
-              className="h-14 w-full sm:w-auto px-7 cursor-pointer rounded-2xl bg-gradient-to-r from-[#820ad1] to-[#9f3cff] text-white font-semibold flex items-center justify-center gap-3 shadow-xl shadow-[#820ad1]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="group h-12 md:h-14 w-full sm:w-auto px-5 md:px-7 cursor-pointer rounded-2xl bg-gradient-to-r from-[#820ad1] to-[#a855f7] text-white text-sm md:text-base font-semibold flex items-center justify-center gap-3 shadow-xl shadow-[#820ad1]/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#820ad1]/40 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              {editMode ? <Save size={20} /> : <Edit3 size={20} />}
+              {editMode ? (
+                <Save size={18} className="transition-transform duration-300 group-hover:scale-110" />
+              ) : (
+                <Edit3 size={18} className="transition-transform duration-300 group-hover:-rotate-12" />
+              )}
               {saving ? "Saving..." : editMode ? "Save Information" : "Edit Information"}
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* PARTNER INFORMATION */}
-      <div className="rounded-[24px] md:rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-visible">
+      <div
+        className="modal-item-in relative z-20 rounded-[24px] md:rounded-[32px] bg-white border border-[#f0e6fb] shadow-[0_10px_35px_rgba(130,10,209,0.06)] overflow-visible"
+        style={{ animationDelay: "200ms" }}
+      >
         <SectionHeader
           icon={User}
           title="Partner Information"
@@ -744,7 +782,7 @@ export default function PartnerDataClient({
 
           {/* Company Description */}
           <div className="md:col-span-2 xl:col-span-3 flex flex-col gap-1.5">
-            <label className="text-xs font-bold tracking-[2px] uppercase text-gray-600 block">
+            <label className="text-xs font-bold tracking-[2px] uppercase text-[#820ad1] block">
               Company Description
             </label>
             <textarea
@@ -754,14 +792,17 @@ export default function PartnerDataClient({
               disabled={!editMode}
               placeholder="Tell us about your company..."
               rows={5}
-              className="w-full rounded-3xl border border-gray-200 bg-white p-5 text-gray-900 outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed resize-none"
+              className="w-full rounded-3xl border border-[#efe3fb] bg-white p-5 text-gray-900 outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed resize-none"
             />
           </div>
         </div>
       </div>
 
       {/* ADDRESS */}
-      <div className="rounded-[24px] md:rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden">
+      <div
+        className="modal-item-in rounded-[24px] md:rounded-[32px] bg-white border border-[#f0e6fb] shadow-[0_10px_35px_rgba(130,10,209,0.06)] overflow-hidden"
+        style={{ animationDelay: "280ms" }}
+      >
         <SectionHeader
           icon={MapPin}
           title="Address"
@@ -851,7 +892,10 @@ export default function PartnerDataClient({
       </div>
 
       {/* BANK DETAILS */}
-      <div className="rounded-[24px] md:rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden mb-10">
+      <div
+        className="modal-item-in rounded-[24px] md:rounded-[32px] bg-white border border-[#f0e6fb] shadow-[0_10px_35px_rgba(130,10,209,0.06)] overflow-hidden mb-10"
+        style={{ animationDelay: "360ms" }}
+      >
         <SectionHeader
           icon={Landmark}
           title="Bank Details"
@@ -859,7 +903,7 @@ export default function PartnerDataClient({
         />
         <div className="p-4 sm:p-6 md:p-8 space-y-8 md:space-y-10">
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-6">Recipient Details</h3>
+            <h3 className="text-lg font-bold text-[#111827] mb-6">Recipient Details</h3>
             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
               <Field label="Account Holder">
                 <input
@@ -917,7 +961,7 @@ export default function PartnerDataClient({
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-6">Account Details</h3>
+            <h3 className="text-lg font-bold text-[#111827] mb-6">Account Details</h3>
             <div className="grid md:grid-cols-2 gap-6">
               {payoutMethod === "account_ifsc" ? (
                 <>
@@ -990,10 +1034,13 @@ export default function PartnerDataClient({
       </div>
 
       {/* PARTNER PROGRAM PLAN */}
-      <div className="rounded-[24px] md:rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden mb-10 p-4 sm:p-6 md:p-8">
-        <h1 className="text-2xl font-black text-gray-900">Partner Program Plan</h1>
-        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-gray-700 border border-purple-100 py-2 px-4 rounded-xl">
-        <p className="text-gray-600">Public Health Insurance (DAK) </p><p className="font-medium text-gray-800">EUR 30</p>
+      <div
+        className="modal-item-in rounded-[24px] md:rounded-[32px] bg-white border border-[#f0e6fb] shadow-[0_10px_35px_rgba(130,10,209,0.06)] overflow-hidden mb-10 p-4 sm:p-6 md:p-8"
+        style={{ animationDelay: "440ms" }}
+      >
+        <h1 className="text-xl sm:text-2xl font-black text-[#111827]">Partner Program Plan</h1>
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-2xl border border-[#efe3fb] bg-white px-4 py-3 text-gray-700 transition-all duration-300 hover:border-[#e9d7ff] hover:bg-gradient-to-r hover:from-[#faf7ff] hover:to-[#f3e8ff] hover:shadow-[0_12px_30px_rgba(130,10,209,0.10)]">
+        <p className="font-semibold text-gray-900">Public Health Insurance (DAK) </p><p className="w-fit rounded-full bg-[#f3e8ff] px-3 py-1 text-sm font-bold text-[#820ad1]">EUR 30</p>
 
         </div>
       </div>
