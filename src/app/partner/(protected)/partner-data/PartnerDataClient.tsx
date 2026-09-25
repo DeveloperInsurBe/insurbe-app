@@ -428,8 +428,14 @@ export default function PartnerDataClient({
   const payoutMethod = payoutMethodForCountry(formData.recipientCountry);
 
   useEffect(() => {
+    // "focus" and "visibilitychange" usually fire together; refresh only once.
+    let lastRefreshAt = 0;
+
     const handleFocusRefresh = () => {
       if (document.visibilityState === "visible") {
+        const now = Date.now();
+        if (now - lastRefreshAt < 1000) return;
+        lastRefreshAt = now;
         router.refresh();
       }
     };
@@ -515,6 +521,8 @@ export default function PartnerDataClient({
       setEditMode(false);
       setTouched({});
       setErrors({});
+      // Drop the cached copy of this page so revisiting it shows the saved profile.
+      router.refresh();
     } catch (error) {
       console.error(error);
       // Never surface technical error text (e.g. "Failed to fetch") to the user.

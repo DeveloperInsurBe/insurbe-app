@@ -1,5 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // Reuse already-visited dynamic pages (e.g. portal menus) for 30s on client-side
+    // navigation instead of re-rendering on the server every click.
+    // router.refresh() and tab-focus refreshes still fetch fresh data.
+    // `static` also governs full prefetches (<Link prefetch={true}>), used by the
+    // portal sidebar; keep it at 30s so prefetched portal data stays fresh.
+    staleTimes: {
+      dynamic: 30,
+      static: 30,
+    },
+  },
   async redirects() {
     return [
       {

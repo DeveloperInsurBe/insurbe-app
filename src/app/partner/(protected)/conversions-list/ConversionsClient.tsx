@@ -60,8 +60,14 @@ export default function ConversionsClient({
   // Keep list fresh when user returns to this tab/window.
   // This avoids stale data without bringing back initial-page loading states.
   useEffect(() => {
+    // "focus" and "visibilitychange" usually fire together; refresh only once.
+    let lastRefreshAt = 0;
+
     const handleFocusRefresh = () => {
       if (document.visibilityState === "visible") {
+        const now = Date.now();
+        if (now - lastRefreshAt < 1000) return;
+        lastRefreshAt = now;
         router.refresh();
       }
     };

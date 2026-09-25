@@ -51,33 +51,41 @@ export default async function ConversionsPage({ searchParams }: ConversionsPageP
     },
   } as const;
 
-  const totalCount = await prisma.application.count({
-    where: baseWhere,
-  });
+  const findPage = (targetPage: number) =>
+    prisma.application.findMany({
+      where: baseWhere,
+      select: {
+        id: true,
+        createdAt: true,
+        firstName: true,
+        lastName: true,
+        product: true,
+        userId: true,
+        partnerId: true,
+        commission: true,
+        commissionStatus: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip: (targetPage - 1) * pageSize,
+      take: pageSize,
+    });
+
+  // Count and fetch the requested page in parallel; only re-fetch when the
+  // requested page turns out to be past the last page (rare).
+  const [totalCount, requestedApplications] = await Promise.all([
+    prisma.application.count({
+      where: baseWhere,
+    }),
+    findPage(requestedPage),
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const page = Math.min(requestedPage, totalPages);
-  const skip = (page - 1) * pageSize;
 
-  const applications = await prisma.application.findMany({
-    where: baseWhere,
-    select: {
-      id: true,
-      createdAt: true,
-      firstName: true,
-      lastName: true,
-      product: true,
-      userId: true,
-      partnerId: true,
-      commission: true,
-      commissionStatus: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    skip,
-    take: pageSize,
-  });
+  const applications =
+    page === requestedPage ? requestedApplications : await findPage(page);
 
   const serializedApplications = applications.map((item) => ({
     ...item,
