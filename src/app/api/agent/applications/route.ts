@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
+import { getDefaultCommissionRate } from "@/lib/commission";
 import { ensureApplicationUserAccount } from "@/lib/ensureApplicationUserAccount";
 
 function makeOrderId() {
@@ -89,7 +90,7 @@ export async function POST(req: Request) {
 
     const agent = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true },
+      select: { id: true, commissionRate: true },
     });
 
     if (!agent) {
@@ -127,7 +128,8 @@ export async function POST(req: Request) {
         lastName: clientProfile.lastName,
         product,
         status: "created",
-        commission: 30,
+        commission:
+          agent.commissionRate ?? (await getDefaultCommissionRate("agent")),
         commissionStatus: "Pending",
         pdfBase64: "",
       },

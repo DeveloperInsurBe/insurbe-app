@@ -16,13 +16,18 @@ import { toast } from "sonner";
 type Props = {
   referralLink: string;
   partnerName: string;
+  commissionRate: number;
 };
 
 function openShareWindow(url: string) {
   window.open(url, "_blank", "noopener,noreferrer,width=720,height=720");
 }
 
-export default function ReferralShareCard({ referralLink, partnerName }: Props) {
+export default function ReferralShareCard({
+  referralLink,
+  partnerName,
+  commissionRate,
+}: Props) {
   const [canNativeShare, setCanNativeShare] = useState(false);
 
   useEffect(() => {
@@ -119,7 +124,7 @@ export default function ReferralShareCard({ referralLink, partnerName }: Props) 
 
         <p className="mt-2.5 text-sm leading-relaxed text-white/80">
           Share this link on WhatsApp, social media, or email. If someone submits
-          an insurance application through your link, you earn EUR 5 commission.
+          an insurance application through your link, you earn EUR {commissionRate} commission.
         </p>
 
         <div className="mt-5 flex h-14 items-center overflow-hidden rounded-2xl border border-white/15 bg-white/10 px-4 backdrop-blur-md">

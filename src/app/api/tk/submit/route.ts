@@ -58,7 +58,7 @@ export async function POST(req: Request) {
         passport: getFile("passport"),
         contract: getFile("contract"),
         photo: getFile("photo"),
-      });
+      }, referralAttribution);
 
     /**
      * SAVE PARTNER CONVERSION (if successful)
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
 
             product: "Public Health Insurance",
 
-            commission: referralAttribution.isAttributed ? 5 : 0,
+            commission: referralAttribution.commission,
 
             commissionStatus: referralAttribution.isAttributed
               ? "Pending"

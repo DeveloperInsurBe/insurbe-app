@@ -1,483 +1,367 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronRight, Loader2, Mail, MapPin, Phone, X } from "lucide-react";
 
-type AppRow = {
-  id: string;
-  orderId: string;
-  source: string;
-  status: string;
-  createdAt: string;
-  firstName: string;
-  lastName: string;
-  userId: string;
-  partnerId: string;
-  partnerName: string;
-  partnerCompany: string;
-  partnerEmail: string;
-  product: string;
-  commission: number;
-  commissionStatus: string;
-  details: {
-    email: string;
-    phone: string;
-    city: string;
-    country: string;
-    personalJson: unknown;
-  };
+import { initials, statusTone } from "../adminUi";
+import { COMMISSION_STATUSES, type ApplicationRow } from "./shared";
+
+const KIND_STYLE: Record<ApplicationRow["kind"], string> = {
+  TK: "bg-blue-50 text-blue-700 border-blue-200",
+  DAK: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  private: "bg-[#820ad1]/5 text-[#820ad1] border-[#820ad1]/20",
 };
 
-const COMMISSION_STATUSES = [
-  "Pending",
-  "Approved",
-  "Rejected",
-  "Paid",
-  "Not Eligible",
-] as const;
+const SOURCE_LABEL: Record<ApplicationRow["source"], string> = {
+  direct: "Direct",
+  partner: "Partner",
+  agent: "Agent",
+};
 
-export default function ApplicationsTable({ initialRows }: { initialRows: AppRow[] }) {
+const COMMISSION_TONE: Record<string, string> = {
+  Pending: "bg-amber-50 text-amber-700 border-amber-200",
+  Approved: "bg-blue-50 text-blue-700 border-blue-200",
+  Paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  Rejected: "bg-red-50 text-red-700 border-red-200",
+  "Not Eligible": "bg-gray-100 text-gray-600 border-gray-200",
+};
+
+const euro = new Intl.NumberFormat("de-DE", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 0,
+});
+
+const formatStatus = (status: string) =>
+  status.replace(/[_-]+/g, " ").replace(/^./, (char) => char.toUpperCase());
+
+const formatDate = (iso: string, withTime = false) =>
+  new Date(iso).toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
+  });
+
+function KindBadge({ kind }: { kind: ApplicationRow["kind"] }) {
+  return (
+    <span
+      className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${KIND_STYLE[kind]}`}
+    >
+      {kind === "private" ? "Private" : kind}
+    </span>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  return (
+    <span
+      className={`inline-block whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-semibold ${statusTone(status)}`}
+    >
+      {formatStatus(status)}
+    </span>
+  );
+}
+
+function CommissionSelect({
+  row,
+  onChange,
+}: {
+  row: ApplicationRow;
+  onChange: (id: string, status: string) => Promise<void>;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(false);
+
+  return (
+    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+      <div className="relative">
+        <select
+          aria-label="Commission status"
+          disabled={saving}
+          value={row.commissionStatus}
+          onChange={async (e) => {
+            setSaving(true);
+            setError(false);
+            try {
+              await onChange(row.id, e.target.value);
+            } catch {
+              setError(true);
+            } finally {
+              setSaving(false);
+            }
+          }}
+          className={`h-7 cursor-pointer appearance-none rounded-full border py-0 pl-2.5 pr-6 text-[11px] font-semibold outline-none transition-all focus:ring-4 focus:ring-[#820ad1]/10 disabled:cursor-wait disabled:opacity-60 ${
+            COMMISSION_TONE[row.commissionStatus] ?? COMMISSION_TONE.Pending
+          }`}
+        >
+          {COMMISSION_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+        <ChevronRight className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 rotate-90 opacity-60" />
+      </div>
+      {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" /> : null}
+      {error ? (
+        <span className="text-[11px] font-semibold text-red-600">Failed</span>
+      ) : null}
+    </div>
+  );
+}
+
+export default function ApplicationsTable({
+  initialRows,
+}: {
+  initialRows: ApplicationRow[];
+}) {
+  const router = useRouter();
   const [rows, setRows] = useState(initialRows);
-  const [sourceFilter, setSourceFilter] = useState("all");
-  const [commissionFilter, setCommissionFilter] = useState("all");
-  const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<AppRow | null>(null);
-  const [updatingId, setUpdatingId] = useState<string>("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+  useEffect(() => setRows(initialRows), [initialRows]);
 
-    return rows.filter((item) => {
-      if (sourceFilter !== "all" && item.source !== sourceFilter) return false;
-      if (
-        commissionFilter !== "all" &&
-        item.commissionStatus !== commissionFilter
-      ) {
-        return false;
-      }
+  const selected = rows.find((row) => row.id === selectedId) ?? null;
 
-      if (!q) return true;
+  useEffect(() => {
+    if (!selected) return;
 
-      const searchable = [
-        item.orderId,
-        item.firstName,
-        item.lastName,
-        item.userId,
-        item.partnerId,
-        item.partnerName,
-        item.partnerCompany,
-        item.product,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      return searchable.includes(q);
-    });
-  }, [rows, sourceFilter, commissionFilter, query]);
-
-  const exportCsv = () => {
-    if (!filtered.length) return;
-
-    const headers = [
-      "Created At",
-      "Order ID",
-      "Source",
-      "Status",
-      "First Name",
-      "Last Name",
-      "User ID",
-      "Partner ID",
-      "Partner Name",
-      "Partner Company",
-      "Partner Email",
-      "Product",
-      "Commission",
-      "Commission Status",
-      "User Email",
-      "User Phone",
-      "User City",
-      "User Country",
-    ];
-
-    const escapeCsv = (value: string | number) => {
-      const stringValue = String(value ?? "");
-      return `"${stringValue.replaceAll('"', '""')}"`;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedId(null);
     };
 
-    const lines = filtered.map((item) =>
-      [
-        new Date(item.createdAt).toLocaleString(),
-        item.orderId,
-        item.source,
-        item.status,
-        item.firstName,
-        item.lastName,
-        item.userId,
-        item.partnerId,
-        item.partnerName,
-        item.partnerCompany,
-        item.partnerEmail,
-        item.product,
-        item.commission,
-        item.commissionStatus,
-        item.details.email,
-        item.details.phone,
-        item.details.city,
-        item.details.country,
-      ]
-        .map(escapeCsv)
-        .join(","),
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [selected]);
+
+  const updateCommissionStatus = async (id: string, commissionStatus: string) => {
+    const response = await fetch(`/api/admin/applications/${id}/commission`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ commissionStatus }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data?.error || "Failed to update status");
+    }
+
+    setRows((prev) =>
+      prev.map((row) =>
+        row.id === id ? { ...row, commissionStatus: data.commissionStatus } : row,
+      ),
     );
 
-    const csv = [headers.join(","), ...lines].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `admin-applications-${Date.now()}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Refresh summary cards and filter counts
+    router.refresh();
   };
 
-  const updateCommissionStatus = async (
-    applicationId: string,
-    nextStatus: string,
-  ) => {
-    setUpdatingId(applicationId);
-
-    try {
-      const response = await fetch(`/api/admin/applications/${applicationId}/commission`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ commissionStatus: nextStatus }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.error || "Failed to update status");
-      }
-
-      setRows((prev) =>
-        prev.map((item) =>
-          item.id === applicationId
-            ? { ...item, commissionStatus: data.commissionStatus }
-            : item,
-        ),
-      );
-    } catch (error) {
-      console.error(error);
-      alert("Unable to update commission status");
-    } finally {
-      setUpdatingId("");
-    }
-  };
+  const gridCols =
+    "lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_minmax(0,1.1fr)_minmax(0,1.4fr)_minmax(0,0.9fr)_1.25rem] lg:items-center lg:gap-4";
 
   return (
     <>
-      <div className="rounded-2xl border border-gray-200 bg-white p-3 sm:p-4">
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, order, partner..."
-            className="h-11 rounded-xl border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10 lg:col-span-2"
-          />
-
-          <select
-            value={sourceFilter}
-            onChange={(e) => setSourceFilter(e.target.value)}
-            className="h-11 rounded-xl border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-          >
-            <option value="all">All Sources</option>
-            <option value="partner">Partner</option>
-            <option value="user">User</option>
-          </select>
-
-          <select
-            value={commissionFilter}
-            onChange={(e) => setCommissionFilter(e.target.value)}
-            className="h-11 rounded-xl border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-          >
-            <option value="all">All Commission Status</option>
-            {COMMISSION_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        {/* DESKTOP HEADER */}
+        <div
+          className={`hidden border-b border-gray-100 bg-gray-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-gray-500 ${gridCols}`}
+        >
+          <span>Applicant</span>
+          <span>Product</span>
+          <span>Came via</span>
+          <span>Commission</span>
+          <span>Status</span>
+          <span />
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-gray-500">
-            Showing <span className="font-semibold text-gray-900">{filtered.length}</span>{" "}
-            applications
-          </p>
-
-          <button
-            onClick={exportCsv}
-            className="h-10 rounded-xl border border-[#820ad1]/20 bg-[#820ad1]/5 px-4 text-sm font-semibold text-[#820ad1] transition-colors hover:bg-[#820ad1]/10"
+        {rows.map((row) => (
+          <div
+            key={row.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => setSelectedId(row.id)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") setSelectedId(row.id);
+            }}
+            className={`flex cursor-pointer flex-col gap-3 border-t border-gray-100 px-4 py-3 transition-colors first:border-t-0 hover:bg-[#820ad1]/[0.03] focus-visible:bg-[#820ad1]/[0.05] focus-visible:outline-none ${gridCols}`}
           >
-            Export CSV
-          </button>
-        </div>
+            {/* APPLICANT */}
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#820ad1]/10 text-xs font-black text-[#820ad1]">
+                {initials(row.name || row.email || "?")}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-gray-900">
+                  {row.name || "Unnamed"}
+                </p>
+                <p className="truncate text-xs text-gray-500">
+                  {row.email || row.orderId}
+                </p>
+              </div>
+              <div className="shrink-0 lg:hidden">
+                <StatusBadge status={row.status} />
+              </div>
+            </div>
+
+            {/* PRODUCT */}
+            <div className="flex min-w-0 items-center gap-2">
+              <KindBadge kind={row.kind} />
+              <div className="min-w-0">
+                <p className="truncate text-xs font-medium text-gray-700">
+                  {row.kind === "private" ? row.product : "Public insurance"}
+                </p>
+                <p className="truncate font-mono text-[11px] text-gray-400">
+                  {row.orderId}
+                </p>
+              </div>
+            </div>
+
+            {/* SOURCE */}
+            <div className="hidden min-w-0 lg:block">
+              <p className="text-xs font-semibold text-gray-700">
+                {SOURCE_LABEL[row.source]}
+              </p>
+              {row.referrer ? (
+                <p className="truncate text-[11px] text-gray-500">{row.referrer}</p>
+              ) : null}
+            </div>
+
+            {/* COMMISSION */}
+            <div className="flex items-center justify-between gap-3 lg:justify-start">
+              <span className="text-xs text-gray-500 lg:hidden">
+                {SOURCE_LABEL[row.source]}
+                {row.referrer ? ` · ${row.referrer}` : ""}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="w-12 text-right text-sm font-bold text-gray-900 lg:text-left">
+                  {euro.format(row.commission)}
+                </span>
+                <CommissionSelect row={row} onChange={updateCommissionStatus} />
+              </div>
+            </div>
+
+            {/* STATUS + DATE */}
+            <div className="hidden lg:block">
+              <StatusBadge status={row.status} />
+              <p className="mt-1 text-[11px] text-gray-500">{formatDate(row.createdAt)}</p>
+            </div>
+
+            <ChevronRight className="hidden h-4 w-4 text-gray-300 lg:block" />
+          </div>
+        ))}
       </div>
 
-      <div className="space-y-3 xl:hidden">
-        {filtered.map((item) => {
-          const name = `${item.firstName} ${item.lastName}`.trim() || "-";
-          const partnerLabel =
-            item.partnerName || item.partnerCompany
-              ? `${item.partnerName || "-"}${item.partnerCompany ? ` (${item.partnerCompany})` : ""}`
-              : item.partnerId || "-";
+      {/* DETAIL DRAWER */}
+      {selected ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-stretch sm:justify-end">
+          <button
+            aria-label="Close details"
+            onClick={() => setSelectedId(null)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
+          />
 
-          return (
-            <div key={item.id} className="rounded-2xl border border-gray-200 bg-white p-4">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{name}</p>
-                  <p className="mt-1 text-xs text-gray-500">{item.orderId}</p>
+          <aside
+            role="dialog"
+            aria-modal="true"
+            aria-label="Application details"
+            className="relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-h-none sm:max-w-md sm:rounded-none sm:rounded-l-2xl"
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-gray-100 p-4 sm:p-5">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#820ad1]/10 text-sm font-black text-[#820ad1]">
+                  {initials(selected.name || selected.email || "?")}
                 </div>
-                <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
-                  {item.source}
+                <div className="min-w-0">
+                  <p className="truncate text-base font-black text-gray-900">
+                    {selected.name || "Unnamed"}
+                  </p>
+                  <p className="truncate font-mono text-xs text-gray-500">
+                    {selected.orderId}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedId(null)}
+                aria-label="Close"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <KindBadge kind={selected.kind} />
+                <StatusBadge status={selected.status} />
+                <span className="text-xs text-gray-500">
+                  {formatDate(selected.createdAt, true)}
                 </span>
               </div>
 
-              <div className="mt-3 space-y-1 text-sm text-gray-700">
-                <p className="break-all">User: {item.userId || "-"}</p>
-                <p>Partner: {partnerLabel}</p>
-                <p>Product: {item.product || "-"}</p>
-                <p>Status: {item.status}</p>
-                <p>Created: {new Date(item.createdAt).toLocaleString()}</p>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-gray-50 p-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                    Commission
-                  </p>
-                  <p className="mt-1 text-lg font-black text-[#820ad1]">
-                    EUR {item.commission}
-                  </p>
+              <section className="rounded-xl border border-gray-200 p-3">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                  Commission
+                </p>
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <span className="text-2xl font-black text-[#820ad1]">
+                    {euro.format(selected.commission)}
+                  </span>
+                  <CommissionSelect row={selected} onChange={updateCommissionStatus} />
                 </div>
-                <div className="rounded-xl bg-gray-50 p-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                    Commission Status
+                <p className="mt-2 text-xs text-gray-500">
+                  Came via{" "}
+                  <span className="font-semibold text-gray-700">
+                    {SOURCE_LABEL[selected.source]}
+                  </span>
+                  {selected.referrer ? ` · ${selected.referrer}` : ""}
+                </p>
+              </section>
+
+              <section className="space-y-2.5 rounded-xl border border-gray-200 p-3">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                  Contact
+                </p>
+                {[
+                  { icon: Mail, value: selected.email },
+                  { icon: Phone, value: selected.phone },
+                  { icon: MapPin, value: selected.location },
+                ].map(({ icon: Icon, value }, index) => (
+                  <p key={index} className="flex items-start gap-2 text-sm text-gray-900">
+                    <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
+                    <span className="break-all">{value || "-"}</span>
                   </p>
-                  <select
-                    disabled={updatingId === item.id}
-                    value={item.commissionStatus}
-                    onChange={(e) => updateCommissionStatus(item.id, e.target.value)}
-                    className="mt-1 h-9 w-full rounded-lg border border-gray-200 px-2 text-xs font-semibold text-gray-700 outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10 disabled:opacity-60"
-                  >
-                    {COMMISSION_STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                ))}
+              </section>
 
-              <button
-                onClick={() => setSelected(item)}
-                className="mt-4 h-10 w-full rounded-lg border border-[#820ad1]/20 bg-[#820ad1]/5 px-3 text-sm font-semibold text-[#820ad1] hover:bg-[#820ad1]/10"
-              >
-                View Full User Details
-              </button>
-            </div>
-          );
-        })}
-
-        {!filtered.length ? (
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
-            No applications found for current filters.
-          </div>
-        ) : null}
-      </div>
-
-      <div className="hidden max-w-full overflow-x-auto rounded-2xl border border-gray-200 bg-white xl:block">
-        <table className="w-full min-w-[1500px]">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Created
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Order ID
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Source
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Applicant
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                User ID
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Partner
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Product
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Commission
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Commission Status
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Status
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Details
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filtered.map((item) => {
-              const name = `${item.firstName} ${item.lastName}`.trim() || "-";
-              const partnerLabel =
-                item.partnerName || item.partnerCompany
-                  ? `${item.partnerName || "-"}${item.partnerCompany ? ` (${item.partnerCompany})` : ""}`
-                  : item.partnerId || "-";
-
-              return (
-                <tr key={item.id} className="border-t border-gray-100">
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {new Date(item.createdAt).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-sm font-semibold text-gray-900">
-                    {item.orderId}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
-                      {item.source}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {item.userId || "-"}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{partnerLabel}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {item.product || "-"}
-                  </td>
-                  <td className="px-4 py-3 text-sm font-semibold text-gray-900">
-                    EUR {item.commission}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <select
-                      disabled={updatingId === item.id}
-                      value={item.commissionStatus}
-                      onChange={(e) =>
-                        updateCommissionStatus(item.id, e.target.value)
-                      }
-                      className="h-9 rounded-lg border border-gray-200 px-2 text-xs font-semibold text-gray-700 outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10 disabled:opacity-60"
+              <section className="rounded-xl border border-gray-200 p-3">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                  Application details
+                </p>
+                <dl className="mt-2 divide-y divide-gray-100">
+                  {[
+                    ["Product", selected.product],
+                    ...selected.extra,
+                  ].map(([label, value], index) => (
+                    <div
+                      key={`${label}-${index}`}
+                      className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-3 py-2 text-sm"
                     >
-                      {COMMISSION_STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{item.status}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <button
-                      onClick={() => setSelected(item)}
-                      className="rounded-lg border border-[#820ad1]/20 bg-[#820ad1]/5 px-3 py-1.5 text-xs font-semibold text-[#820ad1] hover:bg-[#820ad1]/10"
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {selected ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-3 sm:p-4">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-lg font-black text-gray-900 sm:text-xl">
-                Full User Details
-              </h3>
-              <button
-                onClick={() => setSelected(null)}
-                className="h-9 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-100"
-              >
-                Close
-              </button>
+                      <dt className="text-gray-500">{label}</dt>
+                      <dd className="break-words text-gray-900">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
             </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="rounded-xl border border-gray-200 p-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
-                  Applicant
-                </p>
-                <p className="mt-2 text-sm text-gray-800">
-                  {`${selected.firstName} ${selected.lastName}`.trim() || "-"}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-gray-200 p-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
-                  User ID
-                </p>
-                <p className="mt-2 text-sm text-gray-800">{selected.userId || "-"}</p>
-              </div>
-
-              <div className="rounded-xl border border-gray-200 p-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
-                  Email
-                </p>
-                <p className="mt-2 text-sm text-gray-800">
-                  {selected.details.email || "-"}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-gray-200 p-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
-                  Phone
-                </p>
-                <p className="mt-2 text-sm text-gray-800">
-                  {selected.details.phone || "-"}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-gray-200 p-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
-                  City
-                </p>
-                <p className="mt-2 text-sm text-gray-800">{selected.details.city || "-"}</p>
-              </div>
-
-              <div className="rounded-xl border border-gray-200 p-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
-                  Country
-                </p>
-                <p className="mt-2 text-sm text-gray-800">
-                  {selected.details.country || "-"}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-xl border border-gray-200 p-3">
-              <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
-                Full Personal JSON
-              </p>
-              <pre className="mt-2 overflow-x-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-700">
-                {JSON.stringify(selected.details.personalJson, null, 2)}
-              </pre>
-            </div>
-          </div>
+          </aside>
         </div>
       ) : null}
     </>

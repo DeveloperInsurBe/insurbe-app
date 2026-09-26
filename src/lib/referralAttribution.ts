@@ -1,3 +1,4 @@
+import { getDefaultCommissionRate } from "./commission";
 import { prisma } from "./prisma";
 
 type ReferralSource = "user" | "partner" | "agent";
@@ -6,6 +7,8 @@ type ReferralAttribution = {
   source: ReferralSource;
   partnerId: string | null;
   isAttributed: boolean;
+  /** Commission in whole EUR for this referrer (0 when not attributed) */
+  commission: number;
 };
 
 export async function resolveReferralAttribution(
@@ -18,6 +21,7 @@ export async function resolveReferralAttribution(
       source: "user",
       partnerId: null,
       isAttributed: false,
+      commission: 0,
     };
   }
 
@@ -28,6 +32,7 @@ export async function resolveReferralAttribution(
     },
     select: {
       partnerId: true,
+      commissionRate: true,
     },
   });
 
@@ -36,6 +41,9 @@ export async function resolveReferralAttribution(
       source: "partner",
       partnerId: partnerUser.partnerId,
       isAttributed: true,
+      commission:
+        partnerUser.commissionRate ??
+        (await getDefaultCommissionRate("partner")),
     };
   }
 
@@ -46,6 +54,7 @@ export async function resolveReferralAttribution(
     },
     select: {
       id: true,
+      commissionRate: true,
     },
   });
 
@@ -54,6 +63,8 @@ export async function resolveReferralAttribution(
       source: "agent",
       partnerId: agentUser.id,
       isAttributed: true,
+      commission:
+        agentUser.commissionRate ?? (await getDefaultCommissionRate("agent")),
     };
   }
 
@@ -61,5 +72,6 @@ export async function resolveReferralAttribution(
     source: "user",
     partnerId: null,
     isAttributed: false,
+    commission: 0,
   };
 }
