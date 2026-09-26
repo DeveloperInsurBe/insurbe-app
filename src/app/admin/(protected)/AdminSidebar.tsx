@@ -156,7 +156,7 @@ function SidebarBody({
     <>
       <nav
         onScroll={hideTip}
-        className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 [scrollbar-width:thin]"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 scrollbar-thin"
       >
         {NAV_GROUPS.map((group) => (
           <div key={group.label} className="mb-5 last:mb-0">
