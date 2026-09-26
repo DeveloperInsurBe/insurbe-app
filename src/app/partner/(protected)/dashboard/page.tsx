@@ -1,17 +1,17 @@
 import { redirect } from "next/navigation";
 import {
+  BadgeEuro,
   CalendarDays,
   CheckCircle2,
   Clock,
   MousePointerClick,
-  Sparkles,
   Wallet,
   type LucideIcon,
 } from "lucide-react";
 
-import { getCurrentPartnerAccess } from "@/lib/applicationAccess";
+import { getCurrentPartnerAccess, getCurrentSession } from "@/lib/applicationAccess";
 import { getDefaultCommissionRate } from "@/lib/commission";
-import { getPartnerDashboardSummary } from "@/lib/portalDashboardSummary";
+import { getPartnerDashboardSummaryByEmail } from "@/lib/portalDashboardSummary";
 import AnimatedNumber from "./AnimatedNumber";
 import CreateApplicationButton from "./CreateApplicationButton";
 import ReferralShareCard from "./ReferralShareCard";
@@ -82,7 +82,17 @@ function StatPanel({
 }
 
 export default async function PartnerDashboard() {
-  const { session, partner } = await getCurrentPartnerAccess();
+  // Start the summary and default rate together with the partner lookup (one DB
+  // round trip instead of two). The checks below still gate the page as before.
+  const session = await getCurrentSession();
+  const email = session?.user?.email ?? "";
+  const summaryPromise = getPartnerDashboardSummaryByEmail(email);
+  const defaultRatePromise = getDefaultCommissionRate("partner");
+  // Avoid unhandled rejections if a redirect below abandons these promises.
+  summaryPromise.catch(() => {});
+  defaultRatePromise.catch(() => {});
+
+  const { partner } = await getCurrentPartnerAccess();
 
   if (!session?.user?.email) {
     redirect("/");
@@ -103,11 +113,10 @@ export default async function PartnerDashboard() {
       todayApprovedCommission,
       monthApprovedCommission,
     },
-    commissionRate,
-  ] = await Promise.all([
-    getPartnerDashboardSummary(partner.partnerId),
-    partner.commissionRate ?? getDefaultCommissionRate("partner"),
-  ]);
+    defaultRate,
+  ] = await Promise.all([summaryPromise, defaultRatePromise]);
+
+  const commissionRate = partner.commissionRate ?? defaultRate;
 
   const baseUrl = process.env.NEXTAUTH_URL || "https://insurbe.com";
   const referralLink = `${baseUrl}/insurance/public-health?ref=${partner.partnerId}#provider-comparison`;
@@ -306,7 +315,7 @@ export default async function PartnerDashboard() {
         />
 
         <StatPanel
-          icon={Sparkles}
+          icon={BadgeEuro}
           eyebrow="Earnings"
           title="Conversions"
           delay={340}
