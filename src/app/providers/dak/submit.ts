@@ -116,6 +116,7 @@ async function generateApplicationPDF(
 
 export const submitDakApplication = async (
   formData: FormData,
+  referral: { partnerId: string | null; source: string },
 ) => {
   /**
    * GET FIELDS
@@ -158,6 +159,10 @@ export const submitDakApplication = async (
         applicationNumber,
 
         provider: "DAK",
+
+        partnerId: referral.partnerId,
+
+        source: referral.source,
 
         payload: {
           personal,

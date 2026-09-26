@@ -48,7 +48,7 @@ export async function POST(req: Request) {
      * SUBMIT TO DAK
      */
     const result =
-      await submitDakApplication(body);
+      await submitDakApplication(body, referralAttribution);
 
     /**
      * SAVE PARTNER CONVERSION
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
             product:
               "Public Health Insurance",
 
-            commission: referralAttribution.isAttributed ? 5 : 0,
+            commission: referralAttribution.commission,
 
             commissionStatus:
               referralAttribution.isAttributed ? "Pending" : "Not Eligible",

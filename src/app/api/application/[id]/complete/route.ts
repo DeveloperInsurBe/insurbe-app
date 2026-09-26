@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getReferrerCommission } from "@/lib/commission";
 import { PDFTextField, PDFRadioGroup, PDFCheckBox, PDFDocument } from "pdf-lib";
 import zlib from "zlib";
 import { readFile } from "node:fs/promises";
@@ -713,7 +714,7 @@ export async function POST(
 
         status: "completed",
 
-        commission: app?.partnerId ? 5 : 0,
+        commission: await getReferrerCommission(app?.source, app?.partnerId),
 
         // Partner commissions must be manually reviewed; never auto-approve.
         commissionStatus: app?.partnerId ? "Pending" : "Not Eligible",

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { getCurrentPartnerAccess } from "@/lib/applicationAccess";
+import { getDefaultCommissionRate } from "@/lib/commission";
 import { getPartnerDashboardSummary } from "@/lib/portalDashboardSummary";
 import AnimatedNumber from "./AnimatedNumber";
 import CreateApplicationButton from "./CreateApplicationButton";
@@ -91,16 +92,22 @@ export default async function PartnerDashboard() {
     redirect("/");
   }
 
-  const {
-    pendingCount,
-    approvedCount,
-    pendingCommission,
-    approvedCommission,
-    todayClicks,
-    monthClicks,
-    todayApprovedCommission,
-    monthApprovedCommission,
-  } = await getPartnerDashboardSummary(partner.partnerId);
+  const [
+    {
+      pendingCount,
+      approvedCount,
+      pendingCommission,
+      approvedCommission,
+      todayClicks,
+      monthClicks,
+      todayApprovedCommission,
+      monthApprovedCommission,
+    },
+    commissionRate,
+  ] = await Promise.all([
+    getPartnerDashboardSummary(partner.partnerId),
+    partner.commissionRate ?? getDefaultCommissionRate("partner"),
+  ]);
 
   const baseUrl = process.env.NEXTAUTH_URL || "https://insurbe.com";
   const referralLink = `${baseUrl}/insurance/public-health?ref=${partner.partnerId}#provider-comparison`;
@@ -277,7 +284,11 @@ export default async function PartnerDashboard() {
         </div>
 
         <div className="rise-in grid" style={{ animationDelay: "200ms" }}>
-          <ReferralShareCard referralLink={referralLink} partnerName={partnerName} />
+          <ReferralShareCard
+            referralLink={referralLink}
+            partnerName={partnerName}
+            commissionRate={commissionRate}
+          />
         </div>
       </div>
 

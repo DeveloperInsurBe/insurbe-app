@@ -1,6 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  AlertCircle,
+  CalendarDays,
+  CheckCircle2,
+  ChevronDown,
+  FileText,
+  Link2,
+  Loader2,
+  Mail,
+  Paperclip,
+  Pencil,
+  Phone,
+  Plus,
+  Search,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
+import CountUp from "../CountUp";
 
 type DocRef = {
   name: string;
@@ -547,72 +566,634 @@ export default function MawsitaClient({ initialRows }: { initialRows: MawsitaRow
     }
   };
 
+  const statusCount = (status: string) =>
+    rows.filter((row) => row.status === status).length;
+
+  const recordFieldsCreate = {
+    form,
+    setField: setFormField,
+    setDocField,
+    addDoc,
+    removeDoc,
+    uploading: uploadingCreate,
+    onUpload: handleCreateUpload,
+  };
+
   return (
-    <div className="min-w-0 space-y-5">
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
-        <p className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-          Mawsita
-        </p>
-        <h1 className="mt-2 text-2xl font-black text-gray-900 sm:text-3xl">
-          Mawsita Purchased Records
-        </h1>
-        <p className="mt-2 text-sm text-gray-500">
-          admin log for purchased applications, plan details, and document links.
-        </p>
+    <div className="min-w-0 space-y-4">
+      {/* HEADER */}
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-xl font-black text-gray-900 sm:text-2xl">Mawsita</h1>
+          <p className="mt-0.5 text-xs text-gray-500 sm:text-sm">
+            Purchased Mawsita plans, premiums and customer documents
+          </p>
+        </div>
+        <p className="text-xs text-gray-400">{summary.total} records</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <SummaryCard label="Total Records" value={summary.total} />
-        <SummaryCard label="Purchased" value={summary.purchased} />
-        <SummaryCard label="Pending Docs" value={summary.pendingDocs} />
+      {/* MESSAGES */}
+      {error || success ? (
+        <div
+          role="status"
+          className={`flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium ${
+            error
+              ? "border-red-200 bg-red-50 text-red-700"
+              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+          }`}
+        >
+          {error ? (
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          ) : (
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+          )}
+          <span className="flex-1">{error || success}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setError("");
+              setSuccess("");
+            }}
+            aria-label="Dismiss"
+            className="rounded p-0.5 opacity-60 hover:opacity-100"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
+
+      {/* STATUS TILES (also filter the list) */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <StatusTile
+          label="All records"
+          value={summary.total}
+          active={statusFilter === "all"}
+          onClick={() => setStatusFilter("all")}
+          dot="bg-gray-400"
+        />
+        {STATUSES.map((status) => (
+          <StatusTile
+            key={status}
+            label={status}
+            value={
+              status === "Purchased"
+                ? summary.purchased
+                : status === "Pending Docs"
+                  ? summary.pendingDocs
+                  : statusCount(status)
+            }
+            active={statusFilter === status}
+            onClick={() => setStatusFilter(statusFilter === status ? "all" : status)}
+            dot={STATUS_STYLE[status].dot}
+          />
+        ))}
       </div>
 
-      <form
-        onSubmit={createRecord}
-        className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5"
+      {/* CREATE */}
+      <details
+        open
+        className="group rounded-2xl border border-gray-200 bg-white"
       >
-        <h2 className="text-lg font-black text-gray-900">Add Manual Record</h2>
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 sm:p-5 [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#820ad1]/10 text-[#820ad1]">
+              <Plus className="h-4 w-4" />
+            </span>
+            <span>
+              <span className="block text-sm font-bold text-gray-900 sm:text-base">
+                Add manual record
+              </span>
+              <span className="block text-xs text-gray-500">
+                Customer, plan, premium and documents
+              </span>
+            </span>
+          </span>
+          <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
+        </summary>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <form
+          onSubmit={createRecord}
+          className="border-t border-gray-100 p-4 sm:p-5"
+        >
+          <RecordFields {...recordFieldsCreate} />
+
+          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={resetForm}
+              disabled={saving}
+              className="h-10 rounded-xl border border-gray-200 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+            >
+              Clear
+            </button>
+            <button
+              disabled={saving}
+              className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#820ad1] px-5 text-sm font-semibold text-white hover:bg-[#6f08b2] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {saving ? "Saving..." : "Save record"}
+            </button>
+          </div>
+        </form>
+      </details>
+
+      {/* SEARCH */}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by name, email, phone, plan or notes…"
+          className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+        />
+      </div>
+
+      {/* RECORDS */}
+      {filtered.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center">
+          <p className="text-sm font-semibold text-gray-900">No Mawsita records found</p>
+          <p className="mt-1 text-xs text-gray-500">
+            Try another search or status, or add a record above.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+          <div className="hidden grid-cols-[minmax(0,1.6fr)_minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,1.5fr)_9.5rem_5rem] gap-4 border-b border-gray-100 bg-gray-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-gray-500 xl:grid">
+            <span>Customer</span>
+            <span>Plan</span>
+            <span>Premium</span>
+            <span>Documents</span>
+            <span>Status</span>
+            <span />
+          </div>
+
+          {filtered.map((row) => {
+            const docs = normalizeDocs(row.documents);
+
+            return (
+              <div
+                key={row.id}
+                className="grid grid-cols-1 gap-3 border-t border-gray-100 p-4 first:border-t-0 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,1.5fr)_9.5rem_5rem] xl:items-center xl:gap-4 xl:px-4 xl:py-3"
+              >
+                {/* CUSTOMER */}
+                <div className="flex min-w-0 items-start gap-3 sm:col-span-2 xl:col-span-1">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#820ad1]/10 text-xs font-black text-[#820ad1]">
+                    {initials(row.customerName)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-gray-900">
+                      {row.customerName}
+                    </p>
+                    <p className="flex items-center gap-1 truncate text-xs text-gray-500">
+                      <Mail className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{row.email}</span>
+                    </p>
+                    {row.phone ? (
+                      <p className="flex items-center gap-1 truncate text-xs text-gray-500">
+                        <Phone className="h-3 w-3 shrink-0" />
+                        {row.phone}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 gap-1 xl:hidden">
+                    <RowActions
+                      onEdit={() => openEdit(row)}
+                      onDelete={() => deleteRecord(row.id)}
+                      deleting={deletingId === row.id}
+                    />
+                  </div>
+                </div>
+
+                {/* PLAN */}
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-gray-900">{row.planName}</p>
+                  <p className="truncate text-xs text-gray-500">
+                    {row.planType || "No plan type"}
+                  </p>
+                  <p className="mt-0.5 flex items-center gap-1 text-[11px] text-gray-400">
+                    <CalendarDays className="h-3 w-3" />
+                    {formatDate(row.startDate)} → {formatDate(row.endDate)}
+                  </p>
+                </div>
+
+                {/* PREMIUM */}
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 xl:hidden">
+                    Premium
+                  </p>
+                  <p className="text-sm font-bold text-gray-900">
+                    {row.premiumAmount != null ? `€${row.premiumAmount}` : "—"}
+                  </p>
+                  <p className="text-[11px] text-gray-400">
+                    Added {formatDate(String(row.createdAt))}
+                  </p>
+                </div>
+
+                {/* DOCUMENTS */}
+                <div className="min-w-0">
+                  {docs.length ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {docs.slice(0, 3).map((doc, index) => {
+                        const opening =
+                          openingDocKey === `${doc.bucket}:${doc.storagePath}`;
+
+                        return (
+                          <button
+                            key={`${doc.storagePath || doc.url || doc.name}-${index}`}
+                            type="button"
+                            onClick={() => void openDocument(doc)}
+                            title={doc.name}
+                            className="inline-flex max-w-[11rem] items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] font-medium text-gray-700 transition-colors hover:border-[#820ad1]/30 hover:bg-[#820ad1]/5 hover:text-[#820ad1]"
+                          >
+                            {opening ? (
+                              <Loader2 className="h-3 w-3 shrink-0 animate-spin" />
+                            ) : doc.source === "supabase" ? (
+                              <FileText className="h-3 w-3 shrink-0" />
+                            ) : (
+                              <Link2 className="h-3 w-3 shrink-0" />
+                            )}
+                            <span className="truncate">{opening ? "Opening..." : doc.name}</span>
+                          </button>
+                        );
+                      })}
+                      {docs.length > 3 ? (
+                        <button
+                          type="button"
+                          onClick={() => openEdit(row)}
+                          className="rounded-lg px-2 py-1 text-[11px] font-semibold text-gray-500 hover:bg-gray-100"
+                        >
+                          +{docs.length - 3} more
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                      <Paperclip className="h-3 w-3" />
+                      No documents
+                    </span>
+                  )}
+                  {row.notes ? (
+                    <p className="mt-1.5 line-clamp-2 text-[11px] italic text-gray-500" title={row.notes}>
+                      {row.notes}
+                    </p>
+                  ) : null}
+                </div>
+
+                {/* STATUS */}
+                <div className="sm:col-span-2 xl:col-span-1">
+                  <StatusSelect
+                    value={row.status}
+                    disabled={updatingId === row.id}
+                    onChange={(status) => updateStatus(row.id, status)}
+                  />
+                </div>
+
+                {/* ACTIONS (DESKTOP) */}
+                <div className="hidden justify-end gap-1 xl:flex">
+                  <RowActions
+                    onEdit={() => openEdit(row)}
+                    onDelete={() => deleteRecord(row.id)}
+                    deleting={deletingId === row.id}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* EDIT */}
+      {editForm ? (
+        <EditDialog onClose={closeEdit} busy={editing}>
+          <form onSubmit={saveEdit} className="flex max-h-[92vh] flex-col">
+            <div className="flex items-start justify-between gap-3 border-b border-gray-100 p-4 sm:p-5">
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-[#820ad1]">
+                  Edit record
+                </p>
+                <h3 className="truncate text-lg font-black text-gray-900">
+                  {editForm.customerName || "Mawsita record"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={closeEdit}
+                aria-label="Close"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+              <RecordFields
+                form={editForm}
+                setField={setEditField}
+                setDocField={setEditDocField}
+                addDoc={addEditDoc}
+                removeDoc={removeEditDoc}
+                uploading={uploadingEdit}
+                onUpload={handleEditUpload}
+              />
+            </div>
+
+            <div className="flex flex-col-reverse gap-2 border-t border-gray-100 p-4 sm:flex-row sm:justify-end sm:p-5">
+              <button
+                type="button"
+                onClick={closeEdit}
+                className="h-10 rounded-xl border border-gray-200 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={editing}
+                className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#820ad1] px-5 text-sm font-semibold text-white hover:bg-[#6f08b2] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {editing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {editing ? "Saving..." : "Save changes"}
+              </button>
+            </div>
+          </form>
+        </EditDialog>
+      ) : null}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Presentational helpers                                              */
+/* ------------------------------------------------------------------ */
+
+const STATUS_STYLE: Record<(typeof STATUSES)[number], { dot: string; pill: string }> = {
+  Purchased: {
+    dot: "bg-emerald-500",
+    pill: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  "Pending Docs": {
+    dot: "bg-amber-500",
+    pill: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  "On Hold": {
+    dot: "bg-blue-500",
+    pill: "bg-blue-50 text-blue-700 border-blue-200",
+  },
+  Cancelled: {
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
+};
+
+const fieldClass =
+  "h-10 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10 disabled:bg-gray-100 disabled:text-gray-400";
+
+function initials(name: string) {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "?"
+  );
+}
+
+function formatDate(value: string | null) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function StatusTile({
+  label,
+  value,
+  active,
+  onClick,
+  dot,
+}: {
+  label: string;
+  value: number;
+  active: boolean;
+  onClick: () => void;
+  dot: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`rounded-2xl border p-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md sm:p-4 ${
+        active
+          ? "border-[#820ad1]/30 bg-white shadow-sm ring-2 ring-[#820ad1]/15"
+          : "border-gray-200 bg-white hover:border-gray-300"
+      }`}
+    >
+      <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+        <span className={`h-2 w-2 rounded-full ${dot}`} />
+        {label}
+      </span>
+      <span className={`mt-1 block text-2xl font-black ${active ? "text-[#820ad1]" : "text-gray-900"}`}>
+        <CountUp value={value} />
+      </span>
+    </button>
+  );
+}
+
+function StatusSelect({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: string;
+  disabled: boolean;
+  onChange: (status: string) => void;
+}) {
+  const style =
+    STATUS_STYLE[value as (typeof STATUSES)[number]]?.pill ??
+    "bg-gray-50 text-gray-700 border-gray-200";
+
+  return (
+    <div className="relative inline-flex w-full items-center sm:w-auto xl:w-full">
+      <select
+        aria-label="Status"
+        disabled={disabled}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`h-8 w-full cursor-pointer appearance-none rounded-full border py-0 pl-3 pr-8 text-xs font-semibold outline-none focus:ring-4 focus:ring-[#820ad1]/10 disabled:cursor-wait disabled:opacity-60 ${style}`}
+      >
+        {STATUSES.map((status) => (
+          <option key={status} value={status}>
+            {status}
+          </option>
+        ))}
+      </select>
+      {disabled ? (
+        <Loader2 className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 animate-spin opacity-70" />
+      ) : (
+        <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 opacity-60" />
+      )}
+    </div>
+  );
+}
+
+function RowActions({
+  onEdit,
+  onDelete,
+  deleting,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+  deleting: boolean;
+}) {
+  return (
+    <>
+      <button
+        type="button"
+        onClick={onEdit}
+        aria-label="Edit record"
+        title="Edit"
+        className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-[#820ad1]/10 hover:text-[#820ad1]"
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={onDelete}
+        disabled={deleting}
+        aria-label="Delete record"
+        title="Delete"
+        className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+      >
+        {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+      </button>
+    </>
+  );
+}
+
+function EditDialog({
+  children,
+  onClose,
+  busy,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  busy: boolean;
+}) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !busy) onClose();
+    };
+
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [busy, onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={() => !busy && onClose()}
+        className="absolute inset-0 bg-black/45"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Edit Mawsita record"
+        className="relative w-full max-w-3xl overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <fieldset>
+      <legend className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-gray-400">
+        {title}
+      </legend>
+      {children}
+    </fieldset>
+  );
+}
+
+function RecordFields({
+  form,
+  setField,
+  setDocField,
+  addDoc,
+  removeDoc,
+  uploading,
+  onUpload,
+}: {
+  form: FormState;
+  setField: <K extends keyof FormState>(field: K, value: FormState[K]) => void;
+  setDocField: (index: number, field: keyof DocDraft, value: string) => void;
+  addDoc: () => void;
+  removeDoc: (index: number) => void;
+  uploading: boolean;
+  onUpload: (files: FileList | null) => Promise<void>;
+}) {
+  return (
+    <div className="space-y-5">
+      <Section title="Customer">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Input
-            label="Customer Name *"
+            label="Customer name *"
             value={form.customerName}
-            onChange={(value) => setFormField("customerName", value)}
+            onChange={(value) => setField("customerName", value)}
             placeholder="Full name"
           />
           <Input
             label="Email *"
             value={form.email}
-            onChange={(value) => setFormField("email", value)}
+            onChange={(value) => setField("email", value)}
             placeholder="name@example.com"
             type="email"
           />
           <Input
             label="Phone"
             value={form.phone}
-            onChange={(value) => setFormField("phone", value)}
+            onChange={(value) => setField("phone", value)}
             placeholder="+49..."
           />
+        </div>
+      </Section>
+
+      <Section title="Plan">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Input
-            label="Plan Name *"
+            label="Plan name *"
             value={form.planName}
-            onChange={(value) => setFormField("planName", value)}
+            onChange={(value) => setField("planName", value)}
             placeholder="Mawsita Plan"
           />
           <Input
-            label="Plan Type"
+            label="Plan type"
             value={form.planType}
-            onChange={(value) => setFormField("planType", value)}
+            onChange={(value) => setField("planType", value)}
             placeholder="Student / Expat / Family"
           />
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Status
-            </label>
+            <label className="mb-1 block text-xs font-semibold text-gray-600">Status</label>
             <select
               value={form.status}
-              onChange={(e) => setFormField("status", e.target.value as FormState["status"])}
-              className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+              onChange={(e) => setField("status", e.target.value as FormState["status"])}
+              className={fieldClass}
             >
               {STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -622,51 +1203,61 @@ export default function MawsitaClient({ initialRows }: { initialRows: MawsitaRow
             </select>
           </div>
           <Input
-            label="Start Date"
+            label="Start date"
             value={form.startDate}
-            onChange={(value) => setFormField("startDate", value)}
+            onChange={(value) => setField("startDate", value)}
             type="date"
           />
           <Input
-            label="End Date"
+            label="End date"
             value={form.endDate}
-            onChange={(value) => setFormField("endDate", value)}
+            onChange={(value) => setField("endDate", value)}
             type="date"
           />
           <Input
-            label="Premium Amount (EUR)"
+            label="Premium (EUR)"
             value={form.premiumAmount}
-            onChange={(value) => setFormField("premiumAmount", value)}
+            onChange={(value) => setField("premiumAmount", value)}
             placeholder="120.50"
           />
         </div>
+      </Section>
 
-        <div className="mt-3">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Notes
-          </label>
-          <textarea
-            value={form.notes}
-            onChange={(e) => setFormField("notes", e.target.value)}
-            rows={3}
-            placeholder="Internal note for this purchase"
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-          />
-        </div>
+      <Section title="Notes">
+        <textarea
+          value={form.notes}
+          onChange={(e) => setField("notes", e.target.value)}
+          rows={3}
+          placeholder="Internal note for this purchase"
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition-all focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+        />
+      </Section>
 
-        <div className="mt-4 rounded-xl border border-gray-200 p-3">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-bold text-gray-900">Documents (Supabase + Links)</p>
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="rounded-lg border border-[#820ad1]/20 bg-[#820ad1]/5 px-3 py-1.5 text-xs font-semibold text-[#820ad1] hover:bg-[#820ad1]/10">
-                {uploadingCreate ? "Uploading..." : "Upload to Supabase"}
+      <Section title="Documents">
+        <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50/60 p-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-gray-500">
+              Upload files to Supabase storage or add an external link.
+            </p>
+            <div className="flex gap-2">
+              <label
+                className={`inline-flex h-9 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-[#820ad1] px-3 text-xs font-semibold text-white transition-colors hover:bg-[#6f08b2] sm:flex-none ${
+                  uploading ? "pointer-events-none opacity-70" : ""
+                }`}
+              >
+                {uploading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5" />
+                )}
+                {uploading ? "Uploading..." : "Upload files"}
                 <input
                   type="file"
                   className="hidden"
                   multiple
                   accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
                   onChange={(e) => {
-                    void handleCreateUpload(e.target.files);
+                    void onUpload(e.target.files);
                     e.currentTarget.value = "";
                   }}
                 />
@@ -674,530 +1265,77 @@ export default function MawsitaClient({ initialRows }: { initialRows: MawsitaRow
               <button
                 type="button"
                 onClick={addDoc}
-                className="rounded-lg border border-[#820ad1]/20 bg-[#820ad1]/5 px-3 py-1.5 text-xs font-semibold text-[#820ad1] hover:bg-[#820ad1]/10"
+                className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#820ad1]/20 bg-white px-3 text-xs font-semibold text-[#820ad1] hover:bg-[#820ad1]/5 sm:flex-none"
               >
-                Add Link
+                <Link2 className="h-3.5 w-3.5" />
+                Add link
               </button>
             </div>
           </div>
 
-          <div className="mt-3 space-y-3">
+          <div className="mt-3 space-y-2">
             {form.documents.map((doc, index) => (
               <div
                 key={`${index}-${doc.name}-${doc.url}`}
-                className="grid grid-cols-1 gap-2 rounded-lg bg-gray-50 p-3 xl:grid-cols-12"
+                className="grid grid-cols-2 gap-2 rounded-xl border border-gray-200 bg-white p-2.5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1.8fr)_5.5rem_7rem_2.5rem] lg:items-center"
               >
-                <div className="xl:col-span-3">
+                <div className="col-span-2 flex items-center gap-2 lg:col-span-1">
+                  <span
+                    className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                      doc.source === "supabase"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-blue-50 text-blue-700"
+                    }`}
+                  >
+                    {doc.source === "supabase" ? "File" : "Link"}
+                  </span>
                   <input
                     value={doc.name}
                     onChange={(e) => setDocField(index, "name", e.target.value)}
                     placeholder="Document name"
-                    className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+                    aria-label="Document name"
+                    className={fieldClass}
                   />
                 </div>
-                <div className="xl:col-span-4">
-                  <input
-                    value={doc.url}
-                    onChange={(e) => setDocField(index, "url", e.target.value)}
-                    placeholder={
-                      doc.source === "supabase" ? "Managed by Supabase upload" : "https://..."
-                    }
-                    disabled={doc.source === "supabase"}
-                    className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-                  />
-                </div>
-                <div className="xl:col-span-2">
-                  <input
-                    value={doc.type}
-                    onChange={(e) => setDocField(index, "type", e.target.value)}
-                    placeholder="pdf"
-                    className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-                  />
-                </div>
-                <div className="xl:col-span-2">
-                  <input
-                    value={doc.size}
-                    onChange={(e) => setDocField(index, "size", e.target.value)}
-                    placeholder="Size (bytes)"
-                    className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-                  />
-                </div>
-                <div className="xl:col-span-1">
-                  <button
-                    type="button"
-                    onClick={() => removeDoc(index)}
-                    className="h-10 w-full rounded-lg border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50"
-                  >
-                    Remove
-                  </button>
-                </div>
+                <input
+                  value={doc.url}
+                  onChange={(e) => setDocField(index, "url", e.target.value)}
+                  placeholder={
+                    doc.source === "supabase" ? "Managed by Supabase upload" : "https://..."
+                  }
+                  aria-label="Document URL"
+                  disabled={doc.source === "supabase"}
+                  className={`${fieldClass} col-span-2 lg:col-span-1`}
+                />
+                <input
+                  value={doc.type}
+                  onChange={(e) => setDocField(index, "type", e.target.value)}
+                  placeholder="pdf"
+                  aria-label="Document type"
+                  className={fieldClass}
+                />
+                <input
+                  value={doc.size}
+                  onChange={(e) => setDocField(index, "size", e.target.value)}
+                  placeholder="Size (bytes)"
+                  aria-label="Document size in bytes"
+                  className={fieldClass}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeDoc(index)}
+                  aria-label="Remove document"
+                  title="Remove"
+                  className="col-span-2 flex h-10 items-center justify-center gap-1.5 rounded-xl border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 lg:col-span-1 lg:border-transparent"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="lg:hidden">Remove</span>
+                </button>
               </div>
             ))}
           </div>
         </div>
-
-        {error ? (
-          <p className="mt-3 text-sm font-medium text-red-600">{error}</p>
-        ) : null}
-        {success ? (
-          <p className="mt-3 text-sm font-medium text-emerald-700">{success}</p>
-        ) : null}
-
-        <div className="mt-4">
-          <button
-            disabled={saving}
-            className="h-10 rounded-lg bg-[#820ad1] px-4 text-sm font-semibold text-white hover:bg-[#6f08b2] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saving ? "Saving..." : "Save Record"}
-          </button>
-        </div>
-      </form>
-
-      <div className="rounded-2xl border border-gray-200 bg-white p-3 sm:p-4">
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, email, plan..."
-            className="h-10 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10 lg:col-span-2"
-          />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-          >
-            <option value="all">All Status</option>
-            {STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="space-y-3 xl:hidden">
-        {filtered.map((row) => {
-          const docs = normalizeDocs(row.documents);
-
-          return (
-            <div key={row.id} className="rounded-2xl border border-gray-200 bg-white p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{row.customerName}</p>
-                  <p className="mt-1 text-xs text-gray-500">{row.email}</p>
-                </div>
-                <span className="rounded-full bg-[#820ad1]/10 px-2 py-1 text-xs font-semibold text-[#820ad1]">
-                  {row.status}
-                </span>
-              </div>
-
-              <div className="mt-3 space-y-1 text-sm text-gray-700">
-                <p>Plan: {row.planName}</p>
-                <p>Type: {row.planType || "-"}</p>
-                <p>Phone: {row.phone || "-"}</p>
-                <p>Premium: {row.premiumAmount != null ? `EUR ${row.premiumAmount}` : "-"}</p>
-                <p>Docs: {docs.length}</p>
-              </div>
-
-              <div className="mt-3">
-                <select
-                  disabled={updatingId === row.id}
-                  value={row.status}
-                  onChange={(e) => updateStatus(row.id, e.target.value)}
-                  className="h-9 w-full rounded-lg border border-gray-200 px-2 text-xs font-semibold text-gray-700 outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-                >
-                  {STATUSES.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => openEdit(row)}
-                  className="h-9 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  disabled={deletingId === row.id}
-                  onClick={() => deleteRecord(row.id)}
-                  className="h-9 rounded-lg border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
-                >
-                  {deletingId === row.id ? "Deleting..." : "Delete"}
-                </button>
-              </div>
-
-              {docs.length ? (
-                <div className="mt-3 space-y-1">
-                  {docs.map((doc, index) => (
-                    <button
-                      key={`${doc.storagePath || doc.url || doc.name}-${index}`}
-                      type="button"
-                      onClick={() => void openDocument(doc)}
-                      className="block max-w-full truncate text-left text-xs font-medium text-[#820ad1] hover:underline"
-                    >
-                      {openingDocKey === `${doc.bucket}:${doc.storagePath}`
-                        ? "Opening..."
-                        : doc.name}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="hidden max-w-full overflow-x-auto rounded-2xl border border-gray-200 bg-white xl:block">
-        <table className="w-full min-w-[1300px]">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Customer
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Contact
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Plan
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Premium
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Dates
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Documents
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Status
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Notes
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((row) => {
-              const docs = normalizeDocs(row.documents);
-              return (
-                <tr key={row.id} className="border-t border-gray-100">
-                  <td className="px-4 py-3 text-sm font-semibold text-gray-900">
-                    {row.customerName}
-                    <div className="mt-1 text-xs font-normal text-gray-500">
-                      Added: {new Date(row.createdAt).toLocaleString()}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    <div>{row.email}</div>
-                    <div className="text-xs text-gray-500">{row.phone || "-"}</div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    <div className="font-semibold text-gray-900">{row.planName}</div>
-                    <div className="text-xs text-gray-500">{row.planType || "-"}</div>
-                  </td>
-                  <td className="px-4 py-3 text-sm font-semibold text-gray-900">
-                    {row.premiumAmount != null ? `EUR ${row.premiumAmount}` : "-"}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    <div>{row.startDate || "-"}</div>
-                    <div className="text-xs text-gray-500">{row.endDate || "-"}</div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {docs.length ? (
-                      <div className="space-y-1">
-                        {docs.slice(0, 2).map((doc, index) => (
-                          <button
-                            key={`${doc.storagePath || doc.url || doc.name}-${index}`}
-                            type="button"
-                            onClick={() => void openDocument(doc)}
-                            className="block max-w-[240px] truncate text-left text-xs font-medium text-[#820ad1] hover:underline"
-                          >
-                            {openingDocKey === `${doc.bucket}:${doc.storagePath}`
-                              ? "Opening..."
-                              : doc.name}
-                          </button>
-                        ))}
-                        {docs.length > 2 ? (
-                          <p className="text-xs text-gray-500">+{docs.length - 2} more</p>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-gray-500">No documents</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <select
-                      disabled={updatingId === row.id}
-                      value={row.status}
-                      onChange={(e) => updateStatus(row.id, e.target.value)}
-                      className="h-9 rounded-lg border border-gray-200 px-2 text-xs font-semibold text-gray-700 outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-                    >
-                      {STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.notes || "-"}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openEdit(row)}
-                        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        disabled={deletingId === row.id}
-                        onClick={() => deleteRecord(row.id)}
-                        className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
-                      >
-                        {deletingId === row.id ? "Deleting..." : "Delete"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-            {!filtered.length ? (
-              <tr>
-                <td colSpan={9} className="px-4 py-8 text-center text-sm text-gray-500">
-                  No Mawsita records found.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
-
-      {editForm ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-3 sm:p-4">
-          <form
-            onSubmit={saveEdit}
-            className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4 sm:p-5"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-lg font-black text-gray-900 sm:text-xl">
-                Edit Mawsita Record
-              </h3>
-              <button
-                type="button"
-                onClick={closeEdit}
-                className="h-9 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-100"
-              >
-                Close
-              </button>
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <Input
-                label="Customer Name *"
-                value={editForm.customerName}
-                onChange={(value) => setEditField("customerName", value)}
-                placeholder="Full name"
-              />
-              <Input
-                label="Email *"
-                value={editForm.email}
-                onChange={(value) => setEditField("email", value)}
-                placeholder="name@example.com"
-                type="email"
-              />
-              <Input
-                label="Phone"
-                value={editForm.phone}
-                onChange={(value) => setEditField("phone", value)}
-                placeholder="+49..."
-              />
-              <Input
-                label="Plan Name *"
-                value={editForm.planName}
-                onChange={(value) => setEditField("planName", value)}
-                placeholder="Mawsita Plan"
-              />
-              <Input
-                label="Plan Type"
-                value={editForm.planType}
-                onChange={(value) => setEditField("planType", value)}
-                placeholder="Student / Expat / Family"
-              />
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Status
-                </label>
-                <select
-                  value={editForm.status}
-                  onChange={(e) =>
-                    setEditField("status", e.target.value as FormState["status"])
-                  }
-                  className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-                >
-                  {STATUSES.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <Input
-                label="Start Date"
-                value={editForm.startDate}
-                onChange={(value) => setEditField("startDate", value)}
-                type="date"
-              />
-              <Input
-                label="End Date"
-                value={editForm.endDate}
-                onChange={(value) => setEditField("endDate", value)}
-                type="date"
-              />
-              <Input
-                label="Premium Amount (EUR)"
-                value={editForm.premiumAmount}
-                onChange={(value) => setEditField("premiumAmount", value)}
-                placeholder="120.50"
-              />
-            </div>
-
-            <div className="mt-3">
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Notes
-              </label>
-              <textarea
-                value={editForm.notes}
-                onChange={(e) => setEditField("notes", e.target.value)}
-                rows={3}
-                placeholder="Internal note for this purchase"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-              />
-            </div>
-
-            <div className="mt-4 rounded-xl border border-gray-200 p-3">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-bold text-gray-900">Documents (Supabase + Links)</p>
-                <div className="flex flex-wrap items-center gap-2">
-                  <label className="rounded-lg border border-[#820ad1]/20 bg-[#820ad1]/5 px-3 py-1.5 text-xs font-semibold text-[#820ad1] hover:bg-[#820ad1]/10">
-                    {uploadingEdit ? "Uploading..." : "Upload to Supabase"}
-                    <input
-                      type="file"
-                      className="hidden"
-                      multiple
-                      accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
-                      onChange={(e) => {
-                        void handleEditUpload(e.target.files);
-                        e.currentTarget.value = "";
-                      }}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={addEditDoc}
-                    className="rounded-lg border border-[#820ad1]/20 bg-[#820ad1]/5 px-3 py-1.5 text-xs font-semibold text-[#820ad1] hover:bg-[#820ad1]/10"
-                  >
-                    Add Link
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-3 space-y-3">
-                {editForm.documents.map((doc, index) => (
-                  <div
-                    key={`${index}-${doc.name}-${doc.url}`}
-                    className="grid grid-cols-1 gap-2 rounded-lg bg-gray-50 p-3 xl:grid-cols-12"
-                  >
-                    <div className="xl:col-span-3">
-                      <input
-                        value={doc.name}
-                        onChange={(e) => setEditDocField(index, "name", e.target.value)}
-                        placeholder="Document name"
-                        className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-                      />
-                    </div>
-                    <div className="xl:col-span-4">
-                      <input
-                        value={doc.url}
-                        onChange={(e) => setEditDocField(index, "url", e.target.value)}
-                        placeholder={
-                          doc.source === "supabase"
-                            ? "Managed by Supabase upload"
-                            : "https://..."
-                        }
-                        disabled={doc.source === "supabase"}
-                        className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-                      />
-                    </div>
-                    <div className="xl:col-span-2">
-                      <input
-                        value={doc.type}
-                        onChange={(e) => setEditDocField(index, "type", e.target.value)}
-                        placeholder="pdf"
-                        className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-                      />
-                    </div>
-                    <div className="xl:col-span-2">
-                      <input
-                        value={doc.size}
-                        onChange={(e) => setEditDocField(index, "size", e.target.value)}
-                        placeholder="Size (bytes)"
-                        className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
-                      />
-                    </div>
-                    <div className="xl:col-span-1">
-                      <button
-                        type="button"
-                        onClick={() => removeEditDoc(index)}
-                        className="h-10 w-full rounded-lg border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-center gap-2">
-              <button
-                type="submit"
-                disabled={editing}
-                className="h-10 rounded-lg bg-[#820ad1] px-4 text-sm font-semibold text-white hover:bg-[#6f08b2] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {editing ? "Saving..." : "Save Changes"}
-              </button>
-              <button
-                type="button"
-                onClick={closeEdit}
-                className="h-10 rounded-lg border border-gray-200 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function SummaryCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
-      <p className="text-xs font-bold uppercase tracking-wide text-gray-500">{label}</p>
-      <p className="mt-2 text-2xl font-black text-gray-900">{value}</p>
+      </Section>
     </div>
   );
 }
@@ -1217,15 +1355,13 @@ function Input({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-        {label}
-      </label>
+      <label className="mb-1 block text-xs font-semibold text-gray-600">{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-[#820ad1] focus:ring-4 focus:ring-[#820ad1]/10"
+        className={fieldClass}
       />
     </div>
   );

@@ -22,6 +22,8 @@ model User {
   title            String?
   firstName        String?
   lastName         String?
+  /// Custom commission per application in whole EUR; null = role default
+  commissionRate   Int?
   partnerProfile   PartnerProfile?
   mawsitaRecords   MawsitaRecord[]
 }
@@ -86,6 +88,30 @@ model Application {
   commissionStatus String   @default("Pending")
 }
 
+/// Default commission per application for a role ("partner" | "agent")
+model CommissionDefault {
+  role      String   @id
+  rate      Int
+  updatedAt DateTime @default(now()) @updatedAt
+  updatedBy String?
+}
+
+/// Audit log of commission rate changes made in the admin portal
+model CommissionRateChange {
+  id              String   @id @default(uuid())
+  role            String
+  /// User id of the partner/agent; null when the role default changed
+  userId          String?
+  oldRate         Int?
+  newRate         Int?
+  pendingUpdated  Int      @default(0)
+  changedBy       String
+  createdAt       DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([role, createdAt])
+}
+
 model InsuranceApplication {
   id                String    @id @default(cuid())
   provider          String
@@ -93,6 +119,10 @@ model InsuranceApplication {
   payload           Json
   createdAt         DateTime? @default(now()) @db.Timestamptz(6)
   applicationNumber String?   @unique
+  partnerId         String?
+  source            String?
+
+  @@index([partnerId, provider, createdAt])
 }
 
 model MawsitaRecord {

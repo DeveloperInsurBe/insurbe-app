@@ -184,6 +184,7 @@ const sendToTkApi = async (
 export const submitTkApplication = async (
   formData: any,
   documents: TkDocuments,
+  referral: { partnerId: string | null; source: string },
 ) => {
   const { personal, selectPlan } = formData;
 
@@ -209,6 +210,10 @@ export const submitTkApplication = async (
             applicationNumber,
 
             provider: "TK",
+
+            partnerId: referral.partnerId,
+
+            source: referral.source,
 
             payload: {
               personal,

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getReferrerCommission } from "@/lib/commission";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -32,8 +33,8 @@ export async function POST(req: Request) {
         lastName: lastName || null,
         partnerId: partnerId || null,
         product: product || null,
-        commission: 5,
-        commissionStatus: "Pending",
+        commission: await getReferrerCommission("partner", partnerId),
+        commissionStatus: partnerId ? "Pending" : "Not Eligible",
         source: partnerId ? "partner" : "user",
       },
     });
