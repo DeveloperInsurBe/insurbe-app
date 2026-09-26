@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { APPLICATIONS_TEAM_EMAIL } from "../applicationPdf";
 
 const resend = new Resend(
   process.env.RESEND_API_KEY,
@@ -237,7 +238,7 @@ export const submitDakApplication = async (
     from:
       "InsurBe <noreply@insurbe.com>",
 
-    to: "pradeep.k@insurbe.com",
+    to: APPLICATIONS_TEAM_EMAIL,
       
 
 

@@ -12,20 +12,53 @@ export async function POST(req: Request) {
     /**
      * GET BODY
      */
-    const body = await req.json();
+    const formData = await req.formData();
+
+    const body = {
+      personal: JSON.parse(
+        (formData.get("personal") as string) || "null",
+      ),
+
+      selectPlan: JSON.parse(
+        (formData.get("selectPlan") as string) || "null",
+      ),
+
+      partnerRef:
+        (formData.get("partnerRef") as string) || null,
+    };
+
+    if (!body.personal || !body.selectPlan) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid form data",
+        },
+        { status: 400 },
+      );
+    }
 
     /**
      * EXTRACT PARTNER REF
      */
     const referralAttribution = await resolveReferralAttribution(
-      body.partnerRef || null,
+      body.partnerRef,
     );
 
     /**
      * CALL PROVIDER FUNCTION
      */
+    const getFile = (key: string) => {
+      const value = formData.get(key);
+
+      return value instanceof File ? value : null;
+    };
+
     const result =
-      await submitTkApplication(body);
+      await submitTkApplication(body, {
+        passport: getFile("passport"),
+        contract: getFile("contract"),
+        photo: getFile("photo"),
+      });
 
     /**
      * SAVE PARTNER CONVERSION (if successful)

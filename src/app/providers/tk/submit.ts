@@ -1,6 +1,10 @@
 import { buildTkPayload } from "./mapper";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
+import {
+  APPLICATIONS_TEAM_EMAIL,
+  generateApplicationPDF,
+} from "../applicationPdf";
 
 const resend = new Resend(
   process.env.RESEND_API_KEY,
@@ -12,26 +16,31 @@ const TOKEN_URL =
 const SUBMIT_URL =
   "https://www.tk.de/service/rest/public/staging/neuaufnahmeantrag/v3/einreichen";
 
-export const submitTkApplication = async (
+const TK_API_TIMEOUT_MS = 20000;
+
+type TkDocuments = {
+  passport: File | null;
+  contract: File | null;
+  photo: File | null;
+};
+
+const escapeHtml = (value: unknown) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+/**
+ * SEND TO TK API (STAGING)
+ *
+ * Best effort only: the team email is the real delivery
+ * channel until TK production access is available.
+ */
+const sendToTkApi = async (
   formData: any,
-) => {
+): Promise<{ ok: boolean; message: string }> => {
   try {
-    /**
-     * SAVE APPLICATION IN DB
-     */
-    const application =
-      await prisma.insuranceApplication.create(
-        {
-          data: {
-            provider: "TK",
-
-            payload: formData,
-
-            status: "PENDING",
-          },
-        },
-      );
-
     /**
      * GET TOKEN
      */
@@ -52,39 +61,18 @@ export const submitTkApplication = async (
           password:
             process.env.TK_PASSWORD,
         }),
+
+        signal: AbortSignal.timeout(TK_API_TIMEOUT_MS),
       },
     );
 
-    /**
-     * TOKEN ERROR
-     */
     if (!tokenResponse.ok) {
-      const tokenError =
-        await tokenResponse.text();
-
-      /**
-       * UPDATE DB STATUS
-       */
-      await prisma.insuranceApplication.update(
-        {
-          where: {
-            id: application.id,
-          },
-
-          data: {
-            status: "FAILED",
-          },
-        },
-      );
-
-      throw new Error(
-        `TK TOKEN ERROR: ${tokenError}`,
-      );
+      return {
+        ok: false,
+        message: `TK TOKEN ERROR: ${await tokenResponse.text()}`,
+      };
     }
 
-    /**
-     * TOKEN
-     */
     const token =
       await tokenResponse.text();
 
@@ -96,33 +84,16 @@ export const submitTkApplication = async (
         "set-cookie",
       ) || "";
 
-    const nsjMatch =
+    const nsjCookie =
       setCookie.match(
         /nsj=([^;]+)/,
-      );
-
-    const nsjCookie =
-      nsjMatch?.[1];
+      )?.[1];
 
     if (!nsjCookie) {
-      /**
-       * UPDATE DB STATUS
-       */
-      await prisma.insuranceApplication.update(
-        {
-          where: {
-            id: application.id,
-          },
-
-          data: {
-            status: "FAILED",
-          },
-        },
-      );
-
-      throw new Error(
-        "NSJ cookie not found",
-      );
+      return {
+        ok: false,
+        message: "NSJ cookie not found",
+      };
     }
 
     /**
@@ -171,71 +142,235 @@ export const submitTkApplication = async (
         },
 
         body: multipartBody,
+
+        signal: AbortSignal.timeout(TK_API_TIMEOUT_MS),
       });
 
-    /**
-     * SUBMIT ERROR
-     */
-    if (!submitResponse.ok) {
-      const errorText =
-        await submitResponse.text();
-
-      /**
-       * UPDATE DB STATUS
-       */
-      await prisma.insuranceApplication.update(
-        {
-          where: {
-            id: application.id,
-          },
-
-          data: {
-            status: "FAILED",
-          },
-        },
-      );
-
-      throw new Error(
-        `TK SUBMIT ERROR: ${errorText}`,
-      );
-    }
-
-    /**
-     * SAFE RESPONSE
-     */
     const responseText =
       await submitResponse.text();
 
-    let result: any;
+    console.log(
+      "TK RESULT:",
+      submitResponse.status,
+      responseText,
+    );
 
-    try {
-      result =
-        JSON.parse(responseText);
-    } catch {
-      result = {
-        raw: responseText,
+    if (!submitResponse.ok) {
+      return {
+        ok: false,
+        message: `TK SUBMIT ERROR (${submitResponse.status}): ${responseText}`,
       };
     }
 
-    console.log(
-      "TK RESULT:",
-      result,
+    return {
+      ok: true,
+      message: responseText,
+    };
+  } catch (error: any) {
+    console.error(
+      "TK API ERROR:",
+      error,
     );
+
+    return {
+      ok: false,
+      message:
+        error?.message ||
+        "Unknown error",
+    };
+  }
+};
+
+export const submitTkApplication = async (
+  formData: any,
+  documents: TkDocuments,
+) => {
+  const { personal, selectPlan } = formData;
+
+  let applicationId: string | null = null;
+
+  try {
+    /**
+     * GENERATE APPLICATION NUMBER
+     */
+    const count =
+      await prisma.insuranceApplication.count();
+
+    const applicationNumber =
+      `IB-TK-${String(count + 1).padStart(3, "0")}`;
 
     /**
-     * UPDATE DB SUCCESS
+     * SAVE APPLICATION IN DB
      */
-    await prisma.insuranceApplication.update(
-      {
-        where: {
-          id: application.id,
-        },
+    const application =
+      await prisma.insuranceApplication.create(
+        {
+          data: {
+            applicationNumber,
 
-        data: {
-          status: "SUBMITTED",
+            provider: "TK",
+
+            payload: {
+              personal,
+              selectPlan,
+            },
+
+            status: "PENDING",
+          },
         },
-      },
-    );
+      );
+
+    applicationId = application.id;
+
+    /**
+     * TK API (STAGING) - DOES NOT BLOCK THE APPLICATION
+     */
+    const tkApi =
+      await sendToTkApi(formData);
+
+    /**
+     * APPLICATION PDF
+     */
+    const pdfBuffer =
+      await generateApplicationPDF(
+        "InsurBe TK Application",
+        [
+          ["Application ID:", applicationNumber],
+          ["Gender:", personal.gender],
+          ["First Name:", personal.firstName],
+          ["Last Name:", personal.lastName],
+          ["Date of Birth:", selectPlan.dob],
+          ["Email:", personal.email],
+          ["Phone:", `${personal.countryCode} ${personal.phoneNumber}`],
+          ["Nationality:", personal.nationality],
+          ["Country of Birth:", personal.countryOfBirth],
+          ["Place of Birth:", personal.placeOfBirth],
+          ["Passport Number:", personal.passportNumber],
+          ["Street:", personal.streetNo],
+          ["Postal Code:", personal.postalCode],
+          ["City:", personal.city],
+          ["Country:", personal.country],
+          ["Address Info:", personal.additionalInfo],
+          ["Marital Status:", personal.maritalStatus],
+          ["Family Members:", personal.includeFamilyMembers],
+          ["Provider:", selectPlan.provider],
+          ["Reason:", selectPlan.reason],
+          ["Institution:", selectPlan.institutionName],
+          ["Insured Before:", selectPlan.insuredBefore],
+          ["Prev. Insurance Type:", selectPlan.previousInsuranceType],
+          ["Prev. Provider:", selectPlan.previousProviderName],
+        ],
+      );
+
+    const fileAttachment = async (
+      file: File | null,
+    ) =>
+      file
+        ? [
+            {
+              filename: file.name,
+
+              content: Buffer.from(
+                await file.arrayBuffer(),
+              ),
+            },
+          ]
+        : [];
+
+    /**
+     * TEAM MAIL
+     */
+    const { error: teamMailError } =
+      await resend.emails.send({
+        from:
+          "InsurBe <noreply@insurbe.com>",
+
+        to: APPLICATIONS_TEAM_EMAIL,
+
+        subject: `New TK Application - ${personal.firstName} ${personal.lastName}`,
+
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6;padding:20px">
+
+            <h2>
+              New TK Insurance Application
+            </h2>
+
+            <p>
+              Please forward this application to TK. Full details are in the attached PDF.
+            </p>
+
+            <table cellpadding="10" cellspacing="0" border="1" style="border-collapse:collapse;width:100%;margin-top:20px;">
+
+              <tr>
+                <td><b>Application ID</b></td>
+                <td>${escapeHtml(applicationNumber)}</td>
+              </tr>
+
+              <tr>
+                <td><b>Name</b></td>
+                <td>
+                  ${escapeHtml(personal.firstName)}
+                  ${escapeHtml(personal.lastName)}
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>Email</b></td>
+                <td>${escapeHtml(personal.email)}</td>
+              </tr>
+
+              <tr>
+                <td><b>Phone</b></td>
+                <td>
+                  ${escapeHtml(personal.countryCode)}
+                  ${escapeHtml(personal.phoneNumber)}
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>Reason</b></td>
+                <td>${escapeHtml(selectPlan.reason)}</td>
+              </tr>
+
+              <tr>
+                <td><b>Institution</b></td>
+                <td>${escapeHtml(selectPlan.institutionName)}</td>
+              </tr>
+
+              <tr>
+                <td><b>TK API (staging)</b></td>
+                <td>
+                  ${tkApi.ok ? "Accepted" : "Failed"}:
+                  ${escapeHtml(tkApi.message.slice(0, 500))}
+                </td>
+              </tr>
+
+            </table>
+
+          </div>
+        `,
+
+        attachments: [
+          {
+            filename: `${applicationNumber}.pdf`,
+
+            content: pdfBuffer,
+          },
+
+          ...(await fileAttachment(documents.passport)),
+
+          ...(await fileAttachment(documents.contract)),
+
+          ...(await fileAttachment(documents.photo)),
+        ],
+      });
+
+    if (teamMailError) {
+      throw new Error(
+        `TEAM EMAIL FAILED: ${teamMailError.message}`,
+      );
+    }
 
     /**
      * USER ACKNOWLEDGEMENT EMAIL
@@ -246,18 +381,18 @@ export const submitTkApplication = async (
           "InsurBe <noreply@insurbe.com>",
 
         to:
-          formData.personal.email,
+          personal.email,
 
         subject:
           "Your TK Application Was Received",
 
         html: `
           <div style="font-family:Arial,sans-serif;line-height:1.6;background:#f9fafb;padding:30px">
-            
+
             <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;padding:30px;border:1px solid #eee">
-              
+
               <h2 style="color:#0f766e;margin-bottom:10px;">
-                Hi ${formData.personal.firstName},
+                Hi ${escapeHtml(personal.firstName)},
               </h2>
 
               <p style="font-size:16px;color:#333;">
@@ -275,7 +410,7 @@ export const submitTkApplication = async (
               <div style="margin:25px 0;padding:20px;background:#ecfeff;border-radius:10px;border:1px solid #cffafe">
                 <p style="margin:0;color:#115e59;font-weight:600;">
                   ✅ Application ID:
-                  ${application.id}
+                  ${escapeHtml(applicationNumber)}
                 </p>
               </div>
 
@@ -312,15 +447,30 @@ export const submitTkApplication = async (
         "Your TK insurance application has been submitted successfully.",
 
       applicationId:
-        application.id,
-
-      data: result,
+        applicationNumber,
     };
   } catch (error: any) {
     console.error(
       "TK SUBMIT ERROR:",
       error,
     );
+
+    /**
+     * UPDATE DB STATUS
+     */
+    if (applicationId) {
+      await prisma.insuranceApplication
+        .update({
+          where: {
+            id: applicationId,
+          },
+
+          data: {
+            status: "FAILED",
+          },
+        })
+        .catch(() => {});
+    }
 
     return {
       success: false,
