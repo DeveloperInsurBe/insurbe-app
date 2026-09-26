@@ -483,19 +483,33 @@ export default function InsuranceSignupFlow() {
        * CHECK PROVIDER
        */
       if (providerFromUrl === "tk") {
-        const submitBody = {
-          ...formData,
-          partnerRef: getStoredPartnerRef(),
-        };
+        const submitData = new FormData();
+
+        submitData.append("personal", JSON.stringify(personal));
+
+        submitData.append("selectPlan", JSON.stringify(selectPlan));
+
+        submitData.append("partnerRef", getStoredPartnerRef());
+
+        /**
+         * DOCUMENTS
+         */
+        if (documents.passport) {
+          submitData.append("passport", documents.passport);
+        }
+
+        if (documents.contract) {
+          submitData.append("contract", documents.contract);
+        }
+
+        if (documents.photo) {
+          submitData.append("photo", documents.photo);
+        }
 
         const result = await fetch("/api/tk/submit", {
           method: "POST",
 
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify(submitBody),
+          body: submitData,
         });
 
         const data = await result.json();
