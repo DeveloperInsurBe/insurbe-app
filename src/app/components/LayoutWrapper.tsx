@@ -21,16 +21,20 @@ export default function LayoutWrapper({
     pathname.startsWith("/agent");
   const isPortalRoute =
     pathname.startsWith("/portal");
+  // Admin portal (login + dashboard pages) has its own sidebar and layout.
+  const isAdminRoute =
+    pathname === "/admin" || pathname.startsWith("/admin/");
 
   return (
     <>
       {!isPartnerRoute &&
         !isAgentRoute &&
-        !isPortalRoute && <Header />}
+        !isPortalRoute &&
+        !isAdminRoute && <Header />}
 
       {children}
 
-      {!isAgentRoute && !isPortalRoute && <Footernew />}
+      {!isAgentRoute && !isPortalRoute && !isAdminRoute && <Footernew />}
     </>
   );
 }

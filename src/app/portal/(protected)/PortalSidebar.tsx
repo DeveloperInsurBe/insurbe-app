@@ -51,13 +51,10 @@ const agentMenu = [
   { name: "Commissions", href: "/portal/commissions", icon: Euro },
 ] as const;
 
-// Data-driven partner pages: prefetch the full page (including server data) so the
-// click renders instantly instead of showing the loading skeleton first.
-const fullPrefetchPartnerHrefs = new Set<string>([
-  "/portal/dashboard",
-  "/portal/conversions-list",
-  "/portal/partner-data",
-]);
+// Prefetch every partner page in full (including server data), like the admin
+// sidebar, so a click renders instantly instead of showing the loading skeleton.
+// The content-only pages (assets, documents, FAQ, contact) cost no DB queries.
+const fullPrefetchPartnerHrefs = new Set<string>(partnerMenu.map((item) => item.href));
 
 type Highlight = { top: number; height: number; visible: boolean; animate: boolean };
 

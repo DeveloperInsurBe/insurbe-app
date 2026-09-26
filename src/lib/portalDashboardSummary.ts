@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 import { prisma } from "./prisma";
 
 type PartnerSummaryRow = {
@@ -44,7 +46,7 @@ function toNumber(value: unknown) {
   return 0;
 }
 
-export async function getPartnerDashboardSummary(partnerId: string) {
+async function partnerSummary(partnerIdSql: Prisma.Sql) {
   const now = new Date();
   const todayStart = new Date(now);
   todayStart.setHours(0, 0, 0, 0);
@@ -80,7 +82,7 @@ export async function getPartnerDashboardSummary(partnerId: string) {
         0
       ) AS "monthApprovedCommission"
     FROM "Application"
-    WHERE "partnerId" = ${partnerId}
+    WHERE "partnerId" = ${partnerIdSql}
       AND "source" = 'partner'
       AND "status" <> 'incomplete'
   `;
@@ -97,6 +99,21 @@ export async function getPartnerDashboardSummary(partnerId: string) {
     todayApprovedCommission: toNumber(row?.todayApprovedCommission),
     monthApprovedCommission: toNumber(row?.monthApprovedCommission),
   };
+}
+
+export function getPartnerDashboardSummary(partnerId: string) {
+  return partnerSummary(Prisma.sql`${partnerId}`);
+}
+
+/**
+ * Same summary, but resolves the partner code from the login email inside the
+ * query, so it can run in parallel with the partner lookup (one DB round trip
+ * instead of two). Matches getPartnerByEmail: email + role "partner".
+ */
+export function getPartnerDashboardSummaryByEmail(email: string) {
+  return partnerSummary(
+    Prisma.sql`(SELECT "partnerId" FROM "User" WHERE "email" = ${email} AND "role" = 'partner' LIMIT 1)`,
+  );
 }
 
 export async function getAgentDashboardSummary(agentId: string) {

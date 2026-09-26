@@ -310,66 +310,70 @@ export default function ConversionsClient({
           </div>
         </section>
 
-        {/* CONVERSIONS TABLE */}
+        {/* RECENT CONVERSIONS */}
         <div
-          className="modal-item-in overflow-hidden rounded-[24px] border border-[#f0e6fb] bg-white shadow-[0_10px_35px_rgba(130,10,209,0.06)] md:rounded-[32px]"
+          className="modal-item-in flex min-h-[420px] flex-col overflow-hidden rounded-[24px] border border-[#f0e6fb] bg-white shadow-[0_10px_35px_rgba(130,10,209,0.06)] md:min-h-[480px] md:rounded-[28px]"
           style={{ animationDelay: "200ms" }}
         >
           {/* TOP BAR */}
-          <div className="flex flex-col gap-5 border-b border-[#f4ecfc] px-6 py-6 md:flex-row md:items-center md:justify-between md:px-8">
-            <div>
-              <h2 className="text-2xl font-black text-gray-900 md:text-3xl">
-                Recent Conversions
-              </h2>
-
-              <p className="mt-2 text-sm text-gray-500 md:text-base">
-                Track all submitted insurance applications and commissions.
-              </p>
+          <div className="flex flex-col gap-3 border-b border-[#f4ecfc] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 md:px-7">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f3e8ff] text-[#820ad1]">
+                <BarChart3 size={18} />
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-base font-extrabold text-gray-900 md:text-lg">
+                  Recent Conversions
+                </h2>
+                <p className="truncate text-xs text-gray-500 md:text-[13px]">
+                  Submitted insurance applications and commissions
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <label className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
+            <div className="flex items-center justify-between gap-2 sm:justify-end">
+              <label className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[1.5px] text-[#820ad1]">
                 Rows
+                <select
+                  value={pageSize}
+                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  className="h-8 cursor-pointer rounded-lg border border-[#e9d7ff] bg-white px-2 text-xs font-semibold normal-case tracking-normal text-gray-700 outline-none transition-colors hover:border-[#d8b4fe] focus:border-[#820ad1] focus:ring-2 focus:ring-[#820ad1]/15"
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
               </label>
-              <select
-                value={pageSize}
-                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="h-9 cursor-pointer rounded-xl border border-[#e9d7ff] bg-white px-3 text-sm font-semibold text-gray-700 outline-none transition-colors hover:border-[#d8b4fe] focus:border-[#820ad1] focus:ring-2 focus:ring-[#820ad1]/15"
-              >
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-              <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#f3e8ff] px-4 py-2 text-sm font-bold text-[#820ad1]">
+              <span className="inline-flex items-center rounded-full bg-[#f3e8ff] px-3 py-1 text-xs font-bold text-[#820ad1]">
                 {totalCount} Total
-              </div>
+              </span>
             </div>
           </div>
 
           {data.length === 0 ? (
             /* EMPTY STATE */
-            <div className="flex flex-col items-center justify-center px-6 py-24 text-center">
+            <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center">
               <div
-                className="modal-item-in relative mb-8 h-24 w-24"
+                className="modal-item-in relative mb-5 h-16 w-16"
                 style={{ animationDelay: "260ms" }}
               >
-                <span className="modal-ring absolute inset-0 rounded-3xl bg-[#820ad1]/20" />
-                <span className="relative flex h-full w-full items-center justify-center rounded-3xl border border-[#efe3fb] bg-gradient-to-br from-[#faf7ff] to-[#f3e8ff]">
-                  <BarChart3 className="text-[#820ad1]" size={42} />
+                <span className="modal-ring absolute inset-0 rounded-2xl bg-[#820ad1]/20" />
+                <span className="relative flex h-full w-full items-center justify-center rounded-2xl border border-[#efe3fb] bg-gradient-to-br from-[#faf7ff] to-[#f3e8ff]">
+                  <BarChart3 className="text-[#820ad1]" size={28} />
                 </span>
               </div>
 
               <h3
-                className="modal-item-in text-2xl font-black text-gray-900"
+                className="modal-item-in text-lg font-extrabold text-gray-900"
                 style={{ animationDelay: "320ms" }}
               >
                 No Conversions Yet
               </h3>
 
               <p
-                className="modal-item-in mt-4 max-w-md leading-relaxed text-gray-500"
+                className="modal-item-in mt-2 max-w-sm text-sm leading-relaxed text-gray-500"
                 style={{ animationDelay: "380ms" }}
               >
                 Once you create insurance applications, your conversions and
@@ -378,24 +382,23 @@ export default function ConversionsClient({
 
               <button
                 onClick={() => setOpenModal(true)}
-                className="modal-item-in group mt-8 flex h-12 cursor-pointer items-center gap-3 rounded-2xl bg-gradient-to-r from-[#820ad1] to-[#a855f7] px-6 font-semibold text-white shadow-lg shadow-[#820ad1]/25 transition-shadow duration-300 hover:shadow-xl hover:shadow-[#820ad1]/30"
+                className="modal-item-in group mt-6 flex h-11 cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-[#820ad1] to-[#a855f7] px-5 text-sm font-semibold text-white shadow-lg shadow-[#820ad1]/25 transition-shadow duration-300 hover:shadow-xl hover:shadow-[#820ad1]/30"
                 style={{ animationDelay: "440ms" }}
               >
                 <Plus
-                  size={18}
+                  size={16}
                   className="transition-transform duration-300 group-hover:rotate-90"
                 />
-
                 <span>Create Application</span>
               </button>
             </div>
           ) : (
             <>
               {/* DESKTOP TABLE */}
-              <div className="hidden overflow-x-auto xl:block">
+              <div className="hidden flex-1 lg:block">
                 <div
                   ref={tableRef}
-                  className="relative min-w-[1200px]"
+                  className="relative"
                   onMouseLeave={hideHighlight}
                 >
                   {/* sliding highlight */}
@@ -412,36 +415,14 @@ export default function ConversionsClient({
                     }}
                   />
 
-                  <table className="relative z-10 w-full">
+                  <table className="relative z-10 w-full table-fixed">
                     <thead className="border-b border-[#f0e6fb] bg-[#faf7ff]">
-                      <tr>
-                        <th className="px-8 py-5 text-left text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-                          Creation Date
-                        </th>
-
-                        <th className="px-6 py-5 text-left text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-                          First Name
-                        </th>
-
-                        <th className="px-6 py-5 text-left text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-                          Last Name
-                        </th>
-
-                        <th className="px-6 py-5 text-left text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-                          Product
-                        </th>
-
-                        <th className="px-6 py-5 text-left text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-                          User ID
-                        </th>
-
-                        <th className="px-6 py-5 text-left text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-                          Commission
-                        </th>
-
-                        <th className="px-6 py-5 text-left text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-                          Status
-                        </th>
+                      <tr className="text-left text-[11px] font-bold uppercase tracking-[1.5px] text-[#820ad1]">
+                        <th className="w-[34%] px-6 py-3.5 md:px-7">Customer</th>
+                        <th className="w-[22%] px-4 py-3.5">Product</th>
+                        <th className="w-[16%] px-4 py-3.5">Created</th>
+                        <th className="w-[12%] px-4 py-3.5 text-right">Commission</th>
+                        <th className="w-[16%] px-6 py-3.5 text-right md:px-7">Status</th>
                       </tr>
                     </thead>
 
@@ -453,71 +434,53 @@ export default function ConversionsClient({
                           style={{ animationDelay: `${rowDelay(index)}ms` }}
                           className="modal-item-in group border-b border-[#f4ecfc] last:border-b-0"
                         >
-                          {/* DATE */}
-                          <td className="px-8 py-6">
-                            <div className="flex flex-col">
-                              <span className="text-base font-semibold text-gray-900">
-                                {new Date(item.createdAt).toLocaleDateString()}
+                          {/* CUSTOMER */}
+                          <td className="px-6 py-3.5 md:px-7">
+                            <div className="flex min-w-0 items-center gap-3">
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f3e8ff] text-xs font-black text-[#820ad1] transition-colors duration-300 group-hover:bg-[#820ad1] group-hover:text-white">
+                                {conversionInitials(item)}
                               </span>
-
-                              <span className="mt-1 text-sm text-gray-400">
-                                {new Date(item.createdAt).toLocaleTimeString()}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* FIRST NAME */}
-                          <td className="px-6 py-6">
-                            <div className="font-semibold text-gray-900">
-                              {item.firstName || "—"}
-                            </div>
-                          </td>
-
-                          {/* LAST NAME */}
-                          <td className="px-6 py-6">
-                            <div className="font-semibold text-gray-900">
-                              {item.lastName || "—"}
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-gray-900">
+                                  {[item.firstName, item.lastName].filter(Boolean).join(" ") || "—"}
+                                </p>
+                                <p
+                                  className="truncate text-xs text-gray-500"
+                                  title={item.userId || undefined}
+                                >
+                                  {item.userId || "—"}
+                                </p>
+                              </div>
                             </div>
                           </td>
 
                           {/* PRODUCT */}
-                          <td className="px-6 py-6">
-                            <div className="inline-flex max-w-[240px] items-center rounded-xl border border-[#efe3fb] bg-white px-3.5 py-1.5 text-sm font-bold text-[#820ad1] shadow-sm transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-1">
-                              <span className="truncate">
-                                {item.product || "Insurance"}
-                              </span>
-                            </div>
+                          <td className="px-4 py-3.5">
+                            <span className="inline-flex max-w-full items-center rounded-lg border border-[#efe3fb] bg-white px-2.5 py-1 text-xs font-bold text-[#820ad1] shadow-sm">
+                              <span className="truncate">{item.product || "Insurance"}</span>
+                            </span>
                           </td>
 
-                          {/* USER ID */}
-                          <td className="px-6 py-6">
-                            <div className="max-w-[240px]">
-                              <p className="truncate font-medium text-gray-700">
-                                {item.userId || "—"}
-                              </p>
-                            </div>
+                          {/* CREATED */}
+                          <td className="px-4 py-3.5">
+                            <p className="text-sm font-medium text-gray-900">
+                              {new Date(item.createdAt).toLocaleDateString()}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {new Date(item.createdAt).toLocaleTimeString()}
+                            </p>
                           </td>
 
                           {/* COMMISSION */}
-                          <td className="px-6 py-6">
-                            <p className="text-2xl font-black text-[#820ad1]">
+                          <td className="px-4 py-3.5 text-right">
+                            <p className="text-lg font-black text-[#820ad1]">
                               €{item.commission ?? 0}
                             </p>
                           </td>
 
                           {/* STATUS */}
-                          <td className="px-6 py-6">
-                            <div
-                              className={`inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold ${
-                                item.commissionStatus === "Approved"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-amber-100 text-amber-700"
-                              }`}
-                            >
-                              <span className="mr-2 h-2 w-2 rounded-full bg-current opacity-70" />
-
-                              {item.commissionStatus || "Pending"}
-                            </div>
+                          <td className="px-6 py-3.5 text-right md:px-7">
+                            <StatusPill status={item.commissionStatus} />
                           </td>
                         </tr>
                       ))}
@@ -526,108 +489,63 @@ export default function ConversionsClient({
                 </div>
               </div>
 
-              {/* MOBILE CARDS */}
-              <div className="space-y-3 p-4 sm:space-y-4 sm:p-5 xl:hidden">
+              {/* MOBILE / TABLET CARDS */}
+              <div className="grid flex-1 grid-cols-1 content-start gap-3 p-3 sm:grid-cols-2 sm:p-4 lg:hidden">
                 {data.map((item, index) => (
                   <div
                     key={item.id || index}
                     style={{ animationDelay: `${rowDelay(index)}ms` }}
-                    className="modal-item-in group rounded-2xl border border-[#efe3fb] bg-white p-4 shadow-sm transition-[background-color,box-shadow,border-color] duration-300 hover:border-[#e9d7ff] hover:bg-[#faf7ff] hover:shadow-[0_12px_30px_rgba(130,10,209,0.10)] sm:p-5"
+                    className="modal-item-in group rounded-2xl border border-[#efe3fb] bg-white p-3.5 shadow-sm transition-[background-color,box-shadow,border-color] duration-300 hover:border-[#e9d7ff] hover:bg-[#faf7ff] hover:shadow-[0_12px_30px_rgba(130,10,209,0.10)]"
                   >
-                    {/* TOP */}
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm text-gray-400">
-                          {new Date(item.createdAt).toLocaleDateString()}
+                    {/* CUSTOMER + STATUS */}
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f3e8ff] text-xs font-black text-[#820ad1] transition-colors duration-300 group-hover:bg-[#820ad1] group-hover:text-white">
+                        {conversionInitials(item)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-gray-900">
+                          {[item.firstName, item.lastName].filter(Boolean).join(" ") || "—"}
                         </p>
-
-                        <div className="mt-3 inline-flex items-center rounded-xl border border-[#efe3fb] bg-white px-3 py-1.5 text-xs font-bold text-[#820ad1] shadow-sm">
-                          {item.product || "Insurance"}
-                        </div>
+                        <p className="break-all text-xs text-gray-500">{item.userId || "—"}</p>
                       </div>
-
-                      <div
-                        className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                          item.commissionStatus === "Approved"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-amber-100 text-amber-700"
-                        }`}
-                      >
-                        {item.commissionStatus || "Pending"}
-                      </div>
+                      <StatusPill status={item.commissionStatus} />
                     </div>
 
-                    {/* USER DETAILS */}
-                    <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-                          First Name
-                        </p>
-
-                        <p className="mt-1 font-semibold text-gray-900">
-                          {item.firstName || "—"}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-                          Last Name
-                        </p>
-
-                        <p className="mt-1 font-semibold text-gray-900">
-                          {item.lastName || "—"}
+                    {/* PRODUCT + DATE + COMMISSION */}
+                    <div className="mt-3 flex items-end justify-between gap-3 border-t border-[#f4ecfc] pt-3">
+                      <div className="min-w-0">
+                        <span className="inline-flex max-w-full items-center rounded-lg border border-[#efe3fb] bg-white px-2.5 py-1 text-[11px] font-bold text-[#820ad1] shadow-sm">
+                          <span className="truncate">{item.product || "Insurance"}</span>
+                        </span>
+                        <p className="mt-1.5 text-[11px] text-gray-400">
+                          {new Date(item.createdAt).toLocaleDateString()} ·{" "}
+                          {new Date(item.createdAt).toLocaleTimeString()}
                         </p>
                       </div>
-                    </div>
-
-                    {/* USER ID */}
-                    <div className="mt-5">
-                      <p className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-                        User ID
+                      <p className="shrink-0 text-xl font-black text-[#820ad1]">
+                        €{item.commission ?? 0}
                       </p>
-
-                      <p className="mt-1 break-all font-medium text-gray-700">
-                        {item.userId || "—"}
-                      </p>
-                    </div>
-
-                    {/* FOOTER */}
-                    <div className="mt-6 flex items-center justify-between border-t border-[#f4ecfc] pt-5">
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
-                          Commission
-                        </p>
-
-                        <p className="mt-1 text-3xl font-black text-[#820ad1]">
-                          €{item.commission ?? 0}
-                        </p>
-                      </div>
-
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#e9d7ff] bg-white text-[#820ad1] transition-colors duration-300 group-hover:border-transparent group-hover:bg-[#820ad1] group-hover:text-white">
-                        <BarChart3 size={22} />
-                      </div>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* FOOTER */}
-              <div className="flex flex-col justify-between gap-4 border-t border-[#f4ecfc] bg-white px-4 py-5 sm:flex-row sm:items-center sm:px-6 md:px-8">
-                <div className="text-sm text-gray-500">
+              <div className="mt-auto flex flex-col gap-3 border-t border-[#f4ecfc] bg-white px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6 md:px-7">
+                <div className="text-xs text-gray-500 sm:text-sm">
                   Showing {pageStart}-{pageEnd} of{" "}
-                  <span className="font-semibold text-gray-900">
-                    {totalCount}
-                  </span>{" "}
+                  <span className="font-semibold text-gray-900">{totalCount}</span>{" "}
                   conversions
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-3 sm:justify-end">
                   <button
                     onClick={() => handlePageChange(page - 1)}
                     disabled={!hasPrev}
-                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#e9d7ff] bg-white text-[#820ad1] transition-colors duration-300 enabled:hover:border-transparent enabled:hover:bg-[#820ad1] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                    aria-label="Previous page"
+                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[#e9d7ff] bg-white text-[#820ad1] transition-colors duration-300 enabled:hover:border-transparent enabled:hover:bg-[#820ad1] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <ChevronLeft size={18} />
+                    <ChevronLeft size={16} />
                   </button>
 
                   <span className="rounded-full bg-[#f3e8ff] px-3 py-1.5 text-xs font-bold text-[#820ad1]">
@@ -637,9 +555,10 @@ export default function ConversionsClient({
                   <button
                     onClick={() => handlePageChange(page + 1)}
                     disabled={!hasNext}
-                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#e9d7ff] bg-white text-[#820ad1] transition-colors duration-300 enabled:hover:border-transparent enabled:hover:bg-[#820ad1] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                    aria-label="Next page"
+                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[#e9d7ff] bg-white text-[#820ad1] transition-colors duration-300 enabled:hover:border-transparent enabled:hover:bg-[#820ad1] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <ChevronRight size={18} />
+                    <ChevronRight size={16} />
                   </button>
                 </div>
               </div>
@@ -655,5 +574,30 @@ export default function ConversionsClient({
         partnerRef={partnerRef}
       />
     </>
+  );
+}
+
+function conversionInitials(item: ConversionItem) {
+  const letters = [item.firstName, item.lastName]
+    .map((part) => part?.trim()?.[0] ?? "")
+    .join("")
+    .toUpperCase();
+
+  return letters || "—";
+}
+
+// Same colours as before: Approved green, everything else amber.
+function StatusPill({ status }: { status?: string | null }) {
+  const approved = status === "Approved";
+
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+        approved ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+      }`}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+      {status || "Pending"}
+    </span>
   );
 }

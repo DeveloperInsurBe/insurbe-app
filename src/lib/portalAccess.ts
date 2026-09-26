@@ -1,12 +1,11 @@
 import { cache } from "react";
-import { getServerSession } from "next-auth";
-
-import { authOptions } from "./authOptions";
+import { getCurrentSession } from "./applicationAccess";
 
 type PortalRole = "partner" | "agent";
 
 export const getCurrentPortalAccess = cache(async () => {
-  const session = await getServerSession(authOptions);
+  // Shared per-request session read (same as getCurrentPartnerAccess uses).
+  const session = await getCurrentSession();
 
   if (!session?.user?.email) {
     return { session: null, role: null as PortalRole | null };
