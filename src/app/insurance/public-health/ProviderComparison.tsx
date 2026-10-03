@@ -155,7 +155,10 @@ export default function ProviderComparison({
       params.set("source", "partner");
     }
 
-    return `/insuranceSignupFlow?${params.toString()}`;
+    // TK uses the dedicated TK API application form.
+    const path = providerId === "tk" ? "/tk-application" : "/insuranceSignupFlow";
+
+    return `${path}?${params.toString()}`;
   };
 
   return (
