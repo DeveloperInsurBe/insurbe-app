@@ -155,7 +155,11 @@ export default function ProviderComparison({
       params.set("source", "partner");
     }
 
-    return `/insuranceSignupFlow?${params.toString()}`;
+    // Temporary: the AOK card opens the new TK API form for testing.
+    // TK itself still uses the existing signup flow.
+    const path = providerId === "aok" ? "/tk-application" : "/insuranceSignupFlow";
+
+    return `${path}?${params.toString()}`;
   };
 
   return (
