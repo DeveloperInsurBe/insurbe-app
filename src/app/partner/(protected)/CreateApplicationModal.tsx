@@ -47,7 +47,7 @@ const GROUPS: Group[] = [
         id: "tk",
         name: "Techniker Krankenkasse",
         tag: "TK",
-        href: (ref) => `/tk-application?provider=tk&source=partner&ref=${ref}`,
+        href: (ref) => `/insuranceSignupFlow?provider=tk&source=partner&ref=${ref}`,
         logo: { src: "/icons/tk.png", alt: "TK Logo", width: 40, height: 40, className: "h-8 w-auto" },
       },
     ],

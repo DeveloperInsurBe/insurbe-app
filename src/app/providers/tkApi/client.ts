@@ -14,7 +14,16 @@ const TK_BASE_URL = "https://www.tk.de/service/rest/public";
 
 const TOKEN_URL = `${TK_BASE_URL}/neuaufnahmeantrag/getApiAccessToken`;
 
-const TK_TIMEOUT_MS = 30000;
+// Must stay well below the route's maxDuration (60 s) so a slow TK never
+// leaves a half-finished request behind.
+const TOKEN_TIMEOUT_MS = 12000;
+
+const SUBMIT_TIMEOUT_MS = 35000;
+
+const STATUS_TIMEOUT_MS = 15000;
+
+/** Total time a submission (token + upload + one retry) may take. */
+const SUBMIT_BUDGET_MS = 45000;
 
 // TK requires a User-Agent on every request.
 const USER_AGENT = "Mozilla/5.0 (compatible; InsurBe/1.0; +https://insurbe.com)";
@@ -39,11 +48,37 @@ export class TkApiError extends Error {
   constructor(
     message: string,
     readonly status: number | null,
+    /**
+     * True when the request reached TK but we never got an answer
+     * (timeout / dropped connection). TK may have stored the application,
+     * so resubmitting could create a duplicate.
+     */
+    readonly outcomeUnknown = false,
   ) {
     super(message);
     this.name = "TkApiError";
   }
 }
+
+/** Network errors that happen before anything was sent to TK. */
+const NOT_SENT_CODES = new Set([
+  "UND_ERR_CONNECT_TIMEOUT",
+  "ECONNREFUSED",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+]);
+
+const describeFetchError = (error: unknown) => {
+  const err = error as { name?: string; message?: string; cause?: { code?: string } };
+  const code = err?.cause?.code;
+  const timedOut = err?.name === "TimeoutError" || err?.name === "AbortError";
+  return {
+    code,
+    timedOut,
+    sent: !(code && NOT_SENT_CODES.has(code)),
+    message: timedOut ? "TK did not respond in time" : `${err?.message || "Network error"}${code ? ` (${code})` : ""}`,
+  };
+};
 
 export type TkMessage = { code: string; message: string };
 
@@ -67,7 +102,7 @@ type TkSession = { token: string; cookie: string; expiresAt: number };
 
 let cachedSession: TkSession | null = null;
 
-const getSession = async (forceRefresh = false): Promise<TkSession> => {
+const getSession = async (forceRefresh = false, timeoutMs = TOKEN_TIMEOUT_MS): Promise<TkSession> => {
   if (!forceRefresh && cachedSession && cachedSession.expiresAt > Date.now()) {
     return cachedSession;
   }
@@ -79,17 +114,24 @@ const getSession = async (forceRefresh = false): Promise<TkSession> => {
     throw new TkApiError("TK_USER_ID / TK_PASSWORD are not configured", null);
   }
 
-  const response = await fetch(TOKEN_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "text/plain",
-      "User-Agent": USER_AGENT,
-    },
-    body: JSON.stringify({ userId, password }),
-    cache: "no-store",
-    signal: AbortSignal.timeout(TK_TIMEOUT_MS),
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(TOKEN_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "text/plain",
+        "User-Agent": USER_AGENT,
+      },
+      body: JSON.stringify({ userId, password }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(Math.max(1000, Math.min(timeoutMs, TOKEN_TIMEOUT_MS))),
+    });
+  } catch (error) {
+    // Nothing has been submitted yet, so a retry is always safe.
+    throw new TkApiError(`TK token request failed: ${describeFetchError(error).message}`, null);
+  }
 
   if (!response.ok) {
     throw new TkApiError(`TK token request failed (${response.status})`, response.status);
@@ -172,27 +214,44 @@ export const submitTkMembership = async (
 ): Promise<TkSubmitResult> => {
   const { boundary, body } = buildMultipart(payload, attachments);
 
-  const send = async (session: TkSession) =>
-    fetch(operationUrl("einreichen"), {
-      method: "POST",
-      headers: {
-        ...authHeaders(session),
-        "Content-Type": `multipart/mixed; boundary=${boundary}`,
-        "Content-Length": String(body.length),
-      },
-      body,
-      cache: "no-store",
-      signal: AbortSignal.timeout(TK_TIMEOUT_MS * 2),
-    });
+  const deadline = Date.now() + SUBMIT_BUDGET_MS;
+  const remaining = () => deadline - Date.now();
 
-  let response = await send(await getSession());
+  const send = async (session: TkSession) => {
+    const timeoutMs = Math.min(SUBMIT_TIMEOUT_MS, remaining());
+
+    if (timeoutMs < 5000) {
+      throw new TkApiError("Not enough time left to submit to TK", null);
+    }
+
+    try {
+      const response = await fetch(operationUrl("einreichen"), {
+        method: "POST",
+        headers: {
+          ...authHeaders(session),
+          "Content-Type": `multipart/mixed; boundary=${boundary}`,
+          "Content-Length": String(body.length),
+        },
+        body,
+        cache: "no-store",
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+
+      return { response, text: await response.text() };
+    } catch (error) {
+      const info = describeFetchError(error);
+      throw new TkApiError(`TK einreichen failed: ${info.message}`, null, info.sent);
+    }
+  };
+
+  let { response, text } = await send(await getSession(false, remaining()));
 
   // Cached token may have been invalidated on TK's side; retry once.
+  // A 401 means TK rejected the request, so nothing was stored.
   if (response.status === 401) {
-    response = await send(await getSession(true));
+    ({ response, text } = await send(await getSession(true, remaining())));
   }
 
-  const text = await response.text();
   const json = parseJson(text);
 
   if (response.ok && json?.antragId) {
@@ -240,7 +299,7 @@ export const getTkMembershipStatus = async (antragIds: string[]): Promise<TkStat
     headers: { ...authHeaders(session), "Content-Type": "application/json" },
     body: JSON.stringify({ antragIds: ids }),
     cache: "no-store",
-    signal: AbortSignal.timeout(TK_TIMEOUT_MS),
+    signal: AbortSignal.timeout(STATUS_TIMEOUT_MS),
   });
 
   const json = parseJson(await response.text());

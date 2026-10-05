@@ -20,13 +20,20 @@ const clean = (value: string) => value.trim().replace(/\s+/g, " ");
 
 const orNull = (value: string) => (clean(value) ? clean(value) : null);
 
-const germanAddress = (street: string, houseNumber: string, postalCode: string, city: string, extra = "") => ({
+const germanAddress = (
+  street: string,
+  houseNumber: string,
+  postalCode: string,
+  city: string,
+  extra = "",
+  land = "DE",
+) => ({
   strasse: clean(street),
   hausnummer: clean(houseNumber),
   adresszusatz: orNull(extra),
   plz: clean(postalCode),
   ort: clean(city),
-  land: "DE",
+  land,
 });
 
 export type TkPayloadOptions = {
@@ -63,7 +70,14 @@ export const buildTkApiPayload = (data: TkFormData, options: TkPayloadOptions) =
         nachname: clean(data.lastName),
         namenszusatz: null,
       },
-      adresse: germanAddress(data.street, data.houseNumber, data.postalCode, data.city, data.addressExtra),
+      adresse: germanAddress(
+        data.street,
+        data.houseNumber,
+        data.postalCode,
+        data.city,
+        data.addressExtra,
+        data.country || "DE",
+      ),
       email: clean(data.email),
       telefon: orNull(data.phone),
       geburtsdatum: toTkDate(data.dateOfBirth),

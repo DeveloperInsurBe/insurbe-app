@@ -451,7 +451,7 @@ export default function ComparePlans() {
 
   const handleChoosePlan = (plan: (typeof plans)[0]) => {
     if (plan.id === "tk") {
-      router.push("/tk-application?provider=tk");
+      router.push("/insuranceSignupFlow?provider=tk");
       return;
     }
 

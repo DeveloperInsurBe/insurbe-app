@@ -471,7 +471,7 @@ export default function InsuranceEligibilityQuiz() {
                                 });
                                 // router.push("/insuranceSignupFlow");
                                 router.push(
-                                  `/tk-application?provider=tk`,
+                                  `/insuranceSignupFlow?provider=${"tk"}`,
                                 );
                               }}
                               whileHover={{ scale: 1.05, y: -2 }}

@@ -43,6 +43,7 @@ import {
   TextField,
   YesNoField,
 } from "./fields";
+import { compressImage } from "./compressImage";
 
 const DRAFT_KEY = "tk-application-draft";
 
@@ -128,6 +129,15 @@ const validateDocuments = async (documents: Documents): Promise<TkErrors> => {
   checkDocument("passport", documents.passport, "passport copy");
   checkDocument("proof", documents.proof, "proof document");
 
+  const total = [documents.photo, documents.passport, documents.proof, ...documents.extra].reduce(
+    (sum, file) => sum + (file?.size ?? 0),
+    0,
+  );
+
+  if (total > TK_FILE_RULES.maxTotalBytes) {
+    errors.extraDocuments = `All documents together are ${(total / 1024 / 1024).toFixed(1)} MB – the maximum is 4 MB. Please use smaller files (e.g. a PDF scan instead of photos).`;
+  }
+
   if (documents.extra.some((file) => !TK_FILE_RULES.documentTypes.includes(file.type) || tooBig(file))) {
     errors.extraDocuments = "Additional documents must be PDF, Word, image or text files of 10 MB or less";
   }
@@ -146,6 +156,7 @@ export default function TkApplicationForm() {
   const [partnerRef, setPartnerRef] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
   // Birth name defaults to the last name; only shown when the user says it differs.
   const [differentBirthName, setDifferentBirthName] = useState(false);
 
@@ -270,6 +281,10 @@ export default function TkApplicationForm() {
         successUrl.searchParams.set("appId", result.applicationId || "");
         successUrl.searchParams.set("provider", "tk");
         successUrl.searchParams.set("email", data.email.trim());
+        if (result.tkReference) {
+          successUrl.searchParams.set("tkRef", result.tkReference);
+          successUrl.searchParams.set("tkEnv", result.tkEnvironment || "");
+        }
         router.push(successUrl.toString());
         return;
       }
@@ -358,12 +373,7 @@ export default function TkApplicationForm() {
         <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white p-2 shadow">
           <img src="/icons/tk.png" alt="TK logo" className="h-10 w-auto" />
         </div>
-        <div>
-          <p className="font-semibold text-gray-900">Techniker Krankenkasse (TK)</p>
-          <p className="text-sm text-gray-600">
-            Your application is sent directly to TK through their official membership API.
-          </p>
-        </div>
+        <p className="font-semibold text-gray-900">Techniker Krankenkasse (TK)</p>
       </div>
     </>
   );
@@ -530,8 +540,10 @@ export default function TkApplicationForm() {
           label="Postal code"
           required
           value={data.postalCode}
-          onChange={(value) => set("postalCode", value.replace(/\D/g, "").slice(0, 5))}
-          inputMode="numeric"
+          onChange={(value) =>
+            set("postalCode", data.country === "DE" ? value.replace(/\D/g, "").slice(0, 5) : value.slice(0, 10))
+          }
+          inputMode={data.country === "DE" ? "numeric" : "text"}
           autoComplete="postal-code"
           error={err("postalCode")}
         />
@@ -543,19 +555,35 @@ export default function TkApplicationForm() {
           onChange={(value) => set("city", value)}
           maxLength={35}
           autoComplete="address-level2"
+          placeholder={data.country === "DE" ? "e.g. Berlin" : undefined}
           error={err("city")}
         />
-        <Full>
-          <TextField
-            name="addressExtra"
-            label="Address supplement"
-            value={data.addressExtra}
-            onChange={(value) => set("addressExtra", value)}
-            maxLength={35}
-            placeholder="e.g. c/o Name, Apartment 4"
-            error={err("addressExtra")}
-          />
-        </Full>
+        <TextField
+          name="addressExtra"
+          label="Address supplement"
+          value={data.addressExtra}
+          onChange={(value) => set("addressExtra", value)}
+          maxLength={35}
+          placeholder="e.g. c/o Name, Apartment 4"
+          error={err("addressExtra")}
+        />
+        <CountryField
+          name="country"
+          label="Country"
+          required
+          value={data.country}
+          onChange={(value) => {
+            set("country", value);
+            // German postal codes are digits only; re-check when switching.
+            if (value === "DE") set("postalCode", data.postalCode.replace(/\D/g, "").slice(0, 5));
+          }}
+          hint={
+            data.country && data.country !== "DE"
+              ? "Not in Germany yet? Use your current address – it can be updated with TK once you move."
+              : undefined
+          }
+          error={err("country")}
+        />
       </Section>
 
       <Section title="Personal circumstances">
@@ -642,11 +670,14 @@ export default function TkApplicationForm() {
         />
       )}
 
-      {requiresManualProcessing(data) && (
+      {requiresManualProcessing(data) && !err("lastInsuranceCountry") && (
         <Full>
-          <p className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
-            No problem – our team will submit your application to TK personally and contact you if anything else is
-            needed.
+          <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            We can&apos;t submit this case online yet. Please{" "}
+            <a href="/contact" target="_blank" className="font-semibold underline">
+              contact InsurBe support
+            </a>{" "}
+            and we&apos;ll help you apply with TK.
           </p>
         </Full>
       )}
@@ -1260,11 +1291,39 @@ export default function TkApplicationForm() {
     return null;
   };
 
+  /** Shrinks large photos before storing them, so uploads stay under the size limit. */
+  const addDocuments = async (
+    key: "photo" | "passport" | "proof" | "extraDocuments",
+    files: File[],
+  ) => {
+    setOptimizing(true);
+    const isPhoto = key === "photo";
+    const processed = await Promise.all(
+      files.map((file) =>
+        compressImage(file, isPhoto ? TK_FILE_RULES.photoMinWidth : 0, isPhoto ? TK_FILE_RULES.photoMinHeight : 0),
+      ),
+    );
+    setOptimizing(false);
+
+    setDocuments((prev) =>
+      key === "extraDocuments"
+        ? { ...prev, extra: [...prev.extra, ...processed].slice(0, TK_FILE_RULES.maxExtraDocuments) }
+        : { ...prev, [key]: processed[0] },
+    );
+    setErrors((prev) => ({ ...prev, [key]: undefined, extraDocuments: undefined }));
+  };
+
   const renderDocuments = () => (
     <div className="space-y-5">
       <p className="text-sm text-gray-600">
-        These are sent to TK together with your application. Max. 10 MB per file.
+        These are sent to TK together with your application. Large photos are reduced automatically; all files
+        together may be up to 4 MB.
       </p>
+      {optimizing && (
+        <p className="flex items-center gap-2 text-sm text-purple-700">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Optimising your files…
+        </p>
+      )}
       <FileField
         name="photo"
         label="Passport photo"
@@ -1272,10 +1331,7 @@ export default function TkApplicationForm() {
         accept="image/jpeg,image/png,image/tiff"
         required
         files={documents.photo ? [documents.photo] : []}
-        onAdd={([file]) => {
-          setDocuments((prev) => ({ ...prev, photo: file }));
-          setErrors((prev) => ({ ...prev, photo: undefined }));
-        }}
+        onAdd={(files) => addDocuments("photo", files.slice(0, 1))}
         onRemove={() => setDocuments((prev) => ({ ...prev, photo: null }))}
         error={err("photo")}
       />
@@ -1286,10 +1342,7 @@ export default function TkApplicationForm() {
         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.bmp,.tif,.tiff,.txt"
         required
         files={documents.passport ? [documents.passport] : []}
-        onAdd={([file]) => {
-          setDocuments((prev) => ({ ...prev, passport: file }));
-          setErrors((prev) => ({ ...prev, passport: undefined }));
-        }}
+        onAdd={(files) => addDocuments("passport", files.slice(0, 1))}
         onRemove={() => setDocuments((prev) => ({ ...prev, passport: null }))}
         error={err("passport")}
       />
@@ -1300,10 +1353,7 @@ export default function TkApplicationForm() {
         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.bmp,.tif,.tiff,.txt"
         required
         files={documents.proof ? [documents.proof] : []}
-        onAdd={([file]) => {
-          setDocuments((prev) => ({ ...prev, proof: file }));
-          setErrors((prev) => ({ ...prev, proof: undefined }));
-        }}
+        onAdd={(files) => addDocuments("proof", files.slice(0, 1))}
         onRemove={() => setDocuments((prev) => ({ ...prev, proof: null }))}
         error={err("proof")}
       />
@@ -1314,10 +1364,7 @@ export default function TkApplicationForm() {
         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.bmp,.tif,.tiff,.txt"
         multiple
         files={documents.extra}
-        onAdd={(files) => {
-          setDocuments((prev) => ({ ...prev, extra: [...prev.extra, ...files].slice(0, TK_FILE_RULES.maxExtraDocuments) }));
-          setErrors((prev) => ({ ...prev, extraDocuments: undefined }));
-        }}
+        onAdd={(files) => addDocuments("extraDocuments", files)}
         onRemove={(index) =>
           setDocuments((prev) => ({ ...prev, extra: prev.extra.filter((_, i) => i !== index) }))
         }
@@ -1347,7 +1394,12 @@ export default function TkApplicationForm() {
         ["Nationality", countryName(data.nationality)],
         ["Email", data.email],
         ["Phone", data.phone],
-        ["Address", `${data.street} ${data.houseNumber}, ${data.postalCode} ${data.city}`],
+        [
+          "Address",
+          `${data.street} ${data.houseNumber}, ${data.postalCode} ${data.city}${
+            data.country && data.country !== "DE" ? `, ${countryName(data.country)}` : ""
+          }`,
+        ],
         ["Children", yesNoText(data.hasChildren)],
       ],
     },
@@ -1579,7 +1631,7 @@ export default function TkApplicationForm() {
             <button
               type="button"
               onClick={isLast ? submit : next}
-              disabled={submitting || checking || (step === "details" && !data.customerGroup)}
+              disabled={submitting || checking || optimizing || (step === "details" && !data.customerGroup)}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 font-semibold text-white shadow-lg transition-all hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? (

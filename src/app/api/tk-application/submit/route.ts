@@ -2,13 +2,10 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { Resend } from "resend";
 
+import countriesData from "@/lib/countriesData.json";
 import { prisma } from "@/lib/prisma";
 import { ensureApplicationUserAccount } from "@/lib/ensureApplicationUserAccount";
 import { resolveReferralAttribution } from "@/lib/referralAttribution";
-import {
-  APPLICATIONS_TEAM_EMAIL,
-  generateApplicationPDF,
-} from "@/app/providers/applicationPdf";
 import {
   getTkEnvironment,
   getTkVermittler,
@@ -18,11 +15,7 @@ import {
 } from "@/app/providers/tkApi/client";
 import { mapTkMessages } from "@/app/providers/tkApi/messages";
 import { buildTkApiPayload } from "@/app/providers/tkApi/payload";
-import {
-  requiresManualProcessing,
-  TK_FILE_RULES,
-  validateTkApplication,
-} from "@/app/providers/tkApi/rules";
+import { TK_FILE_RULES, validateTkApplication } from "@/app/providers/tkApi/rules";
 import {
   CUSTOMER_GROUP_LABELS,
   EMPTY_TK_FORM,
@@ -34,25 +27,29 @@ import {
  * TK NEW MEMBERSHIP API SUBMISSION
  *
  * Used by /tk-application. Independent from the legacy /api/tk/submit flow.
+ * TK is the only delivery channel - no application data is emailed.
  *
  * 1. validate form + documents
- * 2. reserve an application number (insuranceApplication row, PENDING)
- * 3. submit to TK (staging unless TK_API_ENV=production)
- *      accepted   -> SUBMITTED + antragId stored
- *      rejected   -> row removed, errors returned to the form (422)
- *      unreachable-> stays PENDING, team processes it manually
- *      never insured in DE / agreement country -> not sent, team processes it
- * 4. team email (PDF + documents) - delivery channel while not on production
+ * 2. production only: block duplicates (same email + date of birth, 30 days)
+ * 3. reserve an application number (insuranceApplication row, PENDING)
+ * 4. submit to TK (staging unless TK_API_ENV=production)
+ *      accepted        -> SUBMITTED + antragId stored
+ *      rejected (400)  -> row removed, errors returned to the form (422)
+ *      not reached     -> FAILED, user may retry (503)
+ *      no answer       -> stays PENDING (TK may have it), user must not retry (504)
  * 5. partner conversion, user account, acknowledgement email
  */
 
 export const runtime = "nodejs";
 
+// The TK client keeps its total budget at 45 s, well inside this limit.
 export const maxDuration = 60;
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const PUBLIC_PRODUCT = "Public Health Insurance";
+
+const DUPLICATE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
 const escapeHtml = (value: unknown) =>
   String(value ?? "")
@@ -61,7 +58,9 @@ const escapeHtml = (value: unknown) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-const yesNo = (value: boolean | null) => (value === true ? "Yes" : value === false ? "No" : "-");
+const countryName = (code: string) =>
+  (countriesData as { name: { common: string }; cca2: string }[]).find((country) => country.cca2 === code)?.name
+    .common || code;
 
 const maskIban = (iban: string) => {
   const compact = iban.replace(/\s+/g, "");
@@ -125,6 +124,15 @@ const validateFiles = (files: UploadedFiles) => {
     errors.extraDocuments = "Additional documents must be PDF, Word, image or text files of 10 MB or less";
   }
 
+  const total = [files.photo, files.passport, files.proof, ...files.extra].reduce(
+    (sum, file) => sum + (file?.size ?? 0),
+    0,
+  );
+
+  if (total > TK_FILE_RULES.maxTotalBytes && !errors.extraDocuments) {
+    errors.extraDocuments = "All documents together must be 4 MB or smaller";
+  }
+
   return errors;
 };
 
@@ -161,6 +169,27 @@ const reserveApplication = async (
   throw new Error("Could not reserve an application number");
 };
 
+/**
+ * A previous production submission of this API form for the same person
+ * (email + date of birth) within the last 30 days. Legacy-flow rows have
+ * no tkApi block and are ignored.
+ */
+const findRecentProductionApplication = async (email: string, dateOfBirth: string) =>
+  prisma.insuranceApplication.findFirst({
+    where: {
+      provider: "TK",
+      status: { in: ["SUBMITTED", "PENDING"] },
+      createdAt: { gte: new Date(Date.now() - DUPLICATE_WINDOW_MS) },
+      AND: [
+        { payload: { path: ["personal", "email"], equals: email } },
+        { payload: { path: ["selectPlan", "dob"], equals: dateOfBirth } },
+        { payload: { path: ["tkApi", "environment"], equals: "production" } },
+      ],
+    },
+    orderBy: { createdAt: "desc" },
+    select: { applicationNumber: true, status: true },
+  });
+
 /* -------------------------------------------------------------------------- */
 /*                                STORED DATA                                 */
 /* -------------------------------------------------------------------------- */
@@ -183,7 +212,7 @@ const buildStoredPayload = (data: TkFormData) => ({
     streetNo: `${data.street.trim()} ${data.houseNumber.trim()}`.trim(),
     postalCode: data.postalCode.trim(),
     city: data.city.trim(),
-    country: "Germany",
+    country: countryName(data.country || "DE"),
   },
   selectPlan: {
     provider: "TK",
@@ -200,126 +229,6 @@ const buildStoredPayload = (data: TkFormData) => ({
     bic: data.bic ? "***" : "",
   },
 });
-
-const pdfRows = (data: TkFormData, applicationNumber: string, tkLine: string) => {
-  const rows: [string, string | null | undefined][] = [
-    ["Application ID:", applicationNumber],
-    ["TK API:", tkLine],
-    ["Customer group:", data.customerGroup ? CUSTOMER_GROUP_LABELS[data.customerGroup] : ""],
-    ["Insurance start:", data.insuranceStart],
-    ["Language:", data.language],
-    ["Gender:", data.gender ? GENDER_LABELS[data.gender] : ""],
-    ["Title:", data.title],
-    ["First name:", data.firstName],
-    ["Last name:", data.lastName],
-    ["Birth name:", data.birthName],
-    ["Date of birth:", data.dateOfBirth],
-    ["Place of birth:", data.placeOfBirth],
-    ["Country of birth:", data.countryOfBirth],
-    ["Nationality:", data.nationality],
-    ["Email:", data.email],
-    ["Phone:", data.phone],
-    ["Address:", `${data.street} ${data.houseNumber}`],
-    ["Address suppl.:", data.addressExtra],
-    ["Postal code / city:", `${data.postalCode} ${data.city}`],
-    ["Children:", yesNo(data.hasChildren)],
-    ["Civil serv. pension:", yesNo(data.receivesCivilServicePension)],
-    ["Co-insure family:", yesNo(data.coInsureFamily)],
-    ["Never insured:", data.neverInsured ? "Yes" : "No"],
-    ["Lived abroad:", data.neverInsured ? "-" : yesNo(data.livedAbroad)],
-    [data.neverInsured ? "Country lived in:" : "Last ins. country:", data.lastInsuranceCountry],
-    ["Previous insurer:", data.previousInsurerName],
-    ["Previous ins. type:", data.previousInsuranceType],
-    ["Self insured:", yesNo(data.selfInsured)],
-    ["Compulsorily ins.:", yesNo(data.compulsorilyInsured)],
-    ["Insurance number:", data.insuranceNumber],
-  ];
-
-  if (data.customerGroup === "STUDIERENDE") {
-    rows.push(
-      ["University:", data.university],
-      ["Study start:", data.studyStart],
-      ["Exempt from KV:", yesNo(data.exemptFromKv)],
-      ["Unemployment ben.:", yesNo(data.unemploymentBenefits)],
-      ["Benefits in kind:", yesNo(data.benefitsInKind)],
-      ["Employed:", yesNo(data.studentEmployed)],
-      ["Study hours/week:", data.studyHoursPerWeek],
-      ["Work hours/week:", data.workHoursPerWeek],
-      ["Work in breaks:", yesNo(data.workDuringBreaks)],
-      ["Internship:", yesNo(data.internship)],
-      ["Gross salary/month:", data.monthlyGrossSalary],
-      ["Self-employed:", yesNo(data.studentSelfEmployed)],
-      ["Self-empl. hours:", data.studentSelfEmployedHours],
-      ["Self-empl. income:", data.studentSelfEmployedIncome],
-      ["Has employees:", yesNo(data.studentSelfEmployedHasEmployees)],
-      ["Minijob employees:", yesNo(data.studentSelfEmployedMinijobEmployees)],
-      ["Pension:", yesNo(data.pension)],
-      ["Pension type:", data.pensionType],
-      ["Pension name:", data.pensionName],
-      ["SEPA mandate:", data.sepaEnabled ? "Yes" : "No"],
-    );
-
-    if (data.sepaEnabled) {
-      rows.push(
-        ["IBAN:", data.iban.replace(/\s+/g, "").toUpperCase()],
-        ["BIC:", data.bic],
-        [
-          "Account holder:",
-          data.accountHolderIsApplicant
-            ? "Applicant"
-            : `${data.holderFirstName} ${data.holderLastName}, ${data.holderStreet} ${data.holderHouseNumber}, ${data.holderPostalCode} ${data.holderCity}, ${data.holderCountry}`,
-        ],
-      );
-    }
-  } else {
-    rows.push(
-      ["Receives pension:", yesNo(data.receivesPension)],
-      ["KV/PV exempt:", yesNo(data.exemptFromKvPv)],
-      ["Employer:", data.employerName],
-      [
-        "Employer address:",
-        data.employerName
-          ? `${data.employerStreet} ${data.employerHouseNumber}, ${data.employerPostalCode} ${data.employerCity}`
-          : "",
-      ],
-    );
-
-    if (data.customerGroup === "AUSZUBILDENDE") {
-      rows.push(
-        ["Training start:", data.trainingStart],
-        ["Soc. sec. card req.:", yesNo(data.socialSecurityCardRequested)],
-      );
-    } else {
-      rows.push(
-        ["Employment start:", data.employmentStart],
-        ["Salary class:", data.salaryClass],
-        ["Gross salary/month:", data.monthlySalary],
-        ["First employment:", yesNo(data.firstEmployment)],
-        ["Managing director:", yesNo(data.managingDirector)],
-        ["Also self-employed:", yesNo(data.employeeSelfEmployed)],
-      );
-
-      if (data.employeeSelfEmployed) {
-        rows.push(
-          ["Business founder:", yesNo(data.businessFounder)],
-          ["Several minijobbers:", yesNo(data.employsMultipleMinijobbers)],
-          ["Employs workers:", yesNo(data.employsWorkers)],
-          ["Self-empl. h/week:", data.selfEmployedHoursPerWeek],
-          ["Self-empl. income:", data.selfEmployedMonthlyIncome],
-          ["Employee h/week:", data.employeeHoursPerWeek],
-        );
-      }
-    }
-  }
-
-  rows.push(
-    ["Broker mandate:", data.brokerMandate ? "Granted (ERWEITERT)" : "No"],
-    ["Legal notice:", data.legalNotice ? "Confirmed" : "No"],
-    ["TK welcome mails:", data.tkWelcomeMail ? "Yes" : "No"],
-  );
-
-  return rows;
-};
 
 /* -------------------------------------------------------------------------- */
 /*                                   ROUTE                                    */
@@ -359,8 +268,32 @@ export async function POST(req: Request) {
   }
 
   const environment = getTkEnvironment();
+  const email = data.email.trim().toLowerCase();
 
   try {
+    /**
+     * DUPLICATE GUARD (production only - staging is used for repeated tests)
+     */
+    if (environment === "production") {
+      const previous = await findRecentProductionApplication(email, data.dateOfBirth);
+
+      if (previous?.status === "SUBMITTED") {
+        return NextResponse.json({
+          success: true,
+          applicationId: previous.applicationNumber,
+          alreadySubmitted: true,
+        });
+      }
+
+      if (previous) {
+        return errorResponse(
+          409,
+          `We are still confirming your earlier application (${previous.applicationNumber}) with TK. Please don't submit it again – we will contact you.`,
+          { applicationId: previous.applicationNumber },
+        );
+      }
+    }
+
     const referral = await resolveReferralAttribution(
       (formData.get("partnerRef") as string) || null,
     );
@@ -375,10 +308,22 @@ export async function POST(req: Request) {
       status: "PENDING",
       partnerId: referral.partnerId,
       source: referral.source,
-      payload: storedPayload as Prisma.InputJsonValue,
+      payload: { ...storedPayload, tkApi: { environment } } as Prisma.InputJsonValue,
     });
 
     const applicationNumber = application.applicationNumber as string;
+
+    const saveResult = (status: "SUBMITTED" | "PENDING" | "FAILED", tkApi: Record<string, unknown>) =>
+      prisma.insuranceApplication.update({
+        where: { id: application.id },
+        data: {
+          status,
+          payload: {
+            ...storedPayload,
+            tkApi: { environment, submittedAt: new Date().toISOString(), ...tkApi },
+          } as Prisma.InputJsonValue,
+        },
+      });
 
     /**
      * SUBMIT TO TK
@@ -395,17 +340,9 @@ export async function POST(req: Request) {
       vorgangsId: applicationNumber,
     });
 
-    let tkResult: { accepted: boolean; antragId: string | null; error: string | null };
-
-    const manualOnly = requiresManualProcessing(data);
+    let antragId: string;
 
     try {
-      if (manualOnly) {
-        throw new Error(
-          `Never insured, lived in ${data.lastInsuranceCountry}: TK requires a previous insurer for this country, so it was not sent via the API`,
-        );
-      }
-
       const result = await submitTkMembership(tkPayload, attachments);
 
       if (!result.ok) {
@@ -421,101 +358,39 @@ export async function POST(req: Request) {
         });
       }
 
-      tkResult = { accepted: true, antragId: result.antragId, error: null };
+      antragId = result.antragId;
     } catch (error) {
-      const message = error instanceof TkApiError || error instanceof Error ? error.message : "Unknown TK error";
-      if (manualOnly) console.warn("TK MANUAL PROCESSING:", applicationNumber, message);
-      else console.error("TK API UNAVAILABLE:", applicationNumber, message);
-      tkResult = { accepted: false, antragId: null, error: message };
-    }
+      const message = error instanceof Error ? error.message : "Unknown TK error";
+      const outcomeUnknown = error instanceof TkApiError && error.outcomeUnknown;
 
-    // On staging TK never processes the application: the team must forward it.
-    const deliveredToTk = tkResult.accepted && environment === "production";
+      console.error("TK API FAILED:", applicationNumber, outcomeUnknown ? "(outcome unknown)" : "(not sent)", message);
 
-    const tkApiInfo = {
-      environment,
-      accepted: tkResult.accepted,
-      antragId: tkResult.antragId,
-      error: tkResult.error,
-      manualProcessing: manualOnly,
-      submittedAt: new Date().toISOString(),
-    };
+      if (outcomeUnknown) {
+        // TK may have stored it: keep PENDING and stop the user from resubmitting.
+        await saveResult("PENDING", { accepted: null, antragId: null, error: message, outcomeUnknown: true });
 
-    await prisma.insuranceApplication.update({
-      where: { id: application.id },
-      data: {
-        status: tkResult.accepted ? "SUBMITTED" : "PENDING",
-        payload: { ...storedPayload, tkApi: tkApiInfo } as Prisma.InputJsonValue,
-      },
-    });
-
-    /**
-     * TEAM EMAIL
-     */
-    const tkLine = tkResult.accepted
-      ? `Accepted (${environment}) - TK ref ${tkResult.antragId}`
-      : `NOT SUBMITTED (${environment}) - ${tkResult.error}`;
-
-    const action = deliveredToTk
-      ? `Submitted to TK production. TK reference: <b>${escapeHtml(tkResult.antragId)}</b>. No action needed.`
-      : manualOnly
-        ? `Applicant has <b>never had health insurance</b> and lived in <b>${escapeHtml(data.lastInsuranceCountry)}</b>. TK's API requires a previous insurer for this country, so it was <b>not sent</b> - please process this application with TK manually.`
-        : environment === "staging"
-        ? "TK API is in <b>staging</b> mode - TK will NOT process this. Please forward this application to TK."
-        : "TK API was unavailable - <b>manual processing required</b>. Please forward this application to TK.";
-
-    const pdfBuffer = await generateApplicationPDF(
-      "InsurBe TK Application (API form)",
-      pdfRows(data, applicationNumber, tkLine),
-    );
-
-    const { error: teamMailError } = await resend.emails.send({
-      from: "InsurBe <noreply@insurbe.com>",
-      to: APPLICATIONS_TEAM_EMAIL,
-      subject: `${deliveredToTk ? "" : "[ACTION] "}New TK Application - ${data.firstName} ${data.lastName} (${applicationNumber})`,
-      html: `
-        <div style="font-family:Arial,sans-serif;line-height:1.6;padding:20px">
-          <h2>New TK Insurance Application</h2>
-          <p>${action}</p>
-          <table cellpadding="10" cellspacing="0" border="1" style="border-collapse:collapse;width:100%;margin-top:20px;">
-            <tr><td><b>Application ID</b></td><td>${escapeHtml(applicationNumber)}</td></tr>
-            <tr><td><b>Name</b></td><td>${escapeHtml(data.firstName)} ${escapeHtml(data.lastName)}</td></tr>
-            <tr><td><b>Email</b></td><td>${escapeHtml(data.email)}</td></tr>
-            <tr><td><b>Phone</b></td><td>${escapeHtml(data.phone)}</td></tr>
-            <tr><td><b>Customer group</b></td><td>${escapeHtml(data.customerGroup ? CUSTOMER_GROUP_LABELS[data.customerGroup] : "")}</td></tr>
-            <tr><td><b>Insurance start</b></td><td>${escapeHtml(data.insuranceStart)}</td></tr>
-            <tr><td><b>Source</b></td><td>${escapeHtml(referral.source)}${referral.partnerId ? ` (${escapeHtml(referral.partnerId)})` : ""}</td></tr>
-            <tr><td><b>TK API</b></td><td>${escapeHtml(tkLine.slice(0, 500))}</td></tr>
-          </table>
-        </div>
-      `,
-      attachments: [
-        { filename: `${applicationNumber}.pdf`, content: pdfBuffer },
-        ...attachments.map((file, index) => ({
-          filename: `${index === 0 ? "photo" : index === 1 ? "passport" : index === 2 ? "proof" : `document-${index - 2}`}-${file.filename}`,
-          content: file.data,
-        })),
-      ],
-    });
-
-    if (teamMailError) {
-      console.error("TK TEAM EMAIL FAILED:", applicationNumber, teamMailError.message);
-
-      if (!deliveredToTk) {
-        // Neither TK nor the team has the application: let the user retry.
-        await prisma.insuranceApplication
-          .update({ where: { id: application.id }, data: { status: "FAILED" } })
-          .catch(() => {});
-
-        return errorResponse(502, "We couldn't submit your application right now. Please try again shortly.");
+        return errorResponse(
+          504,
+          `TK did not confirm your application in time. It may still have been received, so please don't submit it again – we will check and contact you. Your reference: ${applicationNumber}.`,
+          { applicationId: applicationNumber },
+        );
       }
+
+      await saveResult("FAILED", { accepted: false, antragId: null, error: message, outcomeUnknown: false });
+
+      return errorResponse(
+        503,
+        "TK can't be reached right now. Nothing was submitted – please try again in a few minutes.",
+      );
     }
+
+    await saveResult("SUBMITTED", { accepted: true, antragId, error: null });
+
+    console.info(`TK API ACCEPTED: ${applicationNumber} -> TK antragId ${antragId} (${environment})`);
 
     /**
      * PARTNER CONVERSION (same rules as the legacy flow)
      */
-    const email = data.email.trim().toLowerCase();
-
     const existingApplication = await prisma.application.findFirst({
       where: { userId: email, product: PUBLIC_PRODUCT },
       select: { id: true },
@@ -546,7 +421,7 @@ export async function POST(req: Request) {
     }).catch((error) => console.error("TK USER ACCOUNT FAILED:", error));
 
     /**
-     * USER ACKNOWLEDGEMENT
+     * USER ACKNOWLEDGEMENT (no application data / documents)
      */
     try {
       await resend.emails.send({
@@ -576,7 +451,9 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       applicationId: applicationNumber,
-      tkReference: deliveredToTk ? tkResult.antragId : null,
+      // TK's own application number - present only when TK accepted it.
+      tkReference: antragId,
+      tkEnvironment: environment,
     });
   } catch (error) {
     console.error("TK APPLICATION ROUTE ERROR:", error);

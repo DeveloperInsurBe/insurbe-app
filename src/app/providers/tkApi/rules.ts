@@ -37,6 +37,8 @@ export const TK_AGREEMENT_COUNTRIES = new Set([
 export const TK_FILE_RULES = {
   maxFileBytes: 10 * 1024 * 1024,
   maxExtraDocuments: 5,
+  // Hosting request limit is ~4.5 MB (Vercel); keep room for the form data.
+  maxTotalBytes: 4 * 1024 * 1024,
   photoMinWidth: 300,
   photoMinHeight: 400,
   photoTypes: ["image/jpeg", "image/png", "image/tiff"],
@@ -60,7 +62,8 @@ const NAME_RE = /^[A-Za-zÀ-ÖØ-öø-ÿĀ-žẞ' .-]+$/;
 const TEXT_RE = /^[A-Za-z0-9À-ÖØ-öø-ÿĀ-žẞ' .,&()\/+-]+$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PHONE_RE = /^\+?[0-9 ()\/-]{5,20}$/;
-const PLZ_DE_RE = /^\d{5}$/;
+// German postal codes: 5 digits, 01001-99998 (never start with 00).
+const PLZ_DE_RE = /^(0[1-9]\d{3}|[1-9]\d{4})$/;
 const HOUSE_NO_RE = /^\d{1,4}\s?[A-Za-z0-9\/-]{0,4}$/;
 const ISO_RE = /^[A-Z]{2}$/;
 
@@ -139,7 +142,8 @@ export const needsPreviousInsurer = (data: TkFormData) =>
 /**
  * Never-insured applicants from Germany or a social security agreement
  * country cannot be submitted via the API: TK insists on a previous insurer
- * (10020 / 10030), and we must not invent one. The team processes these.
+ * (10020 / 10030), and we must not invent one. The form blocks these and
+ * points the applicant to InsurBe support.
  */
 export const requiresManualProcessing = (data: TkFormData) =>
   data.neverInsured &&
@@ -200,8 +204,9 @@ const checkGermanAddress = (
 
   const p = postalCode.trim();
   if (!p) errors[key("postalCode")] = "Postal code is required";
-  else if (germanOnly && !PLZ_DE_RE.test(p)) errors[key("postalCode")] = "German postal codes have 5 digits";
+  else if (germanOnly && !PLZ_DE_RE.test(p)) errors[key("postalCode")] = "Please enter a valid German postal code (5 digits)";
   else if (!germanOnly && (p.length < 2 || p.length > 10)) errors[key("postalCode")] = "Postal code must be 2–10 characters";
+  else if (!germanOnly && !/^[A-Za-z0-9 -]+$/.test(p)) errors[key("postalCode")] = "Postal code may only contain letters, digits, spaces and hyphens";
 
   const c = city.trim();
   if (!c) errors[key("city")] = "City is required";
@@ -254,7 +259,10 @@ const validatePersonal = (data: TkFormData, errors: TkErrors) => {
   if (!phone) errors.phone = "Phone number is required";
   else if (!PHONE_RE.test(phone)) errors.phone = "Use digits only, e.g. +49 151 12345678 (max. 20 characters)";
 
-  checkGermanAddress(errors, "", data.street, data.houseNumber, data.postalCode, data.city);
+  // TK accepts a home address abroad for new applications (verified on staging);
+  // only address *changes* must be German.
+  if (!ISO_RE.test(data.country)) errors.country = "Please choose a country";
+  checkGermanAddress(errors, "", data.street, data.houseNumber, data.postalCode, data.city, data.country === "DE");
   if (data.addressExtra.trim()) checkText(errors, "addressExtra", data.addressExtra, "Address supplement", 35, false);
 
   checkYesNo(errors, "hasChildren", data.hasChildren);
@@ -271,6 +279,8 @@ const validateInsurance = (data: TkFormData, errors: TkErrors) => {
   if (data.neverInsured) {
     if (!ISO_RE.test(data.lastInsuranceCountry))
       errors.lastInsuranceCountry = "Please choose the country you lived in";
+    else if (requiresManualProcessing(data))
+      errors.lastInsuranceCountry = "We can't submit this case online yet. Please contact InsurBe support.";
     return;
   }
 
@@ -458,7 +468,7 @@ const PLAN_FIELDS = ["customerGroup", "insuranceStart", "language"];
 const PERSONAL_FIELDS = [
   "gender", "title", "firstName", "lastName", "birthName", "dateOfBirth", "placeOfBirth",
   "countryOfBirth", "nationality", "email", "phone", "street", "houseNumber", "addressExtra",
-  "postalCode", "city", "hasChildren", "receivesCivilServicePension", "coInsureFamily",
+  "postalCode", "city", "country", "hasChildren", "receivesCivilServicePension", "coInsureFamily",
   "receivesPension", "exemptFromKvPv",
 ];
 

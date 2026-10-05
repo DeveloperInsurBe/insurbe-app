@@ -41,12 +41,13 @@ export type TkFormData = {
   email: string;
   phone: string;
 
-  /* ADDRESS (must be in Germany) */
+  /* ADDRESS (any country - TK accepts addresses abroad for new applications) */
   street: string;
   houseNumber: string;
   addressExtra: string;
   postalCode: string;
   city: string;
+  country: string; // ISO-3166-1 alpha-2, defaults to DE
 
   /* PERSONAL CIRCUMSTANCES */
   hasChildren: YesNo; // kinder
@@ -151,6 +152,7 @@ export const EMPTY_TK_FORM: TkFormData = {
   addressExtra: "",
   postalCode: "",
   city: "",
+  country: "DE",
   hasChildren: null,
   receivesCivilServicePension: null,
   coInsureFamily: null,
