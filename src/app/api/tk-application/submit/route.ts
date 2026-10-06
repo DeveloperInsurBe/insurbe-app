@@ -16,6 +16,7 @@ import {
 import { mapTkMessages } from "@/app/providers/tkApi/messages";
 import { buildTkApiPayload } from "@/app/providers/tkApi/payload";
 import { TK_FILE_RULES, validateTkApplication } from "@/app/providers/tkApi/rules";
+import { sendTkTeamEmail } from "@/app/providers/tkApi/teamEmail";
 import {
   CUSTOMER_GROUP_LABELS,
   EMPTY_TK_FORM,
@@ -27,7 +28,7 @@ import {
  * TK NEW MEMBERSHIP API SUBMISSION
  *
  * Used by /tk-application. Independent from the legacy /api/tk/submit flow.
- * TK is the only delivery channel - no application data is emailed.
+ * TK is the delivery channel; the applications team gets a copy by email.
  *
  * 1. validate form + documents
  * 2. production only: block duplicates (same email + date of birth, 30 days)
@@ -37,7 +38,8 @@ import {
  *      rejected (400)  -> row removed, errors returned to the form (422)
  *      not reached     -> FAILED, user may retry (503)
  *      no answer       -> stays PENDING (TK may have it), user must not retry (504)
- * 5. partner conversion, user account, acknowledgement email
+ * 5. team email copy (accepted / no answer), partner conversion, user account,
+ *    acknowledgement email
  */
 
 export const runtime = "nodejs";
@@ -369,6 +371,17 @@ export async function POST(req: Request) {
         // TK may have stored it: keep PENDING and stop the user from resubmitting.
         await saveResult("PENDING", { accepted: null, antragId: null, error: message, outcomeUnknown: true });
 
+        await sendTkTeamEmail({
+          data,
+          applicationNumber,
+          environment,
+          outcome: "unknown",
+          antragId: null,
+          error: message,
+          referral,
+          attachments,
+        });
+
         return errorResponse(
           504,
           `TK did not confirm your application in time. It may still have been received, so please don't submit it again – we will check and contact you. Your reference: ${applicationNumber}.`,
@@ -387,6 +400,19 @@ export async function POST(req: Request) {
     await saveResult("SUBMITTED", { accepted: true, antragId, error: null });
 
     console.info(`TK API ACCEPTED: ${applicationNumber} -> TK antragId ${antragId} (${environment})`);
+
+    /**
+     * TEAM EMAIL COPY (best effort - never changes the outcome)
+     */
+    await sendTkTeamEmail({
+      data,
+      applicationNumber,
+      environment,
+      outcome: "accepted",
+      antragId,
+      referral,
+      attachments,
+    });
 
     /**
      * PARTNER CONVERSION (same rules as the legacy flow)
