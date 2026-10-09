@@ -178,8 +178,9 @@ export async function POST(
       }
     };
 
-    // Static broker details requested
-    const AGENT_NUMBER = "509941";
+    // InsurBe's Hallesche broker number (Vermittlernummer), shown in every
+    // broker-number field of the application PDF.
+    const AGENT_NUMBER = "828987";
     const AGENT_NAME = "InsurBe";
 
     // =========================
@@ -699,6 +700,16 @@ export async function POST(
     } catch (agentSignatureError) {
       console.warn("⚠️ Global agent signature skipped:", agentSignatureError);
     }
+
+    // Log every broker-related field and its final value, so any extra
+    // broker-number field in Hallesche's PDF shows up in the logs.
+    form
+      .getFields()
+      .filter((field) => /verm|vm_|makler/i.test(field.getName()))
+      .forEach((field) => {
+        const value = field instanceof PDFTextField ? field.getText() : "";
+        console.log("🧾 BROKER FIELD:", field.getName(), "=", value ?? "");
+      });
 
     form.flatten();
 
