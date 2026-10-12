@@ -153,9 +153,9 @@ export const EMPTY_TK_FORM: TkFormData = {
   postalCode: "",
   city: "",
   country: "DE",
-  hasChildren: null,
-  receivesCivilServicePension: null,
-  coInsureFamily: null,
+  hasChildren: false, // pre-selected "No"
+  receivesCivilServicePension: false, // pre-selected "No"
+  coInsureFamily: false, // pre-selected "No"
   receivesPension: null,
   exemptFromKvPv: null,
   neverInsured: false,
@@ -168,21 +168,21 @@ export const EMPTY_TK_FORM: TkFormData = {
   insuranceNumber: "",
   university: "",
   studyStart: "",
-  exemptFromKv: null,
-  unemploymentBenefits: null,
-  benefitsInKind: null,
-  studentEmployed: null,
+  exemptFromKv: false, // pre-selected "No"
+  unemploymentBenefits: false, // pre-selected "No"
+  benefitsInKind: false, // pre-selected "No"
+  studentEmployed: false, // pre-selected "No"
   studyHoursPerWeek: "",
   workHoursPerWeek: "",
   workDuringBreaks: null,
   internship: null,
   monthlyGrossSalary: "",
-  studentSelfEmployed: null,
+  studentSelfEmployed: false, // pre-selected "No"
   studentSelfEmployedHours: "",
   studentSelfEmployedIncome: "",
   studentSelfEmployedHasEmployees: null,
   studentSelfEmployedMinijobEmployees: null,
-  pension: null,
+  pension: false, // pre-selected "No"
   pensionType: "",
   pensionName: "",
   employerName: "",
