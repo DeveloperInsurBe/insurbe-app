@@ -13,13 +13,6 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // Temporary: Visa Seekers now uses the HanseMerkur incoming page.
-      // Remove this entry to bring back the old /products/visaSeakers page.
-      {
-        source: "/products/visaSeakers",
-        destination: "/products/incomingvisaseakers",
-        permanent: false,
-      },
       {
         source: "/de",
         destination: "/",

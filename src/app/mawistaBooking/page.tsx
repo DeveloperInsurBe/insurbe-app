@@ -1,182 +1,107 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
-import { INSURANCE_PLANS } from "../constants/insurance";
+import Image from "next/image";
+import { Globe, Lock, ShieldCheck } from "lucide-react";
 
-export default function MawistaBookingIframe() {
-  const [isLoaded, setIsLoaded] = useState(false);
+// MAWISTA asked us to open their booking as an external link instead of an
+// iframe: cross-domain security settings (and their payment providers)
+// break the application process inside embedded iframes.
+const mawistaStudentFormUrl =
+  "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25";
 
-  // Delay badge appearance by 1 second
-  const [showBadge, setShowBadge] = useState(false);
-  
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowBadge(true);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
+export default function MawistaBookingPage() {
   return (
-    <section className="py-20 px-4 sm:px-8 lg:px-16 bg-gradient-to-b from-white to-purple-50">
-      <div className="max-w-7xl mx-auto">
+    <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#faf7ff] to-[#f5f3ff] px-4 py-12 sm:px-8 lg:px-16">
+      <div className="absolute -top-32 right-0 h-96 w-96 rounded-full bg-[#820ad1]/10 blur-3xl" />
+      <div className="absolute -bottom-32 left-0 h-96 w-96 rounded-full bg-[#c084fc]/10 blur-3xl" />
 
+      <div className="relative z-10 mx-auto max-w-7xl">
         {/* Heading */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-10 text-center"
         >
-          <p className="text-sm font-semibold text-purple-600 uppercase tracking-widest">
+          <p className="text-sm font-semibold uppercase tracking-widest text-purple-600">
             Official Partner
           </p>
 
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mt-3">
+          <h1 className="mt-8 text-4xl font-black tracking-tight text-[#111827] md:text-6xl">
             Apply for{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">
+            <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
               Mawista Student Insurance
             </span>
-          </h2>
+          </h1>
 
-          <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
+          <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-[#667085] md:text-lg">
             Complete your insurance application securely through our official
             partner booking system.
           </p>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#e9d5ff] bg-white px-4 py-2 text-sm font-medium text-[#475467] shadow-sm">
+              <ShieldCheck className="h-4 w-4 text-[#820ad1]" />
+              Secure Application
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#e9d5ff] bg-white px-4 py-2 text-sm font-medium text-[#475467] shadow-sm">
+              <Lock className="h-4 w-4 text-[#820ad1]" />
+              Opens in New Tab
+            </div>
+          </div>
         </motion.div>
 
-        {/* Iframe Container - REMOVED overflow-hidden */}
-        <div className="relative rounded-3xl bg-white shadow-2xl">
-          
-          {/* 🎁 Offer Badge - DELAYED & CONDITIONAL */}
-          {showBadge && isLoaded && (
-            <div className="absolute -top-10 -right-0 translate-x-1/4 -translate-y-1/4 z-40">
-              {/* Glow layer */}
-              <motion.div
-                aria-hidden
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: [0.4, 0.8, 0.4],
-                  scale: [1, 1.08, 1],
-                }}
-                transition={{
-                  duration: 2.8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="
-                  absolute inset-0
-                  rounded-full
-                  bg-gradient-to-br from-pink-300 to-pink-400
-                  blur-xl
-                "
-              />
-
-              {/* Badge */}
-              <motion.div
-                initial={{ scale: 0.6, opacity: 0, rotate: -20 }}
-                animate={{
-                  scale: 1,
-                  opacity: 1,
-                  rotate: 0,
-                  y: [0, -6, 0],
-                }}
-                transition={{
-                  scale: { duration: 0.4, ease: "easeOut" },
-                  opacity: { duration: 0.3 },
-                  rotate: { duration: 0.4 },
-                  y: {
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
-                }}
-                whileHover={{ scale: 1.08 }}
-                className="
-                  relative
-                  w-24 h-24
-                  rounded-full
-                  bg-gradient-to-br from-primary to-purple-400 
-                  text-white
-                  flex items-center justify-center
-                  shadow-2xl
-                  border border-white
-                  cursor-default
-                "
-              >
-                {/* TEXT WRAPPER WITH TILT */}
-                <motion.div
-                  initial={{ rotate: -6 }}
-                  animate={{ rotate: [-6, -4, -6] }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="text-center font-extrabold"
-                >
-                  <span className="block text-xl leading-none tracking-tight">
-                    €{INSURANCE_PLANS.INSURBE_STUDENT_BONUS}
-                  </span>
-
-                  <span className="block text-[12px] font-semibold px-2 leading-tight opacity-95 mt-0.5">
-                    Amazon Welcome Bonus*
-                  </span>
-                </motion.div>
-              </motion.div>
-            </div>
-          )}
-
-          <div className="w-full h-[2700px] relative">
-            {/* Skeleton Loader */}
-            {!isLoaded && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-gradient-to-r from-gray-100 to-gray-200 animate-pulse"
-              >
-                {/* Skeleton Form Structure */}
-                <div className="p-8 space-y-6">
-                  {/* Header Row */}
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="h-10 w-48 bg-gray-300 rounded-lg"></div>
-                    <div className="h-8 w-24 bg-gray-300 rounded-md"></div>
-                  </div>
-
-                  {/* Form Sections */}
-                  {[1, 2, 3, 4, 5].map((section) => (
-                    <div key={section} className="space-y-4">
-                      <div className="h-6 w-32 bg-gray-300 rounded-md"></div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {[1, 2, 3].map((field) => (
-                          <div key={field} className="h-12 bg-gray-300 rounded-lg"></div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Bottom Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t">
-                    <div className="h-12 flex-1 bg-gray-300 rounded-lg"></div>
-                    <div className="h-12 w-32 bg-blue-300 rounded-lg"></div>
-                  </div>
+        {/* Application card */}
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="relative rounded-[36px] border border-white/60 bg-white/80 shadow-[0_25px_80px_rgba(130,10,209,0.10)] backdrop-blur-xl"
+        >
+          <div className="overflow-hidden rounded-[36px]">
+            <div className="border-b border-[#f3e8ff] bg-gradient-to-r from-[#faf5ff] to-white px-6 py-5">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-[#111827]">Application Form</h2>
+                  <p className="mt-1 text-sm text-[#667085]">
+                    Open the official MAWISTA student insurance form in a new tab.
+                  </p>
                 </div>
-              </motion.div>
-            )}
+                <Image
+                  src="/partners_asset/mawista.svg"
+                  alt="MAWISTA"
+                  width={160}
+                  height={40}
+                  className="h-9 w-auto object-contain"
+                  unoptimized
+                />
+              </div>
+            </div>
 
-            {/* Iframe */}
-            <iframe
-              src="https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25"
-              className={`w-full h-full transition-opacity duration-500 ${
-                isLoaded ? "opacity-100" : "opacity-0"
-              }`}
-              loading="lazy"
-              onLoad={() => setIsLoaded(true)}
-              title="Mawista Student Insurance Application"
-            />
+            <div className="space-y-5 px-6 pb-8 pt-6 md:px-8 md:pb-10">
+              <div className="rounded-2xl border border-[#e9d5ff] bg-[#faf5ff] p-4 text-sm text-[#4b5563]">
+                <p className="font-semibold text-[#111827]">Start your secure application</p>
+                <p className="mt-1">
+                  Click below to continue on the official MAWISTA booking page.
+                  It opens in a new tab so the application and payment work
+                  reliably – you can come back here at any time.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <a
+                  href={mawistaStudentFormUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#820ad1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#6f08b2]"
+                >
+                  <Globe className="h-4 w-4" />
+                  Continue Application
+                </a>
+              </div>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

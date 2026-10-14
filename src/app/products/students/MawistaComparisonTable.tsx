@@ -19,28 +19,29 @@ interface Plan {
   applyLink: string;
 }
 
+// MAWISTA student booking form (agent code UVM=IB25), opened in a new tab.
+const MAWISTA_STUDENT_URL =
+  "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25";
+
 const PLANS: Plan[] = [
   {
     id: "classic",
     name: "Student Classic",
     logo: "/partners_asset/mawista.svg",
-    applyLink:
-      "/mawistaBooking",
+    applyLink: MAWISTA_STUDENT_URL,
   },
   {
     id: "plus",
     name: "Student Classic Plus",
     logo: "/partners_asset/mawista.svg",
     featured: true,
-    applyLink:
-      "/mawistaBooking",
+    applyLink: MAWISTA_STUDENT_URL,
   },
   {
     id: "comfort",
     name: "Student Comfort",
     logo: "/partners_asset/mawista.svg",
-    applyLink:
-      "/mawistaBooking",
+    applyLink: MAWISTA_STUDENT_URL,
   },
 ];
 

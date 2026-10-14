@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Globe, Lock, ShieldCheck } from "lucide-react";
 
 const worldEducationFormUrl =
-  "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=VIS&UVM=IB25";
+  "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25";
 
 export default function InsurbeWorldEducationBookingPage() {
   return (

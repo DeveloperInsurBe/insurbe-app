@@ -682,19 +682,18 @@ export default function InsuranceEligibilityQuiz() {
                           </div>
 
                           {/* CTA Button - Compact */}
-                          <motion.button
-                            // onClick={() => {
-                            //   window.location.href =
-                            //     "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25";
-                            // }}
-                            onClick={() => router.push("/mawistaBooking")}
+                          {/* MAWISTA student booking (new tab, as MAWISTA recommends) */}
+                          <motion.a
+                            href="https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             className="w-full py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
                           >
                             Get Started
                             <ArrowRight className="w-4 h-4" />
-                          </motion.button>
+                          </motion.a>
                         </div>
                       </motion.div>
                     </div>

@@ -82,7 +82,7 @@ export default function MawistaExpatcarePage() {
                 </h2>
 
                 <p className="mt-1 text-sm text-[#667085]">
-                  Complete the form below to apply for MAWISTA Expatcare.
+                  Open the official MAWISTA Expatcare form in a new tab.
                 </p>
               </div>
               <div className="flex justify-center">
@@ -103,25 +103,27 @@ export default function MawistaExpatcarePage() {
           <div className="space-y-5 px-6 pb-8 pt-6 md:px-8 md:pb-10">
             <div className="rounded-2xl border border-[#e9d5ff] bg-[#faf5ff] p-4 text-sm text-[#4b5563]">
               <p className="font-semibold text-[#111827]">
-                Application temporarily unavailable
+                Start your secure application
               </p>
 
               <p className="mt-1">
-                We’re currently updating the application process. The MAWISTA
-                Expatcare application will be available shortly. Thank you for
-                your patience.
+                Click below to continue on the official MAWISTA booking page.
+                It opens in a new tab so the application and payment work
+                reliably.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                disabled
-                className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-500"
+              {/* External link as recommended by MAWISTA (no iframe). */}
+              <a
+                href={mawistaFormUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#820ad1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#6f08b2]"
               >
                 <Globe className="h-4 w-4" />
                 Continue Application
-              </button>
+              </a>
             </div>
           </div>
         </motion.div>

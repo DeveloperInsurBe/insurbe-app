@@ -55,6 +55,20 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    id: "private",
+    title: "Private Health Insurance",
+    subtitle: "Students / Working Professionals",
+    providers: [
+      {
+        id: "mawista",
+        name: "Mawista",
+        // Visa Seekers page, scrolled to the three MAWISTA plan cards.
+        href: (ref) => `/products/visaSeakers?source=partner&ref=${ref}#visa-plans`,
+        logo: { src: "/partners_asset/mawista.svg", alt: "Mawista Logo", width: 110, height: 32, className: "h-7 w-auto" },
+      },
+    ],
+  },
+  {
     id: "travel",
     title: "Travel Students to Germany",
     subtitle: "Incoming / Travel Insurance",
@@ -64,6 +78,8 @@ const GROUPS: Group[] = [
         name: "Travel insurance",
         tag: "HanseMerkur",
         href: (ref) => `/products/incomingvisaseakers?source=partner&ref=${ref}`,
+        // Temporarily disabled - remove this line to re-enable HanseMerkur.
+        disabled: true,
         logo: {
           src: "/partners_asset/hansemerkur.webp",
           alt: "HanseMerkur Logo",
@@ -71,21 +87,6 @@ const GROUPS: Group[] = [
           height: 40,
           className: "h-8 w-auto",
         },
-      },
-    ],
-  },
-  {
-    id: "private",
-    title: "Private Health Insurance",
-    subtitle: "Students / Working Professionals",
-    providers: [
-      {
-        id: "mawista",
-        name: "Mawista",
-        href: () => "/mawistaBooking?source=partner",
-        // Temporarily disabled - remove this line to re-enable Mawista.
-        disabled: true,
-        logo: { src: "/partners_asset/mawista.svg", alt: "Mawista Logo", width: 110, height: 32, className: "h-7 w-auto" },
       },
     ],
   },

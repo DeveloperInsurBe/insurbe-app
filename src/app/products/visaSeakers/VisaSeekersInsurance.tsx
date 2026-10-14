@@ -3,13 +3,17 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Globe, GraduationCap, Briefcase } from "lucide-react";
+import { Globe, GraduationCap, Briefcase, ExternalLink } from "lucide-react";
+
+// MAWISTA booking forms (agent code UVM=IB25). Opened in a new tab, as
+// MAWISTA recommends - their pages don't work reliably inside iframes.
 
 const plans = [
   {
     title: "InsurBe World Education",
     subtitle: "For students & educational stays abroad",
     icon: GraduationCap,
+    applyUrl: "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25",
     bookingPath: "/products/visaSeakers/insurbe-world-education",
     points: [
       "For travelers under 30 years of age",
@@ -22,6 +26,8 @@ const plans = [
     title: "InsurBe German Traveler",
     subtitle: "For residents of Germany",
     icon: Briefcase,
+    applyUrl: "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=MRC&UVM=IB25",
+    bookingPath: undefined as string | undefined,
     points: [
       "Worldwide trips up to 5 years",
       "Must be taken out before departure",
@@ -33,6 +39,8 @@ const plans = [
     title: "InsurBe World Traveler",
     subtitle: "For travelers worldwide",
     icon: Globe,
+    applyUrl: "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=VIS&UVM=IB25",
+    bookingPath: undefined as string | undefined,
     points: [
       "Can be taken out even after the trip has started",
       "12-month term, renewable",
@@ -231,8 +239,8 @@ export default function VisaSeekersInsurance() {
           </div>
         </motion.div>
 
-        {/* Insurance Cards */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {/* Insurance Cards (anchor used by the partner portal) */}
+        <div id="visa-plans" className="grid scroll-mt-28 grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
 
@@ -287,33 +295,16 @@ export default function VisaSeekersInsurance() {
                   </ul>
 
                   <div className="mt-auto space-y-3">
-                    {plan.bookingPath ? (
-                      <>
-                        <Link
-                          href={plan.bookingPath}
-                          className="block w-full rounded-full bg-primary py-3 text-center font-semibold text-white transition hover:bg-primary/90"
-                        >
-                          Apply now
-                        </Link>
+                    <a
+                      href={plan.applyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 text-center font-semibold text-white transition hover:bg-primary/90"
+                    >
+                      Apply now
+                      <ExternalLink className="h-4 w-4" aria-hidden />
+                    </a>
 
-                        <Link
-                          href={plan.bookingPath}
-                          className="block w-full rounded-full border border-primary py-3 text-center font-semibold text-primary transition hover:bg-primary/5"
-                        >
-                          Learn more
-                        </Link>
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-full cursor-not-allowed rounded-full bg-gray-100 py-3 text-center font-semibold text-gray-500">
-                          Coming soon
-                        </div>
-
-                        <div className="w-full rounded-full border border-primary py-3 text-center font-semibold text-primary">
-                          Learn more
-                        </div>
-                      </>
-                    )}
                   </div>
                 </div>
               </motion.div>
