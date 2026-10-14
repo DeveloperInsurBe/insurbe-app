@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { ArrowRight, CheckCircle2, Plane, ShieldCheck, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, CheckCircle2, ShieldCheck, X, type LucideIcon } from "lucide-react";
 
 type CreateApplicationModalProps = {
   open: boolean;
@@ -19,6 +19,8 @@ type Provider = {
   tag?: string;
   /** Where the row leads. Rows without one are "coming soon". */
   href?: (partnerRef: string) => string;
+  /** Temporarily switched off: row is shown but can't be selected. */
+  disabled?: boolean;
   logo?: { src: string; alt: string; width: number; height: number; className: string };
   icon?: LucideIcon;
 };
@@ -53,6 +55,26 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    id: "travel",
+    title: "Travel Students to Germany",
+    subtitle: "Incoming / Travel Insurance",
+    providers: [
+      {
+        id: "travel",
+        name: "Travel insurance",
+        tag: "HanseMerkur",
+        href: (ref) => `/products/incomingvisaseakers?source=partner&ref=${ref}`,
+        logo: {
+          src: "/partners_asset/hansemerkur.webp",
+          alt: "HanseMerkur Logo",
+          width: 84,
+          height: 40,
+          className: "h-8 w-auto",
+        },
+      },
+    ],
+  },
+  {
     id: "private",
     title: "Private Health Insurance",
     subtitle: "Students / Working Professionals",
@@ -61,15 +83,11 @@ const GROUPS: Group[] = [
         id: "mawista",
         name: "Mawista",
         href: () => "/mawistaBooking?source=partner",
+        // Temporarily disabled - remove this line to re-enable Mawista.
+        disabled: true,
         logo: { src: "/partners_asset/mawista.svg", alt: "Mawista Logo", width: 110, height: 32, className: "h-7 w-auto" },
       },
     ],
-  },
-  {
-    id: "travel",
-    title: "Travel Students to Germany",
-    subtitle: "Incoming / Travel Insurance",
-    providers: [{ id: "travel", name: "Travel insurance", icon: Plane }],
   },
 ];
 
@@ -88,26 +106,28 @@ function ProviderRow({
 }) {
   const { name, tag, logo, icon: Icon } = provider;
   const comingSoon = !provider.href;
+  const unavailable = !comingSoon && !!provider.disabled;
+  const inactive = comingSoon || unavailable;
 
   return (
     <button
       type="button"
-      disabled={comingSoon}
+      disabled={inactive}
       onClick={onSelect}
-      onMouseEnter={(e) => !comingSoon && onHighlight(e.currentTarget)}
-      onFocus={(e) => !comingSoon && onHighlight(e.currentTarget)}
+      onMouseEnter={(e) => !inactive && onHighlight(e.currentTarget)}
+      onFocus={(e) => !inactive && onHighlight(e.currentTarget)}
       style={{ animationDelay: `${delay}ms` }}
       className={[
         "modal-item-in group relative z-10 flex w-full items-center gap-4 rounded-2xl px-3 py-3 text-left sm:px-4 sm:py-3.5",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#820ad1]/40",
-        comingSoon ? "cursor-not-allowed" : "cursor-pointer active:scale-[0.99] transition-transform",
+        inactive ? "cursor-not-allowed" : "cursor-pointer active:scale-[0.99] transition-transform",
       ].join(" ")}
     >
       {/* LOGO */}
       <span
         className={[
           "flex h-12 min-w-12 shrink-0 items-center justify-center rounded-xl border border-[#efe3fb] bg-white px-2.5 shadow-sm transition-transform duration-300 sm:h-14 sm:min-w-14",
-          comingSoon ? "opacity-50" : "group-hover:scale-105 group-hover:-rotate-2",
+          inactive ? "opacity-50" : "group-hover:scale-105 group-hover:-rotate-2",
         ].join(" ")}
       >
         {logo ? (
@@ -128,7 +148,7 @@ function ProviderRow({
         <span
           className={
             "truncate text-base font-bold sm:text-lg " +
-            (comingSoon ? "text-gray-400" : "text-gray-900")
+            (inactive ? "text-gray-400" : "text-gray-900")
           }
         >
           {name}
@@ -141,9 +161,9 @@ function ProviderRow({
       </span>
 
       {/* ACTION */}
-      {comingSoon ? (
+      {inactive ? (
         <span className="shrink-0 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-500">
-          Coming soon
+          {unavailable ? "Currently unavailable" : "Coming soon"}
         </span>
       ) : (
         <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#e9d7ff] bg-white text-[#820ad1] transition-colors duration-300 group-hover:border-transparent group-hover:bg-[#820ad1] group-hover:text-white">
@@ -333,7 +353,7 @@ export default function CreateApplicationModal({
                         delay={delay}
                         onHighlight={highlightRow}
                         onSelect={() => {
-                          if (provider.href) router.push(provider.href(partnerRef));
+                          if (provider.href && !provider.disabled) router.push(provider.href(partnerRef));
                         }}
                       />
                     );
