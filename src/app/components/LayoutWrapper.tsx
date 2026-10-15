@@ -24,17 +24,21 @@ export default function LayoutWrapper({
   // Admin portal (login + dashboard pages) has its own sidebar and layout.
   const isAdminRoute =
     pathname === "/admin" || pathname.startsWith("/admin/");
+  // DAK provider portal (login + pages) has its own layout.
+  const isDakPortalRoute =
+    pathname === "/dak-portal" || pathname.startsWith("/dak-portal/");
 
   return (
     <>
       {!isPartnerRoute &&
         !isAgentRoute &&
         !isPortalRoute &&
-        !isAdminRoute && <Header />}
+        !isAdminRoute &&
+        !isDakPortalRoute && <Header />}
 
       {children}
 
-      {!isAgentRoute && !isPortalRoute && !isAdminRoute && <Footernew />}
+      {!isAgentRoute && !isPortalRoute && !isAdminRoute && !isDakPortalRoute && <Footernew />}
     </>
   );
 }
