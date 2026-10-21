@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "set NEXT_DISABLE_TURBOPACK=1 && next dev",
-    "build": "prisma generate && next build",
-    "start": "next start",
+    "dev": "node init && set NEXT_DISABLE_TURBOPACK=1 && next dev",
+    "build": "node init && prisma generate && next build",
+    "start": "node init && next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "admin:create": "tsx scripts/createAdmin.ts",
