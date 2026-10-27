@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -43,66 +43,8 @@ const greeting = () => {
   return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 };
 
-function StatusDonut({ counts, total }: { counts: Record<DakStatus, number>; total: number }) {
-  const reduceMotion = useReducedMotion();
-  const segments = useMemo(
-    () => (Object.entries(counts) as [DakStatus, number][]).filter(([, count]) => count > 0).sort((a, b) => b[1] - a[1]),
-    [counts],
-  );
-  const radius = 54;
-  const circumference = 2 * Math.PI * radius;
-  let offset = 0;
-
-  if (!total) return <p className="py-10 text-center text-sm text-slate-500">No applications yet.</p>;
-
-  return (
-    <div className="flex flex-col items-center gap-6 sm:flex-row lg:flex-col xl:flex-row">
-      <div className="relative h-40 w-40 shrink-0">
-        <svg viewBox="0 0 140 140" className="h-full w-full -rotate-90" aria-hidden>
-          <circle cx="70" cy="70" r={radius} fill="none" stroke="#f1f5f9" strokeWidth="16" />
-          {segments.map(([status, count], index) => {
-            const length = (count / total) * circumference;
-            const dash = `${Math.max(length - 3, 0)} ${circumference}`;
-            const circle = (
-              <motion.circle
-                key={status}
-                cx="70"
-                cy="70"
-                r={radius}
-                fill="none"
-                stroke={STATUS_META[status].color}
-                strokeWidth="16"
-                strokeLinecap="round"
-                strokeDasharray={dash}
-                strokeDashoffset={-offset}
-                initial={reduceMotion ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 + index * 0.08, duration: 0.4 }}
-              />
-            );
-            offset += length;
-            return circle;
-          })}
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-3xl font-semibold text-slate-900">
-            <CountUp value={total} />
-          </span>
-          <span className="text-xs text-slate-500">applications</span>
-        </div>
-      </div>
-      <ul className="w-full space-y-2">
-        {segments.map(([status, count]) => (
-          <li key={status} className="flex items-center gap-2.5 text-sm">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_META[status].color }} aria-hidden />
-            <span className="flex-1 text-slate-600">{STATUS_META[status].label}</span>
-            <span className="font-medium text-slate-900">{count}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
+/** The dashboard refreshes itself so new submissions and replies show up. */
+const REFRESH_EVERY_MS = 60_000;
 
 export default function DakDashboardPage() {
   const reduceMotion = useReducedMotion();
@@ -111,13 +53,24 @@ export default function DakDashboardPage() {
   const { name } = useReviewer();
 
   const load = useCallback(() => {
-    setError("");
     api<Dashboard>("/dashboard")
-      .then(setData)
+      .then((next) => {
+        setData(next);
+        setError("");
+      })
       .catch((loadError: Error) => setError(loadError.message));
   }, []);
 
-  useEffect(load, [load]);
+  useEffect(() => {
+    load();
+    const timer = setInterval(load, REFRESH_EVERY_MS);
+    const onVisible = () => document.visibilityState === "visible" && load();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [load]);
 
   if (error && !data) {
     return (
@@ -250,10 +203,36 @@ export default function DakDashboardPage() {
           </Panel>
         </FadeIn>
 
-        {/* STATUS DONUT */}
-        <FadeIn index={7}>
-          <Panel title="Status overview" padded className="h-full">
-            <StatusDonut counts={data.counts} total={data.total} />
+        {/* RECENT ACTIVITY */}
+        <FadeIn index={7} className="lg:row-span-2">
+          <Panel
+            title="Recent Activity"
+            className="h-full"
+            action={
+              <Link href={`${BASE}/activity-log`} className="text-sm font-medium text-violet-700 hover:underline">
+                View all
+              </Link>
+            }
+          >
+            {data.recent.length === 0 ? (
+              <p className="px-5 py-6 text-sm text-slate-500">No activity yet.</p>
+            ) : (
+              <ol className="px-5 py-3">
+                {data.recent.map((item, index) => (
+                  <li key={item.id} className="relative flex gap-3 pb-4 last:pb-1">
+                    {index < data.recent.length - 1 && (
+                      <span className="absolute left-[13px] top-8 h-[calc(100%-1.5rem)] w-px bg-slate-200" aria-hidden />
+                    )}
+                    <Avatar name={item.name} size="sm" />
+                    <Link href={applicationHref(item.applicationId)} className="min-w-0 flex-1 hover:underline">
+                      <p className="text-sm font-medium text-slate-900">{item.name}</p>
+                      <p className="text-xs text-slate-500">{isDakStatus(item.status) ? STATUS_META[item.status].label : item.status}</p>
+                    </Link>
+                    <span className="shrink-0 text-[11px] text-slate-400">{fmtAgo(item.createdAt)}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
           </Panel>
         </FadeIn>
 
@@ -293,37 +272,6 @@ export default function DakDashboardPage() {
           </section>
         </FadeIn>
 
-        {/* RECENT ACTIVITY */}
-        <FadeIn index={9} className="lg:row-span-1">
-          <Panel
-            title="Recent Activity"
-            action={
-              <Link href={`${BASE}/activity-log`} className="text-sm font-medium text-violet-700 hover:underline">
-                View all
-              </Link>
-            }
-          >
-            {data.recent.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-slate-500">No activity yet.</p>
-            ) : (
-              <ol className="px-5 py-3">
-                {data.recent.map((item, index) => (
-                  <li key={item.id} className="relative flex gap-3 pb-4 last:pb-1">
-                    {index < data.recent.length - 1 && (
-                      <span className="absolute left-[13px] top-8 h-[calc(100%-1.5rem)] w-px bg-slate-200" aria-hidden />
-                    )}
-                    <Avatar name={item.name} size="sm" />
-                    <Link href={applicationHref(item.applicationId)} className="min-w-0 flex-1 hover:underline">
-                      <p className="text-sm font-medium text-slate-900">{item.name}</p>
-                      <p className="text-xs text-slate-500">{isDakStatus(item.status) ? STATUS_META[item.status].label : item.status}</p>
-                    </Link>
-                    <span className="shrink-0 text-[11px] text-slate-400">{fmtAgo(item.createdAt)}</span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </Panel>
-        </FadeIn>
       </div>
     </>
   );

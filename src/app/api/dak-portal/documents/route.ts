@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { requireDakReviewer } from "@/lib/dak/access";
-import { applicantFromPayload } from "@/lib/dak/cases";
+import { applicantFromPayload, caseStatus } from "@/lib/dak/cases";
 import { serializeDocument } from "@/lib/dak/detail";
+import { isDakFinal } from "@/lib/dak/statuses";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
@@ -12,7 +13,7 @@ export async function GET() {
   try {
     const documents = await prisma.dakDocument.findMany({
       orderBy: { createdAt: "desc" },
-      include: { case: { select: { caseNumber: true, insuranceApplication: { select: { payload: true } } } } },
+      include: { case: { select: { caseNumber: true, status: true, insuranceApplication: { select: { payload: true } } } } },
       take: 2000,
     });
     return NextResponse.json({
@@ -20,6 +21,8 @@ export async function GET() {
         ...serializeDocument(document),
         applicationId: document.case.caseNumber,
         applicant: applicantFromPayload(document.case.insuranceApplication.payload).name,
+        /** Final application: the document can no longer be reviewed. */
+        locked: isDakFinal(caseStatus(document.case.status)),
       })),
     });
   } catch (error) {

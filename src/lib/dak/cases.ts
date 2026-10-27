@@ -195,7 +195,7 @@ export function serializeListRow(item: ListCase, now = new Date()) {
     submittedAt: item.submittedAt.toISOString(),
     startDate: item.confirmedStartDate ?? applicant.requestedStartDate,
     status,
-    openRequests: item.requests.length,
+    openRequests: isDakFinal(status) ? 0 : item.requests.length,
     ageDays: isDakFinal(status) ? null : Math.max(0, Math.floor((now.getTime() - item.submittedAt.getTime()) / DAY_MS)),
     due: isDakFinal(status) ? null : dueState(item.requests, now),
   };

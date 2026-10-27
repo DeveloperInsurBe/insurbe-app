@@ -15,6 +15,7 @@ import {
   FilterChips,
   LoadingState,
   PageHeader,
+  Pagination,
   Panel,
   SearchInput,
   Segmented,
@@ -22,7 +23,9 @@ import {
   TH,
 } from "../../_components/ui";
 
-type PortalDocument = DakDocumentDto & { applicationId: string; applicant: string };
+const PAGE_SIZE = 10;
+
+type PortalDocument = DakDocumentDto & { applicationId: string; applicant: string; locked: boolean };
 type ReviewFilter = "all" | DakDocumentDto["reviewStatus"];
 type View = "list" | "grid";
 
@@ -55,6 +58,7 @@ export default function DakDocumentsPage() {
   const [review, setReview] = useState<ReviewFilter>("all");
   const [view, setView] = useState<View>("list");
   const [reviewing, setReviewing] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const load = useCallback(() => {
     setError("");
@@ -80,6 +84,18 @@ export default function DakDocumentsPage() {
     );
   }, [all, query, review]);
 
+  // Back to the first page whenever the result set changes.
+  useEffect(() => setPage(1), [query, review]);
+
+  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageRows = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const changePage = (next: number) => {
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const markReviewed = async (document: PortalDocument) => {
     setReviewing(document.id);
     try {
@@ -93,7 +109,8 @@ export default function DakDocumentsPage() {
   };
 
   const reviewAction = (document: PortalDocument) =>
-    document.reviewStatus === "pending" && (
+    document.reviewStatus === "pending" &&
+    !document.locked && (
       <Button onClick={() => markReviewed(document)} loading={reviewing === document.id} className="h-8 px-3 text-xs">
         Mark reviewed
       </Button>
@@ -109,7 +126,9 @@ export default function DakDocumentsPage() {
           documents ? (
             <>
               {documents.length} documents across all applications ·{" "}
-              <span className="font-medium text-amber-600">{count("pending")} unreviewed</span>
+              <span className="font-medium text-amber-600">
+                {all.filter((document) => document.reviewStatus === "pending" && !document.locked).length} to review
+              </span>
             </>
           ) : (
             "All application documents"
@@ -174,7 +193,7 @@ export default function DakDocumentsPage() {
                     </thead>
                     <tbody>
                       <AnimatePresence initial={false}>
-                        {rows.map((document, index) => (
+                        {pageRows.map((document, index) => (
                           <motion.tr
                             key={document.id}
                             layout={!reduceMotion}
@@ -233,7 +252,7 @@ export default function DakDocumentsPage() {
             ) : (
               <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 <AnimatePresence initial={false}>
-                  {rows.map((document, index) => (
+                  {pageRows.map((document, index) => (
                     <motion.li
                       key={document.id}
                       layout={!reduceMotion}
@@ -274,6 +293,8 @@ export default function DakDocumentsPage() {
               </ul>
             )}
           </div>
+
+          <Pagination page={currentPage} pageSize={PAGE_SIZE} total={rows.length} onChange={changePage} />
         </>
       )}
     </>

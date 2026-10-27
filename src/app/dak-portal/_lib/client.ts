@@ -79,3 +79,29 @@ export const fileKind = (mimeType: string) =>
 export const dayKey = (value: string) => fmtDate(value);
 
 export const todayInput = () => new Date().toISOString().slice(0, 10);
+
+/* -------------------------------------------------------------------------- */
+/*                               IDLE SIGN-OUT                                */
+/* -------------------------------------------------------------------------- */
+
+/** Reviewers are signed out after this much inactivity. */
+export const IDLE_LIMIT_MS = 30 * 60 * 1000;
+
+/** Shared by all tabs, so activity in one tab keeps the others signed in. */
+const LAST_ACTIVITY_KEY = "dak-portal-last-activity";
+
+export function readLastActivity() {
+  try {
+    return Number(localStorage.getItem(LAST_ACTIVITY_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function writeLastActivity(time = Date.now()) {
+  try {
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(time));
+  } catch {
+    // storage unavailable: the in-memory timer in the portal still works
+  }
+}

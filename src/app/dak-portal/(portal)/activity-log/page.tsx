@@ -16,10 +16,13 @@ import {
   FilterChips,
   LoadingState,
   PageHeader,
+  Pagination,
   Panel,
   SearchInput,
   StatusBadge,
 } from "../../_components/ui";
+
+const PAGE_SIZE = 20;
 
 type ActorFilter = "all" | "reviewer" | "customer";
 
@@ -44,6 +47,7 @@ export default function DakActivityLogPage() {
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [actor, setActor] = useState<ActorFilter>("all");
+  const [page, setPage] = useState(1);
 
   const load = useCallback(() => {
     setError("");
@@ -68,15 +72,26 @@ export default function DakActivityLogPage() {
     );
   }, [all, query, actor]);
 
-  // Group by day ("20. Aug. 2026").
+  // Back to the first page whenever the result set changes.
+  useEffect(() => setPage(1), [query, actor]);
+
+  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+
+  // Group the current page by day ("20. Aug. 2026").
   const groups = useMemo(() => {
     const map = new Map<string, ActivityEvent[]>();
-    rows.forEach((entry) => {
+    rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).forEach((entry) => {
       const day = dayKey(entry.createdAt);
       map.set(day, [...(map.get(day) ?? []), entry]);
     });
     return [...map.entries()];
-  }, [rows]);
+  }, [rows, currentPage]);
+
+  const changePage = (next: number) => {
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const exportCsv = () =>
     downloadCsv("dak-activity-log.csv", [
@@ -198,6 +213,7 @@ export default function DakActivityLogPage() {
               </motion.section>
             ))}
           </AnimatePresence>
+          <Pagination page={currentPage} pageSize={PAGE_SIZE} total={rows.length} onChange={changePage} />
         </div>
       )}
     </>

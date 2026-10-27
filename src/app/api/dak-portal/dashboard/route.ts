@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireDakReviewer } from "@/lib/dak/access";
 import { applicantFromPayload, ensureDakCases, listInclude, serializeListRow } from "@/lib/dak/cases";
-import { DAK_STATUSES, type DakStatus } from "@/lib/dak/statuses";
+import { DAK_FINAL_STATUSES, DAK_STATUSES, type DakStatus } from "@/lib/dak/statuses";
 import { prisma } from "@/lib/prisma";
 
 const payloadSelect = { insuranceApplication: { select: { payload: true } } };
@@ -24,8 +24,10 @@ export async function GET() {
         orderBy: { submittedAt: "asc" },
         take: 8,
       }),
+      // Only cases still waiting for the customer; a request left open on a
+      // cancelled case is not overdue anymore.
       prisma.dakInfoRequest.findMany({
-        where: { status: "open", dueDate: { lt: startOfToday } },
+        where: { status: "open", dueDate: { lt: startOfToday }, case: { status: "Information Required" } },
         select: { case: { select: { caseNumber: true, ...payloadSelect } } },
       }),
       prisma.dakEvent.findMany({
@@ -34,7 +36,8 @@ export async function GET() {
         take: 8,
         include: { case: { select: { caseNumber: true, ...payloadSelect } } },
       }),
-      prisma.dakDocument.count({ where: { reviewStatus: "pending" } }),
+      // Documents of final cases can no longer be reviewed.
+      prisma.dakDocument.count({ where: { reviewStatus: "pending", case: { status: { notIn: DAK_FINAL_STATUSES } } } }),
     ]);
 
     const counts = Object.fromEntries(DAK_STATUSES.map((status) => [status, 0])) as Record<DakStatus, number>;
