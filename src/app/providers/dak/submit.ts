@@ -2,10 +2,47 @@ import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { APPLICATIONS_TEAM_EMAIL } from "../applicationPdf";
+import { createDakCase, nextDakApplicationNumber } from "@/lib/dak/cases";
+import { saveDakDocument } from "@/lib/dak/documents";
 
 const resend = new Resend(
   process.env.RESEND_API_KEY,
 );
+
+async function storeForDakPortal(
+  application: { id: string; createdAt: Date | null; payload: unknown; applicationNumber: string | null },
+  pdfBuffer: Buffer,
+  files: (File | null)[],
+) {
+  try {
+    const dakCase = await createDakCase(application);
+
+    await saveDakDocument({
+      caseId: dakCase.id,
+      name: "Application.pdf",
+      mimeType: "application/pdf",
+      content: pdfBuffer,
+      source: "insurbe",
+    });
+
+    for (const file of files) {
+      if (!file || file.size === 0) continue;
+      await saveDakDocument({
+        caseId: dakCase.id,
+        name: file.name,
+        mimeType: file.type,
+        content: Buffer.from(await file.arrayBuffer()),
+        source: "customer",
+      });
+    }
+  } catch (error) {
+    console.error(
+      "DAK PORTAL STORE FAILED:",
+      application.applicationNumber || application.id,
+      error,
+    );
+  }
+}
 
 async function generateApplicationPDF(
   applicationNumber: string,
@@ -142,13 +179,10 @@ export const submitDakApplication = async (
     formData.get("photo") as File | null;
 
   /**
-   * GENERATE APPLICATION NUMBER
+   * GENERATE APPLICATION NUMBER (database counter, never repeats)
    */
-  const count =
-    await prisma.insuranceApplication.count();
-
   const applicationNumber =
-    `IB-DAK-${String(count + 1).padStart(3, "0")}`;
+    await nextDakApplicationNumber();
 
   /**
    * SAVE APPLICATION
@@ -185,6 +219,12 @@ export const submitDakApplication = async (
     personal,
     selectPlan,
   );
+
+  /**
+   * DAK PORTAL: open the review case and keep the files.
+   * Never blocks the submission; a missing case is created later by the portal.
+   */
+  await storeForDakPortal(application, pdfBuffer, [passport, contract, photo]);
 
   await resend.emails.send({
     from:

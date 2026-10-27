@@ -2,14 +2,12 @@
 
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useReducedMotion } from "framer-motion";
-import { Activity, ArrowRight, Eye, EyeOff, FileCheck2, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
+import { getSession, signIn, signOut } from "next-auth/react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Activity, AlertCircle, ArrowRight, Eye, EyeOff, FileCheck2, Info, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
 
-import { DAK_REVIEWER } from "../_data/mock";
-
-// UI only: these demo credentials are shown in the design. Sign-in is not
-// wired to a backend yet and simply opens the dashboard.
-const DEMO_PASSWORD = "DAKreview2026!";
+const DAK_REVIEWER_ROLE = "dak_reviewer";
+const SUPPORT_EMAIL = "support@insurbe.com";
 
 const HIGHLIGHTS = [
   { icon: FileCheck2, title: "Review applications", text: "Every DAK registration with documents in one queue." },
@@ -27,18 +25,32 @@ export default function DakLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
     setLoading(true);
-    setTimeout(() => router.push("/dak-portal/dashboard"), 600);
-  };
-
-  const fillDemo = () => {
-    setEmail(DAK_REVIEWER.email);
-    setPassword(DEMO_PASSWORD);
+    setError("");
+    try {
+      const result = await signIn("credentials", { email: email.trim(), password, redirect: false });
+      if (!result || result.error) {
+        setError("The email or password is not correct.");
+        return;
+      }
+      const session = await getSession();
+      if (session?.user?.role !== DAK_REVIEWER_ROLE) {
+        await signOut({ redirect: false });
+        setError("This account has no access to the DAK Provider Portal.");
+        return;
+      }
+      router.replace("/dak-portal/dashboard");
+    } catch {
+      setError("Sign-in failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fade = (delay: number) =>
@@ -129,7 +141,7 @@ export default function DakLoginPage() {
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder={DAK_REVIEWER.email}
+                  placeholder="name@dak.de"
                   className={`${inputClass} pr-4`}
                 />
               </div>
@@ -140,7 +152,12 @@ export default function DakLoginPage() {
                 <label htmlFor="dak-password" className="text-sm font-medium text-slate-900">
                   Password
                 </label>
-                <button type="button" className="text-sm font-medium text-violet-700 hover:underline">
+                <button
+                  type="button"
+                  onClick={() => setShowForgot((value) => !value)}
+                  aria-expanded={showForgot}
+                  className="text-sm font-medium text-violet-700 hover:underline"
+                >
                   Forgot password?
                 </button>
               </div>
@@ -167,15 +184,31 @@ export default function DakLoginPage() {
               </div>
             </div>
 
-            <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-600">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(event) => setRemember(event.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 accent-violet-600"
-              />
-              Remember this device
-            </label>
+            <AnimatePresence initial={false}>
+              {showForgot && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="flex gap-2.5 overflow-hidden rounded-xl bg-violet-50 px-4 py-3 text-sm text-slate-700"
+                >
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" aria-hidden />
+                  <span>
+                    Please contact InsurBe support at{" "}
+                    <a href={`mailto:${SUPPORT_EMAIL}?subject=DAK%20portal%20password`} className="font-medium text-violet-700 underline">
+                      {SUPPORT_EMAIL}
+                    </a>{" "}
+                    to reset your password.
+                  </span>
+                </motion.p>
+              )}
+            </AnimatePresence>
+
+            {error && (
+              <p role="alert" className="flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                <AlertCircle className="h-4 w-4 shrink-0" aria-hidden /> {error}
+              </p>
+            )}
 
             <motion.button
               type="submit"
@@ -195,12 +228,13 @@ export default function DakLoginPage() {
             </motion.button>
           </motion.form>
 
-          <motion.div {...fade(0.3)} className="mt-8 rounded-xl border border-dashed border-violet-200 bg-violet-50/50 px-4 py-3 text-sm text-slate-600">
-            Demo credentials:{" "}
-            <button type="button" onClick={fillDemo} className="font-medium text-violet-700 hover:underline">
-              {DAK_REVIEWER.email} / {DEMO_PASSWORD}
-            </button>
-          </motion.div>
+          <motion.p {...fade(0.3)} className="mt-8 text-sm text-slate-500">
+            Access is issued by InsurBe. Need an account? Contact{" "}
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-violet-700 hover:underline">
+              {SUPPORT_EMAIL}
+            </a>
+            .
+          </motion.p>
 
           <p className="mt-10 text-center text-xs text-slate-400 lg:hidden">InsurBe · Secure · WCAG 2.2 AA · TLS encrypted</p>
         </div>

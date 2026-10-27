@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation";
 
-export default function DakPortalIndex() {
-  redirect("/dak-portal/login");
+import { getCurrentDakReviewer } from "@/lib/dak/access";
+
+export const dynamic = "force-dynamic";
+
+export default async function DakPortalIndex() {
+  redirect((await getCurrentDakReviewer()) ? "/dak-portal/dashboard" : "/dak-portal/login");
 }

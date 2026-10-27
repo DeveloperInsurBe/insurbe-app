@@ -2,9 +2,9 @@
 
 import { type ReactNode, useEffect, useState } from "react";
 import { animate, AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Search, X } from "lucide-react";
 
-import type { DakStatus } from "../_data/mock";
+import type { DakStatus } from "@/lib/dak/statuses";
 
 /* -------------------------------------------------------------------------- */
 /*                                   STATUS                                   */
@@ -16,11 +16,9 @@ export const STATUS_META: Record<DakStatus, { label: string; badge: string; dot:
   "Information Required": { label: "Info Required", badge: "bg-amber-50 text-amber-700 ring-amber-600/20", dot: "bg-amber-500", color: "#f59e0b" },
   "Customer Responded": { label: "Responded", badge: "bg-sky-50 text-sky-700 ring-sky-600/15", dot: "bg-sky-500", color: "#0ea5e9" },
   Approved: { label: "Approved", badge: "bg-emerald-50 text-emerald-700 ring-emerald-600/15", dot: "bg-emerald-500", color: "#10b981" },
-  "Insurance Confirmed": { label: "Ins. Confirmed", badge: "bg-teal-50 text-teal-700 ring-teal-600/15", dot: "bg-teal-500", color: "#14b8a6" },
   Active: { label: "Active", badge: "bg-green-50 text-green-700 ring-green-600/15", dot: "bg-green-500", color: "#22c55e" },
   "Not Eligible": { label: "Not Eligible", badge: "bg-rose-50 text-rose-700 ring-rose-600/15", dot: "bg-rose-500", color: "#f43f5e" },
   Cancelled: { label: "Cancelled", badge: "bg-slate-100 text-slate-600 ring-slate-500/15", dot: "bg-slate-400", color: "#94a3b8" },
-  Withdrawn: { label: "Withdrawn", badge: "bg-slate-100 text-slate-600 ring-slate-500/15", dot: "bg-slate-400", color: "#cbd5e1" },
 };
 
 export function StatusBadge({ status }: { status: DakStatus }) {
@@ -143,26 +141,37 @@ export function Button({
   variant = "secondary",
   type = "button",
   className = "",
+  disabled = false,
+  loading = false,
+  form,
 }: {
   children: ReactNode;
   onClick?: () => void;
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "warning";
   type?: "button" | "submit";
   className?: string;
+  disabled?: boolean;
+  loading?: boolean;
+  form?: string;
 }) {
   const styles = {
     primary:
       "bg-gradient-to-b from-[#8b2be2] to-[#7419c9] text-white shadow-[0_1px_0_rgba(255,255,255,0.25)_inset,0_6px_16px_-6px_rgba(124,31,214,0.6)] hover:brightness-110",
     secondary: "border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50",
     ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+    danger: "border border-rose-200 bg-rose-50/60 text-rose-600 hover:border-rose-300 hover:bg-rose-50",
+    warning: "border border-amber-300 bg-amber-50/70 text-amber-700 hover:border-amber-400 hover:bg-amber-50",
   };
   return (
     <motion.button
       type={type}
+      form={form}
       onClick={onClick}
-      whileTap={{ scale: 0.97 }}
-      className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus-visible:ring-4 focus-visible:ring-violet-500/20 ${styles[variant]} ${className}`}
+      disabled={disabled || loading}
+      whileTap={disabled || loading ? undefined : { scale: 0.97 }}
+      className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus-visible:ring-4 focus-visible:ring-violet-500/20 disabled:cursor-not-allowed disabled:opacity-60 ${styles[variant]} ${className}`}
     >
+      {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
       {children}
     </motion.button>
   );
@@ -334,12 +343,15 @@ export function SlideOver({
   title,
   subtitle,
   children,
+  footer,
 }: {
   open: boolean;
   onClose: () => void;
   title: ReactNode;
   subtitle?: ReactNode;
   children: ReactNode;
+  /** Sticky action bar, e.g. Cancel / Confirm. */
+  footer?: ReactNode;
 }) {
   const reduceMotion = useReducedMotion();
 
@@ -390,6 +402,7 @@ export function SlideOver({
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-6 py-6">{children}</div>
+            {footer && <div className="grid grid-cols-2 gap-3 border-t border-slate-100 px-6 py-4">{footer}</div>}
           </motion.aside>
         </div>
       )}
@@ -415,3 +428,151 @@ export function downloadCsv(filename: string, rows: (string | number)[][]) {
 
 export const TH = "px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500";
 export const TD = "px-5 py-3.5 text-sm";
+
+/* -------------------------------------------------------------------------- */
+/*                                   STATES                                   */
+/* -------------------------------------------------------------------------- */
+
+/** Centered spinner, no card. `fill` takes the height of a whole page. */
+export function LoadingState({ label = "Loading…", fill = false }: { label?: string; fill?: boolean }) {
+  return (
+    <div role="status" className={`flex items-center justify-center ${fill ? "min-h-[60vh]" : "py-24"}`}>
+      <span className="relative flex h-12 w-12">
+        <span className="absolute inset-0 rounded-full border-[3px] border-violet-100" aria-hidden />
+        <span className="absolute inset-0 animate-spin rounded-full border-[3px] border-transparent border-t-violet-600 border-r-violet-400" aria-hidden />
+      </span>
+      <span className="sr-only">{label}</span>
+    </div>
+  );
+}
+
+export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center" role="alert">
+      <p className="text-sm text-rose-600">{message}</p>
+      {onRetry && (
+        <Button onClick={onRetry} variant="secondary">
+          Try again
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                FORM CONTROLS                               */
+/* -------------------------------------------------------------------------- */
+
+export const inputClass =
+  "w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-violet-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500";
+
+export function FormField({
+  id,
+  label,
+  required,
+  hint,
+  children,
+  className = "",
+}: {
+  id: string;
+  label: string;
+  required?: boolean;
+  hint?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <label htmlFor={id} className="mb-2 block text-sm font-semibold text-slate-900">
+        {label}
+        {required && <span className="text-rose-500"> *</span>}
+      </label>
+      {children}
+      {hint && <p className="mt-1.5 text-xs text-slate-500">{hint}</p>}
+    </div>
+  );
+}
+
+/** Key / value table used in drawers and detail cards. */
+export function InfoRows({ rows }: { rows: { label: string; value: ReactNode }[] }) {
+  return (
+    <dl className="space-y-3">
+      {rows.map((row) => (
+        <div key={row.label} className="flex items-start justify-between gap-4 text-sm">
+          <dt className="shrink-0 text-slate-500">{row.label}</dt>
+          <dd className="text-right font-medium text-slate-900">{row.value || "—"}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 PAGINATION                                 */
+/* -------------------------------------------------------------------------- */
+
+/** Page numbers to show: first, last, current ± 1, with gaps as null. */
+function pageList(page: number, pages: number): (number | null)[] {
+  const wanted = new Set([1, pages, page - 1, page, page + 1].filter((value) => value >= 1 && value <= pages));
+  const sorted = [...wanted].sort((a, b) => a - b);
+  return sorted.flatMap((value, index) => (index > 0 && value - sorted[index - 1] > 1 ? [null, value] : [value]));
+}
+
+export function Pagination({
+  page,
+  pageSize,
+  total,
+  onChange,
+}: {
+  page: number;
+  pageSize: number;
+  total: number;
+  onChange: (page: number) => void;
+}) {
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  if (total === 0) return null;
+  const from = (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+  const arrow =
+    "flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-violet-200 hover:text-violet-700 disabled:pointer-events-none disabled:opacity-40";
+
+  return (
+    <nav aria-label="Pagination" className="flex flex-col items-center justify-between gap-3 px-1 pt-4 text-sm sm:flex-row">
+      <p className="text-slate-500">
+        Showing <span className="font-medium text-slate-900">{from}</span>–<span className="font-medium text-slate-900">{to}</span> of{" "}
+        <span className="font-medium text-slate-900">{total}</span>
+      </p>
+      {pages > 1 && (
+        <div className="flex items-center gap-1.5">
+          <button type="button" onClick={() => onChange(page - 1)} disabled={page === 1} aria-label="Previous page" className={arrow}>
+            <ChevronLeft className="h-4 w-4" aria-hidden />
+          </button>
+          {pageList(page, pages).map((value, index) =>
+            value === null ? (
+              <span key={`gap-${index}`} className="px-1 text-slate-400" aria-hidden>
+                …
+              </span>
+            ) : (
+              <button
+                key={value}
+                type="button"
+                onClick={() => onChange(value)}
+                aria-current={value === page ? "page" : undefined}
+                className={`h-9 min-w-9 rounded-lg px-2 font-medium transition ${
+                  value === page
+                    ? "bg-violet-600 text-white shadow-sm shadow-violet-500/30"
+                    : "border border-slate-200 bg-white text-slate-600 hover:border-violet-200 hover:text-violet-700"
+                }`}
+              >
+                {value}
+              </button>
+            ),
+          )}
+          <button type="button" onClick={() => onChange(page + 1)} disabled={page === pages} aria-label="Next page" className={arrow}>
+            <ChevronRight className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+      )}
+    </nav>
+  );
+}

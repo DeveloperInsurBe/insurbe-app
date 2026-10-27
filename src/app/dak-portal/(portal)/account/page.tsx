@@ -1,12 +1,14 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Eye, EyeOff, KeyRound, Lock, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
-import { DAK_REVIEWER } from "../../_data/mock";
-import { Button, PageHeader, Panel } from "../../_components/ui";
+import { api } from "../../_lib/client";
+import { useReviewer } from "../../_components/PortalShell";
+import { Button, initials, PageHeader, Panel } from "../../_components/ui";
 
 type Tab = "profile" | "security";
 
@@ -27,11 +29,30 @@ function Field({ id, label, hint, children }: { id: string; label: string; hint?
   );
 }
 
-function PasswordInput({ id }: { id: string }) {
+function PasswordInput({
+  id,
+  value,
+  onChange,
+  autoComplete,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  autoComplete: string;
+}) {
   const [visible, setVisible] = useState(false);
   return (
     <div className="relative">
-      <input id={id} type={visible ? "text" : "password"} placeholder="••••••••••••" className={`${inputClass} pr-11`} />
+      <input
+        id={id}
+        type={visible ? "text" : "password"}
+        required
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        autoComplete={autoComplete}
+        placeholder="••••••••••••"
+        className={`${inputClass} pr-11`}
+      />
       <button
         type="button"
         onClick={() => setVisible((value) => !value)}
@@ -45,18 +66,48 @@ function PasswordInput({ id }: { id: string }) {
 }
 
 export default function DakAccountPage() {
+  const router = useRouter();
   const reduceMotion = useReducedMotion();
+  const reviewer = useReviewer();
   const [tab, setTab] = useState<Tab>("profile");
-  const [displayName, setDisplayName] = useState(DAK_REVIEWER.name);
+  const [firstName, setFirstName] = useState(reviewer.firstName);
+  const [lastName, setLastName] = useState(reviewer.lastName);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  // UI only - nothing is persisted yet.
-  const saveProfile = (event: FormEvent) => {
+  const displayName = [firstName, lastName].filter(Boolean).join(" ") || reviewer.name;
+
+  const saveProfile = async (event: FormEvent) => {
     event.preventDefault();
-    toast.success("Profile saved (demo – not stored yet)");
+    setSaving(true);
+    try {
+      await api("/account", { method: "PATCH", json: { firstName, lastName } });
+      toast.success("Profile saved");
+      router.refresh();
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setSaving(false);
+    }
   };
-  const updatePassword = (event: FormEvent) => {
+
+  const updatePassword = async (event: FormEvent) => {
     event.preventDefault();
-    toast.success("Password updated (demo – not stored yet)");
+    if (newPassword !== confirmPassword) return toast.error("The new passwords do not match.");
+    setSaving(true);
+    try {
+      await api("/account", { method: "POST", json: { currentPassword, newPassword } });
+      toast.success("Password updated");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const TABS: { id: Tab; label: string; icon: typeof UserRound }[] = [
@@ -80,12 +131,12 @@ export default function DakAccountPage() {
           </div>
           <div className="flex flex-col gap-4 px-6 pb-6 sm:flex-row sm:items-end">
             <span className="-mt-10 flex h-20 w-20 items-center justify-center rounded-2xl border-4 border-white bg-gradient-to-br from-[#8b2be2] to-[#5b21b6] text-2xl font-bold text-white shadow-lg">
-              DR
+              {initials(displayName)}
             </span>
             <div className="flex-1">
-              <p className="text-lg font-semibold text-slate-900">{displayName || DAK_REVIEWER.name}</p>
+              <p className="text-lg font-semibold text-slate-900">{displayName}</p>
               <p className="flex items-center gap-1.5 text-sm text-slate-500">
-                <Mail className="h-3.5 w-3.5" aria-hidden /> {DAK_REVIEWER.email}
+                <Mail className="h-3.5 w-3.5" aria-hidden /> {reviewer.email}
               </p>
             </div>
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/15">
@@ -131,22 +182,33 @@ export default function DakAccountPage() {
             {tab === "profile" ? (
               <Panel title="Profile" padded>
                 <form onSubmit={saveProfile} className="space-y-6">
-                  <Field id="dak-display-name" label="Display name" hint="Shown in the activity log.">
+                  <Field id="dak-first-name" label="First name" hint="Your name is shown in the activity log.">
                     <input
-                      id="dak-display-name"
-                      value={displayName}
-                      onChange={(event) => setDisplayName(event.target.value)}
+                      id="dak-first-name"
+                      required
+                      maxLength={80}
+                      value={firstName}
+                      onChange={(event) => setFirstName(event.target.value)}
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field id="dak-last-name" label="Last name">
+                    <input
+                      id="dak-last-name"
+                      maxLength={80}
+                      value={lastName}
+                      onChange={(event) => setLastName(event.target.value)}
                       className={inputClass}
                     />
                   </Field>
                   <Field id="dak-account-email" label="Email address" hint="Email changes require InsurBe administrator support.">
                     <div className="relative">
-                      <input id="dak-account-email" value={DAK_REVIEWER.email} disabled className={`${inputClass} pr-10`} />
+                      <input id="dak-account-email" value={reviewer.email} disabled className={`${inputClass} pr-10`} />
                       <Lock className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
                     </div>
                   </Field>
                   <div className="flex justify-end border-t border-slate-100 pt-5">
-                    <Button type="submit" variant="primary">
+                    <Button type="submit" variant="primary" loading={saving}>
                       Save changes
                     </Button>
                   </div>
@@ -156,16 +218,26 @@ export default function DakAccountPage() {
               <Panel title={<span className="flex items-center gap-2"><KeyRound className="h-4 w-4 text-violet-600" aria-hidden /> Password</span>} padded>
                 <form onSubmit={updatePassword} className="space-y-6">
                   <Field id="dak-current-password" label="Current password">
-                    <PasswordInput id="dak-current-password" />
+                    <PasswordInput
+                      id="dak-current-password"
+                      value={currentPassword}
+                      onChange={setCurrentPassword}
+                      autoComplete="current-password"
+                    />
                   </Field>
                   <Field id="dak-new-password" label="New password" hint="Use at least 12 characters.">
-                    <PasswordInput id="dak-new-password" />
+                    <PasswordInput id="dak-new-password" value={newPassword} onChange={setNewPassword} autoComplete="new-password" />
                   </Field>
                   <Field id="dak-confirm-password" label="Confirm new password">
-                    <PasswordInput id="dak-confirm-password" />
+                    <PasswordInput
+                      id="dak-confirm-password"
+                      value={confirmPassword}
+                      onChange={setConfirmPassword}
+                      autoComplete="new-password"
+                    />
                   </Field>
                   <div className="flex justify-end border-t border-slate-100 pt-5">
-                    <Button type="submit" variant="primary">
+                    <Button type="submit" variant="primary" loading={saving}>
                       Update password
                     </Button>
                   </div>

@@ -1,8 +1,9 @@
 "use client";
 
-import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Activity,
@@ -22,28 +23,52 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { DAK_NAV_BADGES, DAK_RECENT_ACTIVITY, DAK_REVIEWER } from "../_data/mock";
+import { api, applicationHref, BASE, fmtAgo } from "../_lib/client";
 import CommandPalette from "./CommandPalette";
-import { Avatar } from "./ui";
+import { Avatar, initials } from "./ui";
 
-const BASE = "/dak-portal";
 const COLLAPSE_KEY = "dak-portal-sidebar-collapsed";
+const NOTIFICATIONS_POLL_MS = 60_000;
 
 type NavItem = { href: string; label: string; icon: LucideIcon; badge?: number };
 
+export type ShellReviewer = { name: string; email: string; firstName: string; lastName: string };
+
+const ReviewerContext = createContext<ShellReviewer>({ name: "", email: "", firstName: "", lastName: "" });
+
+/** The signed-in reviewer, for pages inside the portal. */
+export const useReviewer = () => useContext(ReviewerContext);
+
+type NotificationItem = {
+  id: string;
+  applicationId: string;
+  name: string;
+  kind: "new_application" | "customer_response";
+  createdAt: string;
+  unread: boolean;
+};
+
+type NotificationSummary = { unread: number; needsAction: number; items: NotificationItem[] };
+
 const MAIN_NAV: NavItem[] = [
-  { href: `${BASE}/dashboard`, label: "Dashboard", icon: LayoutGrid, badge: DAK_NAV_BADGES.dashboard },
-  { href: `${BASE}/applications`, label: "Applications", icon: FileText, badge: DAK_NAV_BADGES.applications },
+  { href: `${BASE}/dashboard`, label: "Dashboard", icon: LayoutGrid },
+  { href: `${BASE}/applications`, label: "Applications", icon: FileText },
   { href: `${BASE}/documents`, label: "Documents", icon: FolderOpen },
   { href: `${BASE}/activity-log`, label: "Activity Log", icon: Activity },
 ];
 
 const SUPPORT_NAV: NavItem[] = [
-  { href: `${BASE}/help`, label: "Help & Support", icon: CircleHelp, badge: DAK_NAV_BADGES.help },
+  { href: `${BASE}/help`, label: "Help & Support", icon: CircleHelp },
   { href: `${BASE}/account`, label: "Account & Security", icon: UserRound },
 ];
 
 const ALL_NAV = [...MAIN_NAV, ...SUPPORT_NAV];
+
+/** Applications badge = applications waiting for the reviewer. */
+const withBadges = (items: NavItem[], needsAction: number) =>
+  items.map((item) => (item.href === `${BASE}/applications` && needsAction ? { ...item, badge: needsAction } : item));
+
+const signOutOfPortal = () => signOut({ callbackUrl: `${BASE}/login` });
 
 /* -------------------------------------------------------------------------- */
 /*                                  SIDEBAR                                   */
@@ -120,14 +145,38 @@ function RailLink({ item, active, expanded }: { item: NavItem; active: boolean; 
   );
 }
 
+function SignOutRail({ expanded }: { expanded: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={signOutOfPortal}
+      aria-label={expanded ? undefined : "Sign out"}
+      className="group relative flex h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-500 outline-none transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-violet-500/30"
+    >
+      <LogOut className="h-[19px] w-[19px] shrink-0" aria-hidden />
+      {expanded && <span className="whitespace-nowrap">Sign out</span>}
+      {!expanded && (
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-50 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
+        >
+          Sign out
+        </span>
+      )}
+    </button>
+  );
+}
+
 function Sidebar({
   pathname,
   expanded,
   onToggle,
+  needsAction,
 }: {
   pathname: string;
   expanded: boolean;
   onToggle: () => void;
+  needsAction: number;
 }) {
   return (
     <motion.aside
@@ -182,7 +231,7 @@ function Sidebar({
 
       <nav aria-label="DAK portal" className="flex flex-1 flex-col gap-1 px-3 pt-3">
         {expanded && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Workspace</p>}
-        {MAIN_NAV.map((item) => (
+        {withBadges(MAIN_NAV, needsAction).map((item) => (
           <RailLink key={item.href} item={item} active={pathname.startsWith(item.href)} expanded={expanded} />
         ))}
 
@@ -194,7 +243,7 @@ function Sidebar({
       </nav>
 
       <div className="border-t border-slate-100 p-3">
-        <RailLink item={{ href: `${BASE}/login`, label: "Sign out", icon: LogOut }} active={false} expanded={expanded} />
+        <SignOutRail expanded={expanded} />
       </div>
     </motion.aside>
   );
@@ -229,25 +278,34 @@ const popover = {
   transition: { duration: 0.15, ease: "easeOut" as const },
 };
 
-function Notifications() {
+function Notifications({ summary, onOpen }: { summary: NotificationSummary | null; onOpen: () => void }) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
   const ref = useOutsideClose(open, close);
+  const unread = summary?.unread ?? 0;
+  const items = summary?.items ?? [];
+
+  const toggle = () => {
+    if (!open && unread) onOpen();
+    setOpen((value) => !value);
+  };
 
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-label="Notifications"
+        onClick={toggle}
+        aria-label={unread ? `Notifications, ${unread} new` : "Notifications"}
         aria-expanded={open}
         className="relative flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
       >
         <Bell className="h-5 w-5" aria-hidden />
-        <span className="absolute right-2.5 top-2.5 flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-60" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
-        </span>
+        {unread > 0 && (
+          <span className="absolute right-2.5 top-2.5 flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
+          </span>
+        )}
       </button>
       <AnimatePresence>
         {open && (
@@ -257,24 +315,42 @@ function Notifications() {
           >
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
               <p className="text-sm font-semibold text-slate-900">Notifications</p>
-              <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-700">
-                {DAK_RECENT_ACTIVITY.length} new
-              </span>
+              {unread > 0 && (
+                <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-700">
+                  {unread} new
+                </span>
+              )}
             </div>
-            <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
-              {DAK_RECENT_ACTIVITY.map((item, index) => (
-                <li key={`${item.name}-${index}`} className="flex gap-3 px-4 py-3 transition-colors hover:bg-slate-50">
-                  <Avatar name={item.name} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-slate-900">
-                      <span className="font-medium">{item.name}</span>
-                      <span className="text-slate-500"> · {item.event}</span>
-                    </p>
-                    <p className="text-xs text-slate-400">{item.ago}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {items.length === 0 ? (
+              <p className="px-4 py-8 text-center text-sm text-slate-500">No notifications yet.</p>
+            ) : (
+              <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
+                {items.map((item) => (
+                  <li key={item.id}>
+                    <Link
+                      href={applicationHref(item.applicationId)}
+                      onClick={close}
+                      className={`flex gap-3 px-4 py-3 transition-colors hover:bg-slate-50 ${item.unread ? "bg-violet-50/40" : ""}`}
+                    >
+                      <Avatar name={item.name} size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-slate-900">
+                          <span className="font-medium">{item.name}</span>
+                          <span className="text-slate-500">
+                            {" · "}
+                            {item.kind === "new_application" ? "New application" : "Customer responded"}
+                          </span>
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {item.applicationId} · {fmtAgo(item.createdAt)}
+                        </p>
+                      </div>
+                      {item.unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-violet-500" aria-label="New" />}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
             <Link
               href={`${BASE}/activity-log`}
               onClick={close}
@@ -289,7 +365,7 @@ function Notifications() {
   );
 }
 
-function ProfileMenu() {
+function ProfileMenu({ reviewer }: { reviewer: ShellReviewer }) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
   const ref = useOutsideClose(open, close);
@@ -304,10 +380,10 @@ function ProfileMenu() {
         className="flex items-center gap-2.5 rounded-xl py-1 pl-1 pr-1 transition hover:bg-slate-100 sm:pr-3"
       >
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#8b2be2] to-[#5b21b6] text-xs font-bold text-white">
-          DR
+          {initials(reviewer.name)}
         </span>
         <span className="hidden text-left sm:block">
-          <span className="block text-sm font-medium leading-tight text-slate-900">{DAK_REVIEWER.name}</span>
+          <span className="block text-sm font-medium leading-tight text-slate-900">{reviewer.name}</span>
           <span className="block text-[11px] text-slate-500">DAK</span>
         </span>
       </button>
@@ -318,8 +394,8 @@ function ProfileMenu() {
             className="absolute right-0 top-12 z-50 w-64 origin-top-right overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl"
           >
             <div className="px-3 py-2.5">
-              <p className="text-sm font-semibold text-slate-900">{DAK_REVIEWER.name}</p>
-              <p className="truncate text-xs text-slate-500">{DAK_REVIEWER.email}</p>
+              <p className="text-sm font-semibold text-slate-900">{reviewer.name}</p>
+              <p className="truncate text-xs text-slate-500">{reviewer.email}</p>
             </div>
             <div className="my-1 h-px bg-slate-100" />
             {[
@@ -336,13 +412,13 @@ function ProfileMenu() {
               </Link>
             ))}
             <div className="my-1 h-px bg-slate-100" />
-            <Link
-              href={`${BASE}/login`}
-              onClick={close}
-              className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-rose-600 transition hover:bg-rose-50"
+            <button
+              type="button"
+              onClick={signOutOfPortal}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-rose-600 transition hover:bg-rose-50"
             >
               <LogOut className="h-4 w-4" aria-hidden /> Sign out
-            </Link>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -354,7 +430,7 @@ function ProfileMenu() {
 /*                                MOBILE NAV                                  */
 /* -------------------------------------------------------------------------- */
 
-function MobileNav({ pathname }: { pathname: string }) {
+function MobileNav({ pathname, needsAction }: { pathname: string; needsAction: number }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const reduceMotion = useReducedMotion();
   const moreActive = SUPPORT_NAV.some((item) => pathname.startsWith(item.href));
@@ -368,7 +444,7 @@ function MobileNav({ pathname }: { pathname: string }) {
         className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
       >
         <ul className="grid grid-cols-5">
-          {MAIN_NAV.map((item) => {
+          {withBadges(MAIN_NAV, needsAction).map((item) => {
             const active = pathname.startsWith(item.href);
             const Icon = item.icon;
             return (
@@ -434,7 +510,7 @@ function MobileNav({ pathname }: { pathname: string }) {
               className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl"
             >
               <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-slate-200" />
-              {[...SUPPORT_NAV, { href: `${BASE}/login`, label: "Sign out", icon: LogOut }].map(({ href, label, icon: Icon, badge }) => (
+              {SUPPORT_NAV.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
@@ -444,13 +520,19 @@ function MobileNav({ pathname }: { pathname: string }) {
                     <Icon className="h-5 w-5" aria-hidden />
                   </span>
                   <span className="flex-1">{label}</span>
-                  {badge ? (
-                    <span className="rounded-full bg-violet-600 px-2 py-0.5 text-xs font-bold text-white">{badge}</span>
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-slate-300" aria-hidden />
-                  )}
+                  <ChevronRight className="h-4 w-4 text-slate-300" aria-hidden />
                 </Link>
               ))}
+              <button
+                type="button"
+                onClick={signOutOfPortal}
+                className="flex w-full items-center gap-3 rounded-2xl px-3 py-3.5 text-left text-[15px] font-medium text-rose-600 hover:bg-rose-50"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                  <LogOut className="h-5 w-5" aria-hidden />
+                </span>
+                <span className="flex-1">Sign out</span>
+              </button>
             </motion.div>
           </div>
         )}
@@ -463,11 +545,34 @@ function MobileNav({ pathname }: { pathname: string }) {
 /*                                   SHELL                                    */
 /* -------------------------------------------------------------------------- */
 
-export default function PortalShell({ children }: { children: ReactNode }) {
+export default function PortalShell({ children, reviewer }: { children: ReactNode; reviewer: ShellReviewer }) {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
   const [expanded, setExpanded] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [summary, setSummary] = useState<NotificationSummary | null>(null);
+
+  // New applications and customer replies; refreshed on navigation and every minute.
+  const loadSummary = useCallback(() => {
+    api<NotificationSummary>("/notifications")
+      .then(setSummary)
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    loadSummary();
+  }, [loadSummary, pathname]);
+
+  useEffect(() => {
+    const timer = setInterval(loadSummary, NOTIFICATIONS_POLL_MS);
+    return () => clearInterval(timer);
+  }, [loadSummary]);
+
+  const markNotificationsSeen = () => {
+    api("/notifications", { method: "POST" })
+      .then(() => setSummary((value) => (value ? { ...value, unread: 0 } : value)))
+      .catch(() => undefined);
+  };
 
   // Remember the sidebar state per browser (optional convenience).
   useEffect(() => {
@@ -510,7 +615,7 @@ export default function PortalShell({ children }: { children: ReactNode }) {
         <div className="absolute -bottom-40 left-1/3 h-[380px] w-[380px] rounded-full bg-sky-100/40 blur-3xl" />
       </div>
 
-      <Sidebar pathname={pathname} expanded={expanded} onToggle={toggleSidebar} />
+      <Sidebar pathname={pathname} expanded={expanded} onToggle={toggleSidebar} needsAction={summary?.needsAction ?? 0} />
 
       <div
         className={`relative transition-[padding] duration-300 ease-out ${expanded ? "lg:pl-[256px]" : "lg:pl-[76px]"}`}
@@ -543,8 +648,8 @@ export default function PortalShell({ children }: { children: ReactNode }) {
                   Ctrl K
                 </kbd>
               </button>
-              <Notifications />
-              <ProfileMenu />
+              <Notifications summary={summary} onOpen={markNotificationsSeen} />
+              <ProfileMenu reviewer={reviewer} />
             </div>
           </div>
         </header>
@@ -556,12 +661,12 @@ export default function PortalShell({ children }: { children: ReactNode }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            {children}
+            <ReviewerContext.Provider value={reviewer}>{children}</ReviewerContext.Provider>
           </motion.div>
         </main>
       </div>
 
-      <MobileNav pathname={pathname} />
+      <MobileNav pathname={pathname} needsAction={summary?.needsAction ?? 0} />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} nav={ALL_NAV} />
     </div>
   );

@@ -2,8 +2,11 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 /**
  * TEAM INBOX FOR NEW PUBLIC INSURANCE APPLICATIONS
+ * Local testing: set APPLICATIONS_TEAM_EMAIL_OVERRIDE in .env to your own
+ * address so test submissions don't reach the team. Never set it on Vercel.
  */
-export const APPLICATIONS_TEAM_EMAIL = "pradeep.k@insurbe.com";
+export const APPLICATIONS_TEAM_EMAIL =
+  process.env.APPLICATIONS_TEAM_EMAIL_OVERRIDE?.trim() || "pradeep.k@insurbe.com";
 
 export async function generateApplicationPDF(
   title: string,

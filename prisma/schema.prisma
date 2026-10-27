@@ -3,29 +3,31 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id               String          @id @default(uuid())
-  email            String          @unique
-  password         String
-  resetToken       String?
-  resetTokenExpiry DateTime?
-  createdAt        DateTime        @default(now())
-  role             String?         @default("user")
-  partnerId        String?
-  partnerCode      String?         @unique
-  companyName      String?
-  title            String?
-  firstName        String?
-  lastName         String?
+  id                     String          @id @default(uuid())
+  email                  String          @unique
+  password               String
+  resetToken             String?
+  resetTokenExpiry       DateTime?
+  createdAt              DateTime        @default(now())
+  role                   String?         @default("user")
+  partnerId              String?
+  partnerCode            String?         @unique
+  companyName            String?
+  title                  String?
+  firstName              String?
+  lastName               String?
   /// Custom commission per application in whole EUR; null = role default
-  commissionRate   Int?
-  partnerProfile   PartnerProfile?
-  mawsitaRecords   MawsitaRecord[]
+  commissionRate         Int?
+  /// DAK portal: newest notification the reviewer has seen
+  dakNotificationsSeenAt DateTime?
+  partnerProfile         PartnerProfile?
+  mawsitaRecords         MawsitaRecord[]
 }
 
 model PartnerProfile {
@@ -98,15 +100,15 @@ model CommissionDefault {
 
 /// Audit log of commission rate changes made in the admin portal
 model CommissionRateChange {
-  id              String   @id @default(uuid())
-  role            String
+  id             String   @id @default(uuid())
+  role           String
   /// User id of the partner/agent; null when the role default changed
-  userId          String?
-  oldRate         Int?
-  newRate         Int?
-  pendingUpdated  Int      @default(0)
-  changedBy       String
-  createdAt       DateTime @default(now())
+  userId         String?
+  oldRate        Int?
+  newRate        Int?
+  pendingUpdated Int      @default(0)
+  changedBy      String
+  createdAt      DateTime @default(now())
 
   @@index([userId, createdAt])
   @@index([role, createdAt])
@@ -121,6 +123,7 @@ model InsuranceApplication {
   applicationNumber String?   @unique
   partnerId         String?
   source            String?
+  dakCase           DakCase?
 
   @@index([partnerId, provider, createdAt])
 }
@@ -149,4 +152,108 @@ model MawsitaRecord {
   @@index([status])
   @@index([email])
   @@index([userId])
+}
+
+/// DAK provider portal: review state of one DAK application.
+model DakCase {
+  id                     String               @id @default(uuid())
+  insuranceApplicationId String               @unique
+  /// Same as InsuranceApplication.applicationNumber, e.g. IB-DAK-040
+  caseNumber             String               @unique
+  /// See src/lib/dak/statuses.ts
+  status                 String               @default("Submitted")
+  submittedAt            DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  /// Reason sent to the customer on cancel / not eligible
+  closedReason           String?
+  membershipNumber       String?
+  kvnr                   String?
+  svnr                   String?
+  /// YYYY-MM-DD
+  confirmedStartDate     String?
+  contributionCategory   String?
+  insuranceApplication   InsuranceApplication @relation(fields: [insuranceApplicationId], references: [id], onDelete: Cascade)
+  events                 DakEvent[]
+  requests               DakInfoRequest[]
+  documents              DakDocument[]
+
+  @@index([status, submittedAt])
+}
+
+/// Immutable audit trail / status timeline of a DAK case.
+model DakEvent {
+  id         String   @id @default(uuid())
+  caseId     String
+  event      String
+  fromStatus String?
+  toStatus   String?
+  note       String?
+  /// "customer" | "reviewer" | "system"
+  actorType  String
+  actorName  String
+  actorId    String?
+  createdAt  DateTime @default(now())
+  case       DakCase  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId, createdAt])
+  @@index([createdAt])
+}
+
+/// Information a DAK reviewer requested from the customer.
+model DakInfoRequest {
+  id           String    @id @default(uuid())
+  caseId       String
+  category     String
+  relatedField String?
+  message      String
+  /// Never shown to the customer
+  internalNote String?
+  dueDate      DateTime?
+  priority     String    @default("Normal")
+  /// "open" | "responded"
+  status       String    @default("open")
+  response     String?
+  respondedAt  DateTime?
+  createdById  String
+  createdAt    DateTime  @default(now())
+  case         DakCase   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId, createdAt])
+  @@index([status, dueDate])
+}
+
+/// File of a DAK case, stored in Supabase Storage.
+model DakDocument {
+  id           String    @id @default(uuid())
+  caseId       String
+  name         String
+  mimeType     String
+  size         Int
+  /// "customer" | "insurbe" | "dak"
+  source       String
+  bucket       String
+  storagePath  String
+  /// "pending" | "reviewed" | "auto"
+  reviewStatus String    @default("pending")
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  uploadedBy   String?
+  createdAt    DateTime  @default(now())
+  case         DakCase   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId, createdAt])
+  @@index([reviewStatus])
+}
+
+/// Message a DAK reviewer sent to InsurBe support from the portal.
+model DakSupportTicket {
+  id            String   @id @default(uuid())
+  reviewerId    String
+  reviewerEmail String
+  subject       String
+  message       String
+  status        String   @default("open")
+  createdAt     DateTime @default(now())
+
+  @@index([reviewerId, createdAt])
 }

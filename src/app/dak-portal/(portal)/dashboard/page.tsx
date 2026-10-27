@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -11,46 +11,49 @@ import {
   Clock3,
   FileText,
   FolderOpen,
+  Inbox,
   MessageSquare,
   type LucideIcon,
 } from "lucide-react";
 
-import {
-  DAK_ACTION_QUEUE,
-  DAK_APPLICATIONS,
-  DAK_DASHBOARD_STATS,
-  DAK_DOCUMENTS,
-  DAK_OVERDUE_REQUESTS,
-  DAK_RECENT_ACTIVITY,
-  DAK_REVIEWER,
-  type DakApplication,
-  type DakStatus,
-} from "../../_data/mock";
-import ApplicationDrawer from "../../_components/ApplicationDrawer";
-import { Avatar, CountUp, FadeIn, Panel, STATUS_META, StatusBadge } from "../../_components/ui";
+import { isDakStatus, type DakStatus } from "@/lib/dak/statuses";
+import { api, applicationHref, BASE, fmtAgo, fmtDate, type DakListRow } from "../../_lib/client";
+import { useReviewer } from "../../_components/PortalShell";
+import { Avatar, CountUp, EmptyState, ErrorState, FadeIn, LoadingState, Panel, STATUS_META, StatusBadge } from "../../_components/ui";
 
-const STAT_STYLE: Record<
-  (typeof DAK_DASHBOARD_STATS)[number]["tone"],
-  { icon: LucideIcon; tint: string; status?: DakStatus }
-> = {
-  blue: { icon: FileText, tint: "bg-blue-50 text-blue-600 ring-blue-100", status: "Submitted" },
-  violet: { icon: Clock3, tint: "bg-violet-50 text-violet-600 ring-violet-100", status: "In Review" },
-  amber: { icon: AlertCircle, tint: "bg-amber-50 text-amber-600 ring-amber-100", status: "Information Required" },
-  sky: { icon: MessageSquare, tint: "bg-sky-50 text-sky-600 ring-sky-100", status: "Customer Responded" },
-  emerald: { icon: CircleCheck, tint: "bg-emerald-50 text-emerald-600 ring-emerald-100", status: "Approved" },
+type Dashboard = {
+  counts: Record<DakStatus, number>;
+  total: number;
+  queue: DakListRow[];
+  overdue: { id: string; name: string; open: number }[];
+  recent: { id: string; applicationId: string; name: string; status: string | null; createdAt: string }[];
+  pendingDocuments: number;
 };
 
-function StatusDonut() {
+const STATS: { status: DakStatus; label: string; icon: LucideIcon; tint: string }[] = [
+  { status: "Submitted", label: "New Submissions", icon: FileText, tint: "bg-blue-50 text-blue-600 ring-blue-100" },
+  { status: "In Review", label: "In Review", icon: Clock3, tint: "bg-violet-50 text-violet-600 ring-violet-100" },
+  { status: "Information Required", label: "Info Required", icon: AlertCircle, tint: "bg-amber-50 text-amber-600 ring-amber-100" },
+  { status: "Customer Responded", label: "Customer Responded", icon: MessageSquare, tint: "bg-sky-50 text-sky-600 ring-sky-100" },
+  { status: "Approved", label: "Pending Allocation", icon: CircleCheck, tint: "bg-emerald-50 text-emerald-600 ring-emerald-100" },
+];
+
+const greeting = () => {
+  const hour = new Date().getHours();
+  return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+};
+
+function StatusDonut({ counts, total }: { counts: Record<DakStatus, number>; total: number }) {
   const reduceMotion = useReducedMotion();
-  const segments = useMemo(() => {
-    const counts = new Map<DakStatus, number>();
-    DAK_APPLICATIONS.forEach((app) => counts.set(app.status, (counts.get(app.status) ?? 0) + 1));
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
-  }, []);
-  const total = DAK_APPLICATIONS.length;
+  const segments = useMemo(
+    () => (Object.entries(counts) as [DakStatus, number][]).filter(([, count]) => count > 0).sort((a, b) => b[1] - a[1]),
+    [counts],
+  );
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   let offset = 0;
+
+  if (!total) return <p className="py-10 text-center text-sm text-slate-500">No applications yet.</p>;
 
   return (
     <div className="flex flex-col items-center gap-6 sm:flex-row lg:flex-col xl:flex-row">
@@ -103,11 +106,33 @@ function StatusDonut() {
 
 export default function DakDashboardPage() {
   const reduceMotion = useReducedMotion();
-  const [selected, setSelected] = useState<DakApplication | null>(null);
+  const [data, setData] = useState<Dashboard | null>(null);
+  const [error, setError] = useState("");
+  const { name } = useReviewer();
 
-  const pendingDocs = DAK_DOCUMENTS.filter((document) => document.review === "Pending").length;
-  const attention = DAK_OVERDUE_REQUESTS.reduce((sum, item) => sum + item.open, 0) + DAK_ACTION_QUEUE.length;
-  const openApp = (id: string) => setSelected(DAK_APPLICATIONS.find((app) => app.id === id) ?? null);
+  const load = useCallback(() => {
+    setError("");
+    api<Dashboard>("/dashboard")
+      .then(setData)
+      .catch((loadError: Error) => setError(loadError.message));
+  }, []);
+
+  useEffect(load, [load]);
+
+  if (error && !data) {
+    return (
+      <Panel>
+        <ErrorState message={error} onRetry={load} />
+      </Panel>
+    );
+  }
+  if (!data) {
+    return (
+      <LoadingState label="Loading dashboard…" fill />
+    );
+  }
+
+  const attention = data.counts.Submitted + data.counts["Customer Responded"] + data.overdue.length;
 
   return (
     <>
@@ -127,23 +152,25 @@ export default function DakDashboardPage() {
           </div>
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm text-violet-200">Last login {DAK_REVIEWER.lastLogin}</p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Good morning, {DAK_REVIEWER.name}</h1>
+              <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                {greeting()}
+                {name ? `, ${name}` : ""}
+              </h1>
               <p className="mt-2 max-w-lg text-sm text-violet-100/90">
                 You have <span className="font-semibold text-white">{attention} items</span> waiting for your attention and{" "}
-                <span className="font-semibold text-white">{pendingDocs} documents</span> to review.
+                <span className="font-semibold text-white">{data.pendingDocuments} documents</span> to review.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
-                href="/dak-portal/applications"
+                href={`${BASE}/applications`}
                 className="group inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-violet-800 shadow-sm transition hover:bg-violet-50"
               >
                 Review queue
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
               </Link>
               <Link
-                href="/dak-portal/documents"
+                href={`${BASE}/documents`}
                 className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-white/20"
               >
                 <FolderOpen className="h-4 w-4" aria-hidden /> Documents
@@ -155,23 +182,22 @@ export default function DakDashboardPage() {
 
       {/* KPIs */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-5">
-        {DAK_DASHBOARD_STATS.map((stat, index) => {
-          const style = STAT_STYLE[stat.tone];
-          const Icon = style.icon;
+        {STATS.map((stat, index) => {
+          const Icon = stat.icon;
           return (
-            <FadeIn key={stat.key} index={index + 1}>
+            <FadeIn key={stat.status} index={index + 1}>
               <Link
-                href={`/dak-portal/applications${style.status ? `?status=${encodeURIComponent(style.status)}` : ""}`}
+                href={`${BASE}/applications?status=${encodeURIComponent(stat.status)}`}
                 className="group block h-full rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-500/5 sm:p-5"
               >
                 <div className="flex items-start justify-between">
-                  <span className={`flex h-10 w-10 items-center justify-center rounded-xl ring-1 ${style.tint}`}>
+                  <span className={`flex h-10 w-10 items-center justify-center rounded-xl ring-1 ${stat.tint}`}>
                     <Icon className="h-5 w-5" aria-hidden />
                   </span>
                   <ArrowUpRight className="h-4 w-4 text-slate-300 transition group-hover:text-violet-500" aria-hidden />
                 </div>
                 <p className="mt-5 text-3xl font-semibold tracking-tight text-slate-900">
-                  <CountUp value={stat.value} />
+                  <CountUp value={data.counts[stat.status]} />
                 </p>
                 <p className="mt-0.5 text-sm text-slate-500">{stat.label}</p>
               </Link>
@@ -186,43 +212,48 @@ export default function DakDashboardPage() {
           <Panel
             title="Action Queue"
             action={
-              <Link href="/dak-portal/applications" className="group inline-flex items-center gap-1 text-sm font-medium text-violet-700">
+              <Link href={`${BASE}/applications`} className="group inline-flex items-center gap-1 text-sm font-medium text-violet-700">
                 All applications
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
               </Link>
             }
             className="h-full"
           >
-            <ul className="divide-y divide-slate-100">
-              {DAK_ACTION_QUEUE.map((row) => (
-                <li key={row.id}>
-                  <button
-                    type="button"
-                    onClick={() => openApp(row.id)}
-                    className="group flex w-full flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 text-left transition-colors hover:bg-slate-50/70"
-                  >
-                    <Avatar name={row.name} />
-                    <span className="min-w-[140px] flex-1">
-                      <span className="block font-medium text-slate-900">{row.name}</span>
-                      <span className="block text-xs text-slate-500">
-                        {row.category} · {row.id}
+            {data.queue.length === 0 ? (
+              <EmptyState icon={<Inbox className="h-6 w-6" />} title="All caught up" text="No new submissions or customer replies." />
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {data.queue.map((row) => (
+                  <li key={row.id}>
+                    <Link
+                      href={applicationHref(row.id)}
+                      className="group flex w-full flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 text-left transition-colors hover:bg-slate-50/70"
+                    >
+                      <Avatar name={row.name} />
+                      <span className="min-w-[140px] flex-1">
+                        <span className="block font-medium text-slate-900">{row.name}</span>
+                        <span className="block text-xs text-slate-500">
+                          {row.category ?? "—"} · {row.id}
+                        </span>
                       </span>
-                    </span>
-                    <StatusBadge status={row.status} />
-                    <span className="hidden text-sm text-slate-500 sm:block">Starts {row.startDate}</span>
-                    <span className="rounded-lg bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">{row.age}</span>
-                    <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-violet-500" aria-hidden />
-                  </button>
-                </li>
-              ))}
-            </ul>
+                      <StatusBadge status={row.status} />
+                      <span className="hidden text-sm text-slate-500 sm:block">Submitted {fmtDate(row.submittedAt)}</span>
+                      {row.ageDays != null && (
+                        <span className="rounded-lg bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">{row.ageDays}d</span>
+                      )}
+                      <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-violet-500" aria-hidden />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Panel>
         </FadeIn>
 
         {/* STATUS DONUT */}
         <FadeIn index={7}>
           <Panel title="Status overview" padded className="h-full">
-            <StatusDonut />
+            <StatusDonut counts={data.counts} total={data.total} />
           </Panel>
         </FadeIn>
 
@@ -235,27 +266,30 @@ export default function DakDashboardPage() {
               </span>
               <h2 className="text-[15px] font-semibold text-amber-900">Overdue Information Requests</h2>
             </div>
-            <ul className="divide-y divide-amber-200/50">
-              {DAK_OVERDUE_REQUESTS.map((item) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => openApp(item.id)}
-                    className="group flex w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-amber-100/40"
-                  >
-                    <Avatar name={item.name} size="sm" />
-                    <span className="flex-1">
-                      <span className="font-medium text-slate-900">{item.name}</span>
-                      <span className="ml-2 text-sm text-slate-500">{item.id}</span>
-                    </span>
-                    <span className="text-sm font-semibold text-amber-700">
-                      {item.open} open {item.open === 1 ? "request" : "requests"}
-                    </span>
-                    <ArrowRight className="h-4 w-4 text-amber-400 transition group-hover:translate-x-0.5" aria-hidden />
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {data.overdue.length === 0 ? (
+              <p className="px-5 py-6 text-sm text-amber-900/70">No overdue requests.</p>
+            ) : (
+              <ul className="divide-y divide-amber-200/50">
+                {data.overdue.map((item) => (
+                  <li key={item.id}>
+                    <Link
+                      href={applicationHref(item.id)}
+                      className="group flex w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-amber-100/40"
+                    >
+                      <Avatar name={item.name} size="sm" />
+                      <span className="flex-1">
+                        <span className="font-medium text-slate-900">{item.name}</span>
+                        <span className="ml-2 text-sm text-slate-500">{item.id}</span>
+                      </span>
+                      <span className="text-sm font-semibold text-amber-700">
+                        {item.open} open {item.open === 1 ? "request" : "requests"}
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-amber-400 transition group-hover:translate-x-0.5" aria-hidden />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         </FadeIn>
 
@@ -264,31 +298,33 @@ export default function DakDashboardPage() {
           <Panel
             title="Recent Activity"
             action={
-              <Link href="/dak-portal/activity-log" className="text-sm font-medium text-violet-700 hover:underline">
+              <Link href={`${BASE}/activity-log`} className="text-sm font-medium text-violet-700 hover:underline">
                 View all
               </Link>
             }
           >
-            <ol className="px-5 py-3">
-              {DAK_RECENT_ACTIVITY.map((item, index) => (
-                <li key={`${item.name}-${item.event}-${index}`} className="relative flex gap-3 pb-4 last:pb-1">
-                  {index < DAK_RECENT_ACTIVITY.length - 1 && (
-                    <span className="absolute left-[13px] top-8 h-[calc(100%-1.5rem)] w-px bg-slate-200" aria-hidden />
-                  )}
-                  <Avatar name={item.name} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-900">{item.name}</p>
-                    <p className="text-xs text-slate-500">{item.event}</p>
-                  </div>
-                  <span className="shrink-0 text-[11px] text-slate-400">{item.ago}</span>
-                </li>
-              ))}
-            </ol>
+            {data.recent.length === 0 ? (
+              <p className="px-5 py-6 text-sm text-slate-500">No activity yet.</p>
+            ) : (
+              <ol className="px-5 py-3">
+                {data.recent.map((item, index) => (
+                  <li key={item.id} className="relative flex gap-3 pb-4 last:pb-1">
+                    {index < data.recent.length - 1 && (
+                      <span className="absolute left-[13px] top-8 h-[calc(100%-1.5rem)] w-px bg-slate-200" aria-hidden />
+                    )}
+                    <Avatar name={item.name} size="sm" />
+                    <Link href={applicationHref(item.applicationId)} className="min-w-0 flex-1 hover:underline">
+                      <p className="text-sm font-medium text-slate-900">{item.name}</p>
+                      <p className="text-xs text-slate-500">{isDakStatus(item.status) ? STATUS_META[item.status].label : item.status}</p>
+                    </Link>
+                    <span className="shrink-0 text-[11px] text-slate-400">{fmtAgo(item.createdAt)}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
           </Panel>
         </FadeIn>
       </div>
-
-      <ApplicationDrawer application={selected} onClose={() => setSelected(null)} />
     </>
   );
 }

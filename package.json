@@ -10,6 +10,7 @@
     "lint": "next lint",
     "postinstall": "prisma generate",
     "admin:create": "tsx scripts/createAdmin.ts",
+    "dak:reviewer": "tsx scripts/createDakReviewer.ts",
     "mawsita:backfill-users": "tsx scripts/backfillMawsitaUserLinks.ts",
     "mawsita:rollout": "npx prisma migrate deploy && npm run mawsita:backfill-users"
   },

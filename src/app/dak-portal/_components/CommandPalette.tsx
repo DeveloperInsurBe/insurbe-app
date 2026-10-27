@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { CornerDownLeft, FileText, Search, type LucideIcon } from "lucide-react";
 
-import { DAK_APPLICATIONS } from "../_data/mock";
+import { api, applicationHref, type DakListRow } from "../_lib/client";
 import { Avatar, StatusBadge } from "./ui";
 
 export type PaletteNavItem = { href: string; label: string; icon: LucideIcon };
 
 type Item =
   | { kind: "page"; id: string; label: string; href: string; icon: LucideIcon }
-  | { kind: "app"; id: string; label: string; href: string; app: (typeof DAK_APPLICATIONS)[number] };
+  | { kind: "app"; id: string; label: string; href: string; app: DakListRow };
 
 export default function CommandPalette({
   open,
@@ -28,30 +28,30 @@ export default function CommandPalette({
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  const [applications, setApplications] = useState<DakListRow[]>([]);
 
   const items = useMemo<Item[]>(() => {
     const q = query.trim().toLowerCase();
     const pages: Item[] = nav
       .filter((item) => !q || item.label.toLowerCase().includes(q))
       .map((item) => ({ kind: "page", id: item.href, label: item.label, href: item.href, icon: item.icon }));
-    const apps: Item[] = DAK_APPLICATIONS.filter(
-      (app) => !q || app.name.toLowerCase().includes(q) || app.id.toLowerCase().includes(q),
-    )
+    const apps: Item[] = applications
+      .filter(
+        (app) =>
+          !q || app.name.toLowerCase().includes(q) || app.id.toLowerCase().includes(q) || app.email.toLowerCase().includes(q),
+      )
       .slice(0, 6)
-      .map((app) => ({
-        kind: "app",
-        id: app.id,
-        label: app.name,
-        href: `/dak-portal/applications?app=${encodeURIComponent(app.id)}`,
-        app,
-      }));
+      .map((app) => ({ kind: "app", id: app.id, label: app.name, href: applicationHref(app.id), app }));
     return [...pages, ...apps];
-  }, [query, nav]);
+  }, [query, nav, applications]);
 
   useEffect(() => {
     if (!open) return;
     setQuery("");
     setActive(0);
+    api<{ applications: DakListRow[] }>("/applications")
+      .then((data) => setApplications(data.applications))
+      .catch(() => undefined);
     const timer = setTimeout(() => inputRef.current?.focus(), 30);
     return () => clearTimeout(timer);
   }, [open]);

@@ -1,25 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowDownUp, ArrowUp, ChevronDown, ChevronRight, Download, LayoutGrid, Rows3, SearchX } from "lucide-react";
 
-import {
-  DAK_APPLICATIONS,
-  DAK_CATEGORIES,
-  DAK_STATUSES,
-  type DakApplication,
-  type DakCategory,
-  type DakStatus,
-} from "../../_data/mock";
-import ApplicationDrawer from "../../_components/ApplicationDrawer";
+import { DAK_CATEGORIES, DAK_STATUSES, isDakStatus, type DakCategory, type DakStatus } from "@/lib/dak/statuses";
+import { api, applicationHref, fmtDate, type DakListRow } from "../../_lib/client";
 import {
   Avatar,
   Button,
   downloadCsv,
   EmptyState,
+  ErrorState,
   FilterChips,
+  LoadingState,
   PageHeader,
+  Pagination,
   Panel,
   SearchInput,
   Segmented,
@@ -29,20 +27,26 @@ import {
   TH,
 } from "../../_components/ui";
 
+const PAGE_SIZE = 10;
+
 type SortKey = "submitted" | "start" | "age";
 type Sort = { key: SortKey; dir: "asc" | "desc" } | null;
 type View = "table" | "cards";
 
-const ageTone = (app: DakApplication) =>
-  app.status === "Information Required"
+const ageTone = (app: DakListRow) =>
+  app.due === "overdue"
     ? "bg-rose-50 text-rose-700"
-    : app.status === "Submitted" || app.status === "Approved"
+    : app.due === "due_soon" || app.status === "Submitted" || app.status === "Customer Responded"
       ? "bg-amber-50 text-amber-700"
       : "bg-slate-100 text-slate-600";
 
-function AgePill({ app }: { app: DakApplication }) {
+function AgePill({ app }: { app: DakListRow }) {
   if (app.ageDays == null) return <span className="text-slate-300">—</span>;
-  return <span className={`rounded-lg px-2 py-0.5 text-xs font-semibold ${ageTone(app)}`}>{app.ageDays}d</span>;
+  return (
+    <span className={`rounded-lg px-2 py-0.5 text-xs font-semibold ${ageTone(app)}`} title={app.due === "overdue" ? "Request overdue" : undefined}>
+      {app.ageDays}d
+    </span>
+  );
 }
 
 function RequestsPill({ count }: { count: number }) {
@@ -55,54 +59,77 @@ function RequestsPill({ count }: { count: number }) {
 }
 
 export default function DakApplicationsPage() {
+  const router = useRouter();
   const reduceMotion = useReducedMotion();
+  const [applications, setApplications] = useState<DakListRow[] | null>(null);
+  const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<DakStatus | "all">("all");
   const [category, setCategory] = useState<DakCategory | "">("");
   const [sort, setSort] = useState<Sort>(null);
   const [view, setView] = useState<View>("table");
-  const [selected, setSelected] = useState<DakApplication | null>(null);
+  const [page, setPage] = useState(1);
 
-  // Deep links from the dashboard (?status=…) and the command palette (?app=…).
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const status = params.get("status") as DakStatus | null;
-    if (status && DAK_STATUSES.includes(status)) setStatus(status);
-    const app = DAK_APPLICATIONS.find((item) => item.id === params.get("app"));
-    if (app) setSelected(app);
+  const load = useCallback(() => {
+    setError("");
+    api<{ applications: DakListRow[] }>("/applications")
+      .then((data) => setApplications(data.applications))
+      .catch((loadError: Error) => setError(loadError.message));
   }, []);
+
+  useEffect(load, [load]);
+
+  // Deep links from the dashboard (?status=…).
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get("status");
+    if (isDakStatus(value)) setStatus(value);
+  }, []);
+
+  const all = useMemo(() => applications ?? [], [applications]);
 
   const statusChips = useMemo(() => {
     const counts = new Map<DakStatus, number>();
-    DAK_APPLICATIONS.forEach((app) => counts.set(app.status, (counts.get(app.status) ?? 0) + 1));
+    all.forEach((app) => counts.set(app.status, (counts.get(app.status) ?? 0) + 1));
     return [
-      { value: "all" as const, label: "All", count: DAK_APPLICATIONS.length },
-      ...DAK_STATUSES.filter((value) => counts.has(value)).map((value) => ({
+      { value: "all" as const, label: "All", count: all.length },
+      ...DAK_STATUSES.filter((value) => counts.has(value) || value === status).map((value) => ({
         value,
         label: STATUS_META[value].label,
-        count: counts.get(value),
+        count: counts.get(value) ?? 0,
       })),
     ];
-  }, []);
+  }, [all, status]);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const filtered = DAK_APPLICATIONS.filter(
+    const filtered = all.filter(
       (app) =>
-        (!q || app.name.toLowerCase().includes(q) || app.id.toLowerCase().includes(q)) &&
+        (!q || app.name.toLowerCase().includes(q) || app.id.toLowerCase().includes(q) || app.email.toLowerCase().includes(q)) &&
         (status === "all" || app.status === status) &&
         (!category || app.category === category),
     );
     if (!sort) return filtered;
-    const value = (app: DakApplication) =>
-      sort.key === "submitted" ? app.submittedSort : sort.key === "start" ? app.startSort : app.ageDays ?? -1;
+    const value = (app: DakListRow) =>
+      sort.key === "submitted" ? app.submittedAt : sort.key === "start" ? app.startDate ?? "" : app.ageDays ?? -1;
     return [...filtered].sort((a, b) => {
       const av = value(a);
       const bv = value(b);
       const result = typeof av === "number" && typeof bv === "number" ? av - bv : String(av).localeCompare(String(bv));
       return sort.dir === "asc" ? result : -result;
     });
-  }, [query, status, category, sort]);
+  }, [all, query, status, category, sort]);
+
+  // Back to the first page whenever the result set changes.
+  useEffect(() => setPage(1), [query, status, category, sort]);
+
+  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageRows = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const changePage = (next: number) => {
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const toggleSort = (key: SortKey) =>
     setSort((current) => (current?.key !== key ? { key, dir: "desc" } : current.dir === "desc" ? { key, dir: "asc" } : null));
@@ -126,21 +153,40 @@ export default function DakApplicationsPage() {
 
   const exportCsv = () =>
     downloadCsv("dak-applications.csv", [
-      ["Applicant", "Date of birth", "Application ID", "Category", "Submitted", "Start date", "Status", "Open requests", "Age (days)"],
-      ...rows.map((app) => [app.name, app.birthDate, app.id, app.category ?? "", app.submitted, app.startDate, app.status, app.openRequests, app.ageDays ?? ""]),
+      ["Applicant", "Email", "Date of birth", "Application ID", "Category", "Submitted", "Start date", "Status", "Open requests", "Age (days)"],
+      ...rows.map((app) => [
+        app.name,
+        app.email,
+        fmtDate(app.birthDate),
+        app.id,
+        app.category ?? "",
+        fmtDate(app.submittedAt),
+        fmtDate(app.startDate),
+        app.status,
+        app.openRequests,
+        app.ageDays ?? "",
+      ]),
     ]);
 
   const empty = (
     <EmptyState icon={<SearchX className="h-6 w-6" />} title="No applications found" text="Try a different search or filter." />
   );
 
+  const body = error ? (
+    <Panel>
+      <ErrorState message={error} onRetry={load} />
+    </Panel>
+  ) : !applications ? (
+    <LoadingState label="Loading applications…" />
+  ) : null;
+
   return (
     <>
       <PageHeader
         title="Applications"
-        subtitle={`${DAK_APPLICATIONS.length} total registrations in the DAK queue`}
+        subtitle={applications ? `${applications.length} total registrations in the DAK queue` : "DAK queue"}
         actions={
-          <Button onClick={exportCsv}>
+          <Button onClick={exportCsv} disabled={!rows.length}>
             <Download className="h-4 w-4" aria-hidden /> Export CSV
           </Button>
         }
@@ -148,7 +194,7 @@ export default function DakApplicationsPage() {
 
       {/* TOOLBAR */}
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
-        <SearchInput value={query} onChange={setQuery} placeholder="Search by name or ID…" className="md:max-w-sm md:flex-1" />
+        <SearchInput value={query} onChange={setQuery} placeholder="Search by name, email or ID…" className="md:max-w-sm md:flex-1" />
         <label className="relative block md:w-56">
           <span className="sr-only">Filter by category</span>
           <select
@@ -182,8 +228,10 @@ export default function DakApplicationsPage() {
         <FilterChips label="status" options={statusChips} value={status} onChange={setStatus} />
       </div>
 
+      {body}
+
       {/* TABLE (desktop) */}
-      {view === "table" && (
+      {!body && view === "table" && (
         <Panel className="hidden md:block">
           {rows.length === 0 ? (
             empty
@@ -205,7 +253,7 @@ export default function DakApplicationsPage() {
                 </thead>
                 <tbody>
                   <AnimatePresence initial={false}>
-                    {rows.map((app, index) => (
+                    {pageRows.map((app, index) => (
                       <motion.tr
                         key={app.id}
                         layout={!reduceMotion}
@@ -213,29 +261,26 @@ export default function DakApplicationsPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.25, delay: reduceMotion ? 0 : Math.min(index * 0.03, 0.3) }}
-                        onClick={() => setSelected(app)}
+                        onClick={() => router.push(applicationHref(app.id))}
                         className="group cursor-pointer border-b border-slate-100 transition-colors last:border-0 hover:bg-violet-50/40"
                       >
                         <td className={TD}>
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setSelected(app);
-                            }}
+                          <Link
+                            href={applicationHref(app.id)}
+                            onClick={(event) => event.stopPropagation()}
                             className="flex items-center gap-3 text-left"
                           >
                             <Avatar name={app.name} />
                             <span>
                               <span className="block font-medium text-slate-900 group-hover:text-violet-800">{app.name}</span>
-                              <span className="block text-xs text-slate-500">{app.birthDate}</span>
+                              <span className="block text-xs text-slate-500">{fmtDate(app.birthDate)}</span>
                             </span>
-                          </button>
+                          </Link>
                         </td>
                         <td className={`${TD} font-mono text-[13px] text-slate-500`}>{app.id}</td>
                         <td className={`${TD} text-slate-600`}>{app.category ?? "—"}</td>
-                        <td className={`${TD} text-slate-700`}>{app.submitted}</td>
-                        <td className={`${TD} text-slate-700`}>{app.startDate}</td>
+                        <td className={`${TD} text-slate-700`}>{fmtDate(app.submittedAt)}</td>
+                        <td className={`${TD} text-slate-700`}>{fmtDate(app.startDate)}</td>
                         <td className={TD}>
                           <StatusBadge status={app.status} />
                         </td>
@@ -259,65 +304,66 @@ export default function DakApplicationsPage() {
       )}
 
       {/* CARDS (mobile always, desktop when selected) */}
-      <div className={view === "table" ? "md:hidden" : ""}>
-        {rows.length === 0 ? (
-          <Panel>{empty}</Panel>
-        ) : (
-          <motion.ul layout={!reduceMotion} className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <AnimatePresence initial={false}>
-              {rows.map((app, index) => (
-                <motion.li
-                  key={app.id}
-                  layout={!reduceMotion}
-                  initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.97 }}
-                  transition={{ duration: 0.25, delay: reduceMotion ? 0 : Math.min(index * 0.03, 0.3) }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelected(app)}
-                    className="group block h-full w-full rounded-2xl border border-slate-200/70 bg-white p-4 text-left shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-500/5"
+      {!body && (
+        <div className={view === "table" ? "md:hidden" : ""}>
+          {rows.length === 0 ? (
+            <Panel>{empty}</Panel>
+          ) : (
+            <motion.ul layout={!reduceMotion} className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <AnimatePresence initial={false}>
+                {pageRows.map((app, index) => (
+                  <motion.li
+                    key={app.id}
+                    layout={!reduceMotion}
+                    initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.97 }}
+                    transition={{ duration: 0.25, delay: reduceMotion ? 0 : Math.min(index * 0.03, 0.3) }}
                   >
-                    <div className="flex items-start gap-3">
-                      <Avatar name={app.name} />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-slate-900">{app.name}</p>
-                        <p className="font-mono text-xs text-slate-500">{app.id}</p>
+                    <Link
+                      href={applicationHref(app.id)}
+                      className="group block h-full w-full rounded-2xl border border-slate-200/70 bg-white p-4 text-left shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-500/5"
+                    >
+                      <div className="flex items-start gap-3">
+                        <Avatar name={app.name} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-slate-900">{app.name}</p>
+                          <p className="font-mono text-xs text-slate-500">{app.id}</p>
+                        </div>
+                        <AgePill app={app} />
                       </div>
-                      <AgePill app={app} />
-                    </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <StatusBadge status={app.status} />
-                      {app.category && (
-                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{app.category}</span>
-                      )}
-                    </div>
-                    <dl className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-xs">
-                      <div>
-                        <dt className="text-slate-400">Submitted</dt>
-                        <dd className="mt-0.5 font-medium text-slate-700">{app.submitted}</dd>
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <StatusBadge status={app.status} />
+                        {app.category && (
+                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{app.category}</span>
+                        )}
                       </div>
-                      <div>
-                        <dt className="text-slate-400">Start</dt>
-                        <dd className="mt-0.5 font-medium text-slate-700">{app.startDate}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-slate-400">Requests</dt>
-                        <dd className="mt-0.5">
-                          <RequestsPill count={app.openRequests} />
-                        </dd>
-                      </div>
-                    </dl>
-                  </button>
-                </motion.li>
-              ))}
-            </AnimatePresence>
-          </motion.ul>
-        )}
-      </div>
+                      <dl className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-xs">
+                        <div>
+                          <dt className="text-slate-400">Submitted</dt>
+                          <dd className="mt-0.5 font-medium text-slate-700">{fmtDate(app.submittedAt)}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-400">Start</dt>
+                          <dd className="mt-0.5 font-medium text-slate-700">{fmtDate(app.startDate)}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-400">Requests</dt>
+                          <dd className="mt-0.5">
+                            <RequestsPill count={app.openRequests} />
+                          </dd>
+                        </div>
+                      </dl>
+                    </Link>
+                  </motion.li>
+                ))}
+              </AnimatePresence>
+            </motion.ul>
+          )}
+        </div>
+      )}
 
-      <ApplicationDrawer application={selected} onClose={() => setSelected(null)} />
+      {!body && <Pagination page={currentPage} pageSize={PAGE_SIZE} total={rows.length} onChange={changePage} />}
     </>
   );
 }
