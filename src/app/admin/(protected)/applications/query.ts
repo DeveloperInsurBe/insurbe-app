@@ -292,7 +292,13 @@ export async function getApplicationRows(
               { applicationNumber: { in: publicOrderIds } },
             ],
           },
-          select: { id: true, applicationNumber: true, provider: true, payload: true },
+          select: {
+            id: true,
+            applicationNumber: true,
+            provider: true,
+            payload: true,
+            dakCase: { select: { caseNumber: true, status: true } },
+          },
         })
       : [],
     referrerIds.length
@@ -377,6 +383,7 @@ export async function getApplicationRows(
       commission: app.commission,
       commissionStatus: app.commissionStatus,
       extra: [...flatten(personal), ...flatten(payload.selectPlan)],
+      dak: publicApp?.dakCase ?? null,
     };
   });
 }

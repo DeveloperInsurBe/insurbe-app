@@ -16,6 +16,7 @@ import {
   Menu,
   ReceiptText,
   Shield,
+  ShieldCheck,
   Users,
   UserSquare2,
   X,
@@ -44,6 +45,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     label: "Operations",
     items: [
       { href: "/admin/applications", label: "Applications", icon: FileText },
+      { href: "/admin/dak", label: "DAK Portal", icon: ShieldCheck },
       { href: "/admin/mawsita", label: "Mawsita", icon: FolderOpen },
     ],
   },

@@ -24,4 +24,6 @@ export type ApplicationRow = {
   commission: number;
   commissionStatus: string;
   extra: [string, string][];
+  /** DAK provider portal review state (DAK applications only). */
+  dak: { caseNumber: string; status: string } | null;
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Loader2, Mail, MapPin, Phone, X } from "lucide-react";
 
@@ -60,6 +61,28 @@ function StatusBadge({ status }: { status: string }) {
       className={`inline-block whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-semibold ${statusTone(status)}`}
     >
       {formatStatus(status)}
+    </span>
+  );
+}
+
+const DAK_STATUS_TONE: Record<string, string> = {
+  Submitted: "bg-blue-50 text-blue-700",
+  "In Review": "bg-violet-50 text-violet-700",
+  "Information Required": "bg-amber-50 text-amber-700",
+  "Customer Responded": "bg-sky-50 text-sky-700",
+  Approved: "bg-emerald-50 text-emerald-700",
+  Active: "bg-green-50 text-green-700",
+  "Not Eligible": "bg-red-50 text-red-700",
+  Cancelled: "bg-gray-100 text-gray-600",
+};
+
+/** Review state in the DAK provider portal. */
+function DakStatusPill({ status }: { status: string }) {
+  return (
+    <span
+      className={`mt-0.5 inline-block whitespace-nowrap rounded px-1.5 py-px text-[10px] font-semibold ${DAK_STATUS_TONE[status] ?? "bg-gray-100 text-gray-600"}`}
+    >
+      DAK: {status}
     </span>
   );
 }
@@ -221,6 +244,7 @@ export default function ApplicationsTable({
                 <p className="truncate font-mono text-[11px] text-gray-400">
                   {row.orderId}
                 </p>
+                {row.dak ? <DakStatusPill status={row.dak.status} /> : null}
               </div>
             </div>
 
@@ -306,6 +330,21 @@ export default function ApplicationsTable({
                 </span>
               </div>
 
+              {selected.dak ? (
+                <Link
+                  href={`/admin/dak/${encodeURIComponent(selected.dak.caseNumber)}`}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 transition-colors hover:bg-emerald-50"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[11px] font-bold uppercase tracking-wide text-emerald-700">DAK portal</span>
+                    <span className="mt-0.5 block text-sm font-semibold text-gray-900">
+                      {selected.dak.status} · {selected.dak.caseNumber}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-emerald-600" />
+                </Link>
+              ) : null}
+
               <section className="rounded-xl border border-gray-200 p-3">
                 <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
                   Commission
@@ -316,6 +355,11 @@ export default function ApplicationsTable({
                   </span>
                   <CommissionSelect row={selected} onChange={updateCommissionStatus} />
                 </div>
+                {selected.dak ? (
+                  <p className="mt-2 text-[11px] text-gray-400">
+                    Set automatically when DAK decides (Active → Approved, Cancelled / Not Eligible → Not Eligible).
+                  </p>
+                ) : null}
                 <p className="mt-2 text-xs text-gray-500">
                   Came via{" "}
                   <span className="font-semibold text-gray-700">

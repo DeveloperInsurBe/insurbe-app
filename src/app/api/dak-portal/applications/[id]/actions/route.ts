@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireDakReviewer } from "@/lib/dak/access";
 import { DakTransitionError, transitionDakCase } from "@/lib/dak/cases";
+import { syncDakCommission } from "@/lib/dak/commission";
 import { findDakCaseForAction } from "@/lib/dak/detail";
 import { sendDakClosedEmail } from "@/lib/dak/emails";
 
@@ -44,6 +45,12 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
 
     let emailSent: boolean | null = null;
     if (closing) {
+      try {
+        await syncDakCommission(item.id, result.to as "Cancelled" | "Not Eligible");
+      } catch (error) {
+        console.error("DAK PORTAL COMMISSION SYNC FAILED:", item.caseNumber, error);
+      }
+
       emailSent = false;
       if (item.customer.email) {
         try {

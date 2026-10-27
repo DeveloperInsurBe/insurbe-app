@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireDakReviewer } from "@/lib/dak/access";
 import { DakTransitionError, transitionDakCase } from "@/lib/dak/cases";
+import { syncDakCommission } from "@/lib/dak/commission";
 import { findDakCaseForAction } from "@/lib/dak/detail";
 import { saveDakDocument } from "@/lib/dak/documents";
 import { sendDakActiveEmail } from "@/lib/dak/emails";
@@ -55,6 +56,12 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         contributionCategory: contributionCategory || null,
       },
     });
+
+    try {
+      await syncDakCommission(item.id, "Active");
+    } catch (error) {
+      console.error("DAK PORTAL COMMISSION SYNC FAILED:", item.caseNumber, error);
+    }
 
     const content = file ? Buffer.from(await file.arrayBuffer()) : null;
     let letterSaved: boolean | null = null;
