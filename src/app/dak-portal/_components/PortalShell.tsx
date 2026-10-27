@@ -23,7 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { api, applicationHref, BASE, fmtAgo } from "../_lib/client";
+import { api, applicationHref, BASE, fmtAgo, IDLE_LIMIT_MS, readLastActivity, writeLastActivity } from "../_lib/client";
 import CommandPalette from "./CommandPalette";
 import { Avatar, initials } from "./ui";
 
@@ -69,6 +69,52 @@ const withBadges = (items: NavItem[], needsAction: number) =>
   items.map((item) => (item.href === `${BASE}/applications` && needsAction ? { ...item, badge: needsAction } : item));
 
 const signOutOfPortal = () => signOut({ callbackUrl: `${BASE}/login` });
+
+const ACTIVITY_EVENTS = ["mousemove", "mousedown", "keydown", "scroll", "touchstart"] as const;
+const ACTIVITY_WRITE_EVERY_MS = 15_000;
+const IDLE_CHECK_EVERY_MS = 30_000;
+
+/** Signs the reviewer out after 30 minutes without activity in any portal tab. */
+function useIdleSignOut() {
+  useEffect(() => {
+    let lastLocal = Date.now();
+    let signingOut = false;
+
+    const signOutIdle = () => {
+      if (signingOut) return;
+      signingOut = true;
+      signOut({ callbackUrl: `${BASE}/login?timeout=1` });
+    };
+
+    // Coming back to a tab that was left alone for too long.
+    const stored = readLastActivity();
+    if (stored && Date.now() - stored > IDLE_LIMIT_MS) {
+      signOutIdle();
+      return;
+    }
+    writeLastActivity(lastLocal);
+
+    const onActivity = () => {
+      const now = Date.now();
+      if (now - lastLocal < ACTIVITY_WRITE_EVERY_MS) return;
+      lastLocal = now;
+      writeLastActivity(now);
+    };
+    const check = () => {
+      if (Date.now() - Math.max(lastLocal, readLastActivity()) > IDLE_LIMIT_MS) signOutIdle();
+    };
+    const onVisible = () => document.visibilityState === "visible" && check();
+
+    ACTIVITY_EVENTS.forEach((name) => window.addEventListener(name, onActivity, { passive: true }));
+    document.addEventListener("visibilitychange", onVisible);
+    const timer = setInterval(check, IDLE_CHECK_EVERY_MS);
+    return () => {
+      ACTIVITY_EVENTS.forEach((name) => window.removeEventListener(name, onActivity));
+      document.removeEventListener("visibilitychange", onVisible);
+      clearInterval(timer);
+    };
+  }, []);
+}
 
 /* -------------------------------------------------------------------------- */
 /*                                  SIDEBAR                                   */
@@ -551,6 +597,8 @@ export default function PortalShell({ children, reviewer }: { children: ReactNod
   const [expanded, setExpanded] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [summary, setSummary] = useState<NotificationSummary | null>(null);
+
+  useIdleSignOut();
 
   // New applications and customer replies; refreshed on navigation and every minute.
   const loadSummary = useCallback(() => {
