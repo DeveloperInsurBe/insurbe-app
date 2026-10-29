@@ -122,3 +122,28 @@ export function sendDakSupportTicketEmail(ticket: { reviewerName: string; review
     ),
   });
 }
+
+/** Alert to DAK reviewers: a new application or a customer reply is waiting. */
+export function sendDakReviewerAlert(
+  to: string,
+  alert: { kind: "new_application" | "customer_response"; caseNumber: string; applicantName: string; link: string },
+) {
+  const isNew = alert.kind === "new_application";
+  return send({
+    from: FROM,
+    to,
+    subject: isNew
+      ? `New DAK application ${alert.caseNumber}`
+      : `Customer replied – DAK application ${alert.caseNumber}`,
+    html: layout(
+      isNew ? "New DAK application" : "A customer has replied",
+      `<p style="margin:0 0 12px">${
+        isNew
+          ? `A new application from <b>${escapeHtml(alert.applicantName)}</b> (<b>${alert.caseNumber}</b>) is waiting for review.`
+          : `<b>${escapeHtml(alert.applicantName)}</b> responded to your information request on <b>${alert.caseNumber}</b>.`
+      }</p>
+       <p style="margin:20px 0"><a href="${alert.link}" style="background:#820ad1;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold">Open in the DAK portal</a></p>
+       <p style="margin:0;color:#6b7280;font-size:13px">You receive this email because you are a reviewer in the DAK Provider Portal.</p>`,
+    ),
+  });
+}

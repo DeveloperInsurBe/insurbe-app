@@ -1,12 +1,12 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, signIn, signOut } from "next-auth/react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Activity, AlertCircle, ArrowRight, Eye, EyeOff, FileCheck2, Info, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
 
-import { writeLastActivity } from "../_lib/client";
+import { saveRememberChoice } from "../_lib/client";
 
 const DAK_REVIEWER_ROLE = "dak_reviewer";
 const SUPPORT_EMAIL = "support@insurbe.com";
@@ -30,12 +30,7 @@ export default function DakLoginPage() {
   const [showForgot, setShowForgot] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [timedOut, setTimedOut] = useState(false);
-
-  // Shown after the portal signed the reviewer out for inactivity.
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("timeout") === "1") setTimedOut(true);
-  }, []);
+  const [remember, setRemember] = useState(false);
 
   const fail = (message: string) => {
     setError(message);
@@ -46,7 +41,6 @@ export default function DakLoginPage() {
     event.preventDefault();
     setLoading(true);
     setError("");
-    setTimedOut(false);
     try {
       const result = await signIn("credentials", { email: email.trim(), password, redirect: false });
       if (!result || result.error) return fail("The email or password is not correct.");
@@ -56,8 +50,8 @@ export default function DakLoginPage() {
         await signOut({ redirect: false });
         return fail("This account has no access to the DAK Provider Portal.");
       }
-      // Fresh idle timer, and keep the button loading until the dashboard replaces this page.
-      writeLastActivity();
+      // Keep the button loading until the dashboard replaces this page.
+      saveRememberChoice(remember);
       router.replace("/dak-portal/dashboard");
     } catch {
       fail("Sign-in failed. Please try again.");
@@ -215,11 +209,15 @@ export default function DakLoginPage() {
               )}
             </AnimatePresence>
 
-            {timedOut && !error && (
-              <p role="status" className="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                <Info className="h-4 w-4 shrink-0" aria-hidden /> You were signed out after 30 minutes of inactivity.
-              </p>
-            )}
+            <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-600">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(event) => setRemember(event.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 accent-violet-600"
+              />
+              Remember me
+            </label>
 
             {error && (
               <p role="alert" className="flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">

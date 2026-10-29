@@ -4,7 +4,7 @@ import { type ReactNode, useRef, useState } from "react";
 import { Bot, CalendarDays, CircleCheck, Download, Eye, FileText, FlaskConical, MessageSquare, Plus, Upload } from "lucide-react";
 import { toast } from "sonner";
 
-import { DAK_MAX_UPLOAD_BYTES } from "@/lib/dak/statuses";
+import { DAK_MAX_UPLOAD_BYTES, DAK_UPLOAD_TYPES } from "@/lib/dak/statuses";
 import {
   api,
   documentHref,
@@ -12,6 +12,7 @@ import {
   fmtDateTime,
   fmtLongDate,
   fmtSize,
+  uploadToApplication,
   type DakCaseDetail,
   type DakDocumentDto,
 } from "../../_lib/client";
@@ -271,11 +272,11 @@ export function DocumentsTab({
   const upload = async (file: File | undefined) => {
     if (!file) return;
     if (file.size > DAK_MAX_UPLOAD_BYTES) return toast.error("The file is larger than 10 MB.");
+    if (!(DAK_UPLOAD_TYPES as readonly string[]).includes(file.type)) return toast.error("Upload a PDF, JPG or PNG file.");
     setUploading(true);
     try {
-      const form = new FormData();
-      form.append("file", file);
-      await api(`/applications/${encodeURIComponent(application.id)}/documents`, { method: "POST", body: form });
+      const uploaded = await uploadToApplication(application.id, file);
+      await api(`/applications/${encodeURIComponent(application.id)}/documents`, { method: "POST", json: uploaded });
       toast.success("Document uploaded");
       onChanged();
     } catch (error) {

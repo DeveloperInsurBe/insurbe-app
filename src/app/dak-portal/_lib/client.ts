@@ -81,27 +81,53 @@ export const dayKey = (value: string) => fmtDate(value);
 export const todayInput = () => new Date().toISOString().slice(0, 10);
 
 /* -------------------------------------------------------------------------- */
-/*                               IDLE SIGN-OUT                                */
+/*                                REMEMBER ME                                 */
 /* -------------------------------------------------------------------------- */
 
-/** Reviewers are signed out after this much inactivity. */
-export const IDLE_LIMIT_MS = 30 * 60 * 1000;
+const REMEMBER_KEY = "dak-portal-remember";
+/** Cookie without expiry: the browser drops it when it is closed. */
+const BROWSER_SESSION_COOKIE = "dak_portal_browser_session";
 
-/** Shared by all tabs, so activity in one tab keeps the others signed in. */
-const LAST_ACTIVITY_KEY = "dak-portal-last-activity";
-
-export function readLastActivity() {
+/** Stored at sign-in. Without "remember me" the reviewer is signed out once the browser was closed. */
+export function saveRememberChoice(remember: boolean) {
   try {
-    return Number(localStorage.getItem(LAST_ACTIVITY_KEY)) || 0;
+    localStorage.setItem(REMEMBER_KEY, remember ? "1" : "0");
   } catch {
-    return 0;
+    // storage unavailable: the reviewer simply stays signed in
   }
+  document.cookie = `${BROWSER_SESSION_COOKIE}=1; path=/dak-portal; SameSite=Lax`;
 }
 
-export function writeLastActivity(time = Date.now()) {
+/** True when the reviewer did not tick "remember me" and the browser has been closed since. */
+export function browserSessionEnded() {
+  let remember: string | null;
   try {
-    localStorage.setItem(LAST_ACTIVITY_KEY, String(time));
+    remember = localStorage.getItem(REMEMBER_KEY);
   } catch {
-    // storage unavailable: the in-memory timer in the portal still works
+    return false;
   }
+  if (remember !== "0") return false;
+  return !document.cookie.split("; ").some((cookie) => cookie.startsWith(`${BROWSER_SESSION_COOKIE}=`));
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  UPLOADS                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Uploads a file straight to storage (no server size limit) and returns its
+ * path; the caller then registers it on the application.
+ */
+export async function uploadToApplication(applicationId: string, file: File) {
+  const { storagePath, uploadUrl } = await api<{ storagePath: string; uploadUrl: string }>(
+    `/applications/${encodeURIComponent(applicationId)}/uploads`,
+    { method: "POST", json: { name: file.name, type: file.type, size: file.size } },
+  );
+  const response = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type, "x-upsert": "false" },
+    body: file,
+  });
+  if (!response.ok) throw new Error("The file upload failed. Please try again.");
+  return { storagePath, name: file.name };
 }

@@ -88,5 +88,8 @@ export const DAK_REQUEST_PRIORITIES = ["Normal", "High", "Urgent"] as const;
 /** Membership confirmation letter and other DAK uploads. */
 export const DAK_MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
+/** File types a reviewer may upload; the membership letter must be a PDF. */
+export const DAK_UPLOAD_TYPES = ["application/pdf", "image/jpeg", "image/png"] as const;
+
 /** An open request is "due soon" this many days before its due date. */
 export const DAK_DUE_SOON_DAYS = 3;

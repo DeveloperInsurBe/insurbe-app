@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "../prisma";
+import { notifyDakReviewers } from "./notify";
 import {
   DAK_ACTIONS,
   DAK_DUE_SOON_DAYS,
@@ -47,9 +48,11 @@ export async function createDakCase(application: {
     await prisma.insuranceApplication.update({ where: { id: application.id }, data: { applicationNumber: caseNumber } });
   }
 
+  const applicantName = applicantNameFromPayload(application.payload);
+
   // One nested write (atomic) instead of an interactive transaction: the shared
   // Supabase pooler can be slow to hand out connections.
-  return prisma.dakCase.create({
+  const created = await prisma.dakCase.create({
     data: {
       insuranceApplicationId: application.id,
       caseNumber,
@@ -59,12 +62,15 @@ export async function createDakCase(application: {
           event: "Application submitted",
           toStatus: "Submitted",
           actorType: "customer",
-          actorName: applicantNameFromPayload(application.payload),
+          actorName: applicantName,
           createdAt: submittedAt,
         },
       },
     },
   });
+
+  await notifyDakReviewers({ kind: "new_application", caseNumber, applicantName });
+  return created;
 }
 
 /** Safety net: opens cases for DAK applications that do not have one yet. */

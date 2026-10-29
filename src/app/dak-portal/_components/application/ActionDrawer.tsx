@@ -5,7 +5,7 @@ import { AlertCircle, ChevronDown, FileText, Info, Upload, X } from "lucide-reac
 import { toast } from "sonner";
 
 import { DAK_CATEGORIES, DAK_MAX_UPLOAD_BYTES, DAK_REQUEST_CATEGORIES, DAK_REQUEST_PRIORITIES } from "@/lib/dak/statuses";
-import { api, fmtDateTime, fmtLongDate, fmtSize, todayInput, type DakCaseDetail } from "../../_lib/client";
+import { api, fmtDateTime, fmtLongDate, fmtSize, todayInput, uploadToApplication, type DakCaseDetail } from "../../_lib/client";
 import { Button, FormField, InfoRows, inputClass, SlideOver } from "../ui";
 
 export type DrawerKind = "start_review" | "request_info" | "approve" | "allocate" | "cancel" | "not_eligible";
@@ -72,7 +72,7 @@ function Select({ id, value, onChange, options, placeholder }: {
   );
 }
 
-type Result = { emailSent?: boolean | null; letterSaved?: boolean | null };
+type Result = { emailSent?: boolean | null };
 
 export default function ActionDrawer({
   kind,
@@ -147,14 +147,20 @@ export default function ActionDrawer({
           json: { category, relatedField, message, internalNote, dueDate, priority },
         });
       } else if (kind === "allocate") {
-        const form = new FormData();
-        form.append("membershipNumber", membershipNumber);
-        form.append("kvnr", kvnr);
-        form.append("svnr", svnr);
-        form.append("startDate", startDate);
-        form.append("contributionCategory", contribution);
-        if (letter) form.append("letter", letter);
-        result = await api<Result>(`${path}/allocate`, { method: "POST", body: form });
+        // The letter goes straight to storage first, so its size is not limited by the server.
+        const uploaded = letter ? await uploadToApplication(application.id, letter) : null;
+        result = await api<Result>(`${path}/allocate`, {
+          method: "POST",
+          json: {
+            membershipNumber,
+            kvnr,
+            svnr,
+            startDate,
+            contributionCategory: contribution,
+            letterPath: uploaded?.storagePath,
+            letterName: uploaded?.name,
+          },
+        });
       } else {
         const closing = kind === "cancel" || kind === "not_eligible";
         result = await api<Result>(`${path}/actions`, {
@@ -174,7 +180,6 @@ export default function ActionDrawer({
         }[kind],
       );
       if (result.emailSent === false) toast.warning("The status was saved, but the email to the customer could not be sent.");
-      if (result.letterSaved === false) toast.warning("The membership letter could not be stored. It was still attached to the email.");
       onDone();
     } catch (submitError) {
       setError((submitError as Error).message);

@@ -4,12 +4,9 @@ import { NextResponse } from "next/server";
 
 import { authOptions } from "../authOptions";
 import { prisma } from "../prisma";
+import { DAK_REVIEWER_ROLE } from "./roles";
 
-/** Role of the user accounts InsurBe creates for DAK reviewers. */
-export const DAK_REVIEWER_ROLE = "dak_reviewer";
-
-/** A reviewer an admin switched off: can no longer open the portal. */
-export const DAK_REVIEWER_DISABLED_ROLE = "dak_reviewer_disabled";
+export { DAK_REVIEWER_DISABLED_ROLE, DAK_REVIEWER_ROLE } from "./roles";
 
 export type DakReviewer = {
   id: string;

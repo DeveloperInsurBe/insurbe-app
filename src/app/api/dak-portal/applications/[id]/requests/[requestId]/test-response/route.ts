@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireDakReviewer } from "@/lib/dak/access";
 import { DakTransitionError } from "@/lib/dak/cases";
 import { dakTestToolsEnabled, findDakCaseForAction } from "@/lib/dak/detail";
+import { notifyDakReviewers } from "@/lib/dak/notify";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -52,6 +53,8 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         toStatus: moved ? "Customer Responded" : null,
       },
     });
+
+    await notifyDakReviewers({ kind: "customer_response", caseNumber: item.caseNumber, applicantName: item.customer.name });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

@@ -2,27 +2,20 @@ import { NextResponse } from "next/server";
 
 import { requireDakReviewer } from "@/lib/dak/access";
 import { findDakCaseForAction, serializeDocument } from "@/lib/dak/detail";
-import { saveDakDocument } from "@/lib/dak/documents";
-import { DAK_MAX_UPLOAD_BYTES, isDakFinal } from "@/lib/dak/statuses";
+import { DakUploadError, registerDakUpload } from "@/lib/dak/documents";
+import { DAK_MAX_UPLOAD_BYTES, DAK_UPLOAD_TYPES, isDakFinal } from "@/lib/dak/statuses";
 import { prisma } from "@/lib/prisma";
 
-const ALLOWED_TYPES = new Set(["application/pdf", "image/jpeg", "image/png"]);
-
-/** DAK reviewer uploads a document to the application. */
+/** Step 2 of a reviewer upload: records the file the browser uploaded on the case. */
 export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
   const { reviewer, response } = await requireDakReviewer();
   if (response) return response;
 
   try {
     const { id } = await context.params;
-    const form = await req.formData();
-    const file = form.get("file");
-    if (!(file instanceof File) || file.size === 0) {
-      return NextResponse.json({ error: "Please choose a file." }, { status: 400 });
-    }
-    if (!ALLOWED_TYPES.has(file.type) || file.size > DAK_MAX_UPLOAD_BYTES) {
-      return NextResponse.json({ error: "Upload a PDF, JPG or PNG of at most 10 MB." }, { status: 400 });
-    }
+    const body = await req.json().catch(() => ({}));
+    const storagePath = String(body?.storagePath || "");
+    const name = String(body?.name || "");
 
     const item = await findDakCaseForAction(id);
     if (!item) return NextResponse.json({ error: "Application not found" }, { status: 404 });
@@ -30,18 +23,13 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       return NextResponse.json({ error: `The application is ${item.status} and can no longer be changed.` }, { status: 409 });
     }
 
-    const saved = await saveDakDocument({
+    const document = await registerDakUpload({
       caseId: item.id,
-      name: file.name || "DAK document",
-      mimeType: file.type,
-      content: Buffer.from(await file.arrayBuffer()),
-      source: "dak",
+      storagePath,
+      name,
+      allowedTypes: [...DAK_UPLOAD_TYPES],
+      maxBytes: DAK_MAX_UPLOAD_BYTES,
       uploadedBy: reviewer.name,
-    });
-    // The reviewer's own upload needs no second review.
-    const document = await prisma.dakDocument.update({
-      where: { id: saved.id },
-      data: { reviewStatus: "reviewed", reviewedBy: reviewer.name, reviewedAt: new Date() },
     });
     await prisma.dakEvent.create({
       data: {
@@ -55,6 +43,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
 
     return NextResponse.json({ document: serializeDocument(document) });
   } catch (error) {
+    if (error instanceof DakUploadError) return NextResponse.json({ error: error.message }, { status: 400 });
     console.error("DAK PORTAL DOCUMENT UPLOAD ERROR:", error);
     return NextResponse.json({ error: "The document could not be uploaded" }, { status: 500 });
   }

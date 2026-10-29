@@ -2,6 +2,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { AuthOptions } from "next-auth";
 import { prisma } from "./prisma";
+import { DAK_REVIEWER_DISABLED_ROLE } from "./dak/roles";
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -35,6 +36,9 @@ export const authOptions: AuthOptions = {
         }
 
         if (!user) return null;
+
+        // DAK reviewers switched off in the admin portal cannot sign in anywhere.
+        if (user.role === DAK_REVIEWER_DISABLED_ROLE) return null;
 
         const isValid = await bcrypt.compare(
           credentials.password,
