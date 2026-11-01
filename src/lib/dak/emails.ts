@@ -42,6 +42,8 @@ type Customer = { email: string; name: string; caseNumber: string };
 export function sendDakInfoRequestEmail(
   customer: Customer,
   request: { message: string; relatedField?: string | null; dueDate?: Date | null },
+  /** Customer dashboard, when customers can reply there. */
+  dashboardUrl?: string,
 ) {
   return send({
     from: FROM,
@@ -56,7 +58,12 @@ export function sendDakInfoRequestEmail(
        }:</p>
        <div style="background:#f5f3ff;border-radius:8px;padding:16px;margin:0 0 16px">${paragraphs(request.message)}</div>
        ${request.dueDate ? `<p style="margin:0 0 12px">Please send it by <b>${formatDate(request.dueDate)}</b>.</p>` : ""}
-       <p style="margin:0">Reply to this email with the requested information or documents.</p>`,
+       ${
+         dashboardUrl
+           ? `<p style="margin:0 0 16px">Sign in to your InsurBe account and use the <b>Reply</b> button on your DAK application to send the information or documents.</p>
+              <p style="margin:0"><a href="${dashboardUrl}" style="background:#820ad1;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold">Reply in your dashboard</a></p>`
+           : `<p style="margin:0">Reply to this email with the requested information or documents.</p>`
+       }`,
     ),
   });
 }
