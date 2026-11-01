@@ -117,7 +117,7 @@ export const DAK_CUSTOMER_STATUS: Record<
   },
   "Information Required": {
     label: "DAK needs more information from you",
-    nextStep: "Please send DAK the information listed below by replying to the email we sent you.",
+    nextStep: "Please send DAK the information listed below using the Reply button.",
     timeline: "DAK asked for more information",
     progress: 50,
   },

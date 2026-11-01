@@ -1,12 +1,165 @@
 "use client";
 
-import { useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertCircle, CalendarDays, CheckCircle2, ChevronDown, Download, XCircle } from "lucide-react";
+import { AlertCircle, CalendarDays, CheckCircle2, ChevronDown, Download, Loader2, Paperclip, Send, X, XCircle } from "lucide-react";
 
 import type { CustomerDakApplication } from "@/lib/dak/customer";
 
 export type { CustomerDakApplication };
+
+const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_FILES = 5;
+
+async function postJson<T>(url: string, body: unknown): Promise<T> {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.error || "Something went wrong. Please try again.");
+  return data as T;
+}
+
+/** Uploads one file straight to secure storage and returns its reference. */
+async function uploadFile(applicationNumber: string, file: File) {
+  const { storagePath, uploadUrl } = await postJson<{ storagePath: string; uploadUrl: string }>(
+    `/api/customer/dak/${encodeURIComponent(applicationNumber)}/uploads`,
+    { name: file.name, type: file.type, size: file.size },
+  );
+  const response = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type, "x-upsert": "false" },
+    body: file,
+  });
+  if (!response.ok) throw new Error(`${file.name} could not be uploaded. Please try again.`);
+  return { storagePath, name: file.name };
+}
+
+/** Customer's answer to one DAK request: a message and optional files. */
+function ReplyForm({
+  applicationNumber,
+  requestId,
+  onSent,
+  onCancel,
+}: {
+  applicationNumber: string;
+  requestId: string;
+  onSent: () => void;
+  onCancel: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [message, setMessage] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+
+  const addFiles = (list: FileList | null) => {
+    setError("");
+    const picked = Array.from(list ?? []);
+    const invalid = picked.find((file) => !ALLOWED_TYPES.includes(file.type) || file.size > MAX_BYTES);
+    if (invalid) setError(`${invalid.name}: please use a PDF, JPG or PNG of at most 10 MB.`);
+    const valid = picked.filter((file) => ALLOWED_TYPES.includes(file.type) && file.size <= MAX_BYTES);
+    setFiles((current) => [...current, ...valid].slice(0, MAX_FILES));
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!message.trim() && !files.length) return setError("Please write a message or attach a file.");
+    setSending(true);
+    setError("");
+    try {
+      const uploaded = [];
+      for (const file of files) uploaded.push(await uploadFile(applicationNumber, file));
+      await postJson(
+        `/api/customer/dak/${encodeURIComponent(applicationNumber)}/requests/${requestId}/reply`,
+        { message, files: uploaded },
+      );
+      onSent();
+    } catch (sendError) {
+      setError((sendError as Error).message);
+      setSending(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="mt-3 space-y-3 border-t border-amber-100 pt-3">
+      <label className="block">
+        <span className="text-[11px] font-semibold text-gray-600">Your message</span>
+        <textarea
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+          rows={3}
+          maxLength={4000}
+          placeholder="Write your answer for DAK…"
+          className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-xs text-gray-800 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
+        />
+      </label>
+
+      <div>
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          accept="application/pdf,image/jpeg,image/png"
+          className="hidden"
+          onChange={(event) => addFiles(event.target.files)}
+        />
+        {files.length > 0 && (
+          <ul className="mb-2 space-y-1.5">
+            {files.map((file, fileIndex) => (
+              <li key={`${file.name}-${fileIndex}`} className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 text-xs text-gray-700">
+                <Paperclip className="w-3.5 h-3.5 text-gray-400" />
+                <span className="flex-1 truncate">{file.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setFiles((current) => current.filter((_, index) => index !== fileIndex))}
+                  aria-label={`Remove ${file.name}`}
+                  className="text-gray-400 hover:text-gray-700"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {files.length < MAX_FILES && (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 hover:text-blue-800"
+          >
+            <Paperclip className="w-3.5 h-3.5" /> Attach file (PDF, JPG, PNG · max 10 MB)
+          </button>
+        )}
+      </div>
+
+      {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-700">{error}</p>}
+
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          disabled={sending}
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors disabled:opacity-60"
+        >
+          {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+          {sending ? "Sending…" : "Send to DAK"}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={sending}
+          className="px-4 py-2 border border-gray-200 text-gray-600 text-xs font-semibold rounded-xl hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
 
 const formatDate = (iso: string | null) =>
   iso
@@ -60,8 +213,10 @@ const toneFor = (status: CustomerDakApplication["status"]) =>
         ? TONES.closed
         : TONES.progress;
 
-function DakCard({ app, index }: { app: CustomerDakApplication; index: number }) {
+function DakCard({ app, index, onChanged }: { app: CustomerDakApplication; index: number; onChanged: () => void }) {
   const [showTimeline, setShowTimeline] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [sentNotice, setSentNotice] = useState(false);
   const tone = toneFor(app.status);
 
   return (
@@ -112,9 +267,35 @@ function DakCard({ app, index }: { app: CustomerDakApplication; index: number })
                     <CalendarDays className="w-3 h-3" /> Please send by {formatDate(request.dueDate)}
                   </p>
                 )}
+                {replyingTo === request.id ? (
+                  <ReplyForm
+                    applicationNumber={app.applicationNumber}
+                    requestId={request.id}
+                    onCancel={() => setReplyingTo(null)}
+                    onSent={() => {
+                      setReplyingTo(null);
+                      setSentNotice(true);
+                      onChanged();
+                    }}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setReplyingTo(request.id)}
+                    className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Reply
+                  </button>
+                )}
               </div>
             ))}
           </div>
+        )}
+
+        {sentNotice && (
+          <p className="mt-4 flex items-center gap-1.5 rounded-xl bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-700">
+            <CheckCircle2 className="w-4 h-4" /> Thank you. Your reply was sent to DAK.
+          </p>
         )}
 
         {/* Membership */}
@@ -200,7 +381,14 @@ function DakCard({ app, index }: { app: CustomerDakApplication; index: number })
 }
 
 /** The customer's DAK applications with their live status from the DAK portal. */
-export default function DakApplications({ applications }: { applications: CustomerDakApplication[] }) {
+export default function DakApplications({
+  applications,
+  onChanged,
+}: {
+  applications: CustomerDakApplication[];
+  /** Reload after the customer replied. */
+  onChanged: () => void;
+}) {
   if (!applications.length) return null;
 
   return (
@@ -213,7 +401,7 @@ export default function DakApplications({ applications }: { applications: Custom
       </div>
       <div className="space-y-3">
         {applications.map((app, index) => (
-          <DakCard key={app.applicationNumber} app={app} index={index} />
+          <DakCard key={app.applicationNumber} app={app} index={index} onChanged={onChanged} />
         ))}
       </div>
     </motion.div>
