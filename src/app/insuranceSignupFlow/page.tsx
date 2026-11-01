@@ -600,7 +600,10 @@ export default function InsuranceSignupFlow() {
             ...prev,
 
             submit:
-              "We couldn't submit your DAK application right now. Please try again shortly.",
+              // A clear reason when a new DAK application is not allowed (see lib/dak/reapply.ts).
+              data.code === "DAK_REAPPLY_BLOCKED" && data.error
+                ? data.error
+                : "We couldn't submit your DAK application right now. Please try again shortly.",
           }));
         }
       }

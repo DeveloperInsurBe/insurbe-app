@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureApplicationUserAccount } from "@/lib/ensureApplicationUserAccount";
 import { resolveReferralAttribution } from "@/lib/referralAttribution";
+import { checkDakReapply, dakReapplyRulesEnabled } from "@/lib/dak/reapply";
 
 export async function POST(req: Request) {
   try {
@@ -35,6 +36,26 @@ export async function POST(req: Request) {
           status: 400,
         },
       );
+    }
+
+    /**
+     * WHO MAY APPLY AGAIN (DAK only)
+     */
+    if (dakReapplyRulesEnabled()) {
+      const blocked = await checkDakReapply(personal, selectPlan ?? {});
+      if (blocked) {
+        return NextResponse.json(
+          {
+            success: false,
+            code: "DAK_REAPPLY_BLOCKED",
+            reason: blocked.reason,
+            error: blocked.message,
+          },
+          {
+            status: 409,
+          },
+        );
+      }
     }
 
     /**
