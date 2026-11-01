@@ -96,3 +96,23 @@ export async function findCustomerDakLetter(email: string, documentId: string) {
   const ids = await applicationIdsForEmail(email);
   return ids.includes(document.case.insuranceApplicationId) ? document : null;
 }
+
+/** The case behind one of this customer's applications, or null if it is not theirs. */
+export async function findCustomerDakCase(email: string, applicationNumber: string) {
+  const item = await prisma.dakCase.findUnique({
+    where: { caseNumber: applicationNumber },
+    select: { id: true, caseNumber: true, status: true, insuranceApplicationId: true, insuranceApplication: { select: { payload: true } } },
+  });
+  if (!item) return null;
+
+  const ids = await applicationIdsForEmail(email);
+  if (!ids.includes(item.insuranceApplicationId)) return null;
+
+  const personal = (item.insuranceApplication.payload as { personal?: { firstName?: string; lastName?: string } } | null)?.personal;
+  return {
+    id: item.id,
+    caseNumber: item.caseNumber,
+    status: caseStatus(item.status),
+    customerName: [personal?.firstName, personal?.lastName].filter(Boolean).join(" ").trim() || "Customer",
+  };
+}

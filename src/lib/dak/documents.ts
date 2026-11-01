@@ -120,7 +120,7 @@ export async function registerDakUpload({
   allowedTypes: string[];
   maxBytes: number;
   uploadedBy: string;
-  source?: "dak" | "dak_letter";
+  source?: "dak" | "dak_letter" | "customer";
 }) {
   if (!storagePath.startsWith(`dak/${caseId}/${UPLOAD_PREFIX}`) || storagePath.includes("..")) {
     throw new DakUploadError("Invalid upload.");
@@ -138,19 +138,20 @@ export async function registerDakUpload({
     throw new DakUploadError(`This file type or size is not allowed (max ${Math.round(maxBytes / (1024 * 1024))} MB).`);
   }
 
-  // The reviewer's own upload needs no second review.
+  // A reviewer's own upload needs no second review; a customer's file does.
+  const fromCustomer = source === "customer";
   return prisma.dakDocument.create({
     data: {
       caseId,
-      name: name.trim().slice(0, 200) || "DAK document",
+      name: name.trim().slice(0, 200) || (fromCustomer ? "Customer document" : "DAK document"),
       mimeType: stat.mimeType,
       size: stat.size,
       source,
       bucket,
       storagePath,
-      reviewStatus: "reviewed",
-      reviewedBy: uploadedBy,
-      reviewedAt: new Date(),
+      reviewStatus: fromCustomer ? "pending" : "reviewed",
+      reviewedBy: fromCustomer ? null : uploadedBy,
+      reviewedAt: fromCustomer ? null : new Date(),
       uploadedBy,
     },
   });

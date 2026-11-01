@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import { requireDakReviewer } from "@/lib/dak/access";
 import { DakTransitionError, transitionDakCase } from "@/lib/dak/cases";
 import { findDakCaseForAction } from "@/lib/dak/detail";
+import { dakCustomerPortalEnabled } from "@/lib/dak/customer";
 import { sendDakInfoRequestEmail } from "@/lib/dak/emails";
+import { siteUrl } from "@/lib/dak/notify";
 import { DAK_REQUEST_CATEGORIES, DAK_REQUEST_PRIORITIES } from "@/lib/dak/statuses";
 
 const MAX_TEXT = 4000;
@@ -65,7 +67,11 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     let emailSent = false;
     if (item.customer.email) {
       try {
-        await sendDakInfoRequestEmail(item.customer, request);
+        await sendDakInfoRequestEmail(
+          item.customer,
+          request,
+          dakCustomerPortalEnabled() ? `${siteUrl()}/dashboard` : undefined,
+        );
         emailSent = true;
       } catch (error) {
         console.error("DAK PORTAL REQUEST EMAIL FAILED:", item.caseNumber, error);

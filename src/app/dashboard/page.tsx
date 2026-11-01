@@ -436,6 +436,17 @@ export default function DashboardPage() {
     };
   }, [session?.user?.email]);
 
+  // After a DAK reply: reload only the DAK section.
+  const refreshDakApplications = async () => {
+    try {
+      const response = await fetch("/api/customer/dak", { headers: { "Cache-Control": "no-cache" } });
+      const data = response.ok ? await response.json() : null;
+      if (data?.enabled && Array.isArray(data.applications)) setDakApplications(data.applications);
+    } catch {
+      // keep the current view; the next page load shows the new status
+    }
+  };
+
   const downloadPDF = async (id: string) => {
     try {
       const res = await fetch(`/api/application/${id}`, {
@@ -762,7 +773,7 @@ export default function DashboardPage() {
             </>
           )}
           {(activePage === "Home" || activePage === "Insurance") && (
-            <DakApplications applications={dakApplications} />
+            <DakApplications applications={dakApplications} onChanged={refreshDakApplications} />
           )}
 
           {/* Applications */}
