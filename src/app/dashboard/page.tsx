@@ -23,6 +23,8 @@ import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import DakApplications, { type CustomerDakApplication } from "./DakApplications";
+
 interface Policy {
   id: string;
   name: string;
@@ -276,6 +278,7 @@ export default function DashboardPage() {
     [],
   );
   const [openingMawsitaDocId, setOpeningMawsitaDocId] = useState("");
+  const [dakApplications, setDakApplications] = useState<CustomerDakApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const hasFetchedRef = useRef(false);
@@ -326,10 +329,20 @@ export default function DashboardPage() {
         const mawsitaRows = Array.isArray(mawsitaData?.rows)
           ? (mawsitaData.rows as MawsitaRecord[])
           : [];
+
+        // Live DAK status from the DAK portal (only when switched on for this environment).
+        const dakRes = await fetch("/api/customer/dak", {
+          headers: { "Cache-Control": "no-cache" },
+          signal: controller.signal,
+        }).catch(() => null);
+        const dakData = dakRes?.ok ? await dakRes.json() : null;
+        const dakEnabled = dakData?.enabled === true;
         if (!isMounted) return;
+        setDakApplications(dakEnabled && Array.isArray(dakData.applications) ? dakData.applications : []);
 
         setPolicies(
-          apps.map((a: any) => {
+          // With the DAK portal on, DAK applications get their own section below.
+          apps.filter((a: { provider?: string }) => !(dakEnabled && a.provider === "DAK")).map((a: any) => {
             const isDakOrTk = a.provider === "DAK" || a.provider === "TK";
             return {
               id: a.id,
@@ -748,8 +761,13 @@ export default function DashboardPage() {
               </motion.div>
             </>
           )}
-          {/* Applications */}
           {(activePage === "Home" || activePage === "Insurance") && (
+            <DakApplications applications={dakApplications} />
+          )}
+
+          {/* Applications */}
+          {(activePage === "Home" || activePage === "Insurance") &&
+            (policies.length > 0 || dakApplications.length === 0) && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}

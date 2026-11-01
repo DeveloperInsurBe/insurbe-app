@@ -11,7 +11,12 @@ import { DakStatusBadge, formatDate } from "../shared";
 
 export const dynamic = "force-dynamic";
 
-const SOURCE_LABEL = { customer: "Customer upload", insurbe: "InsurBe generated", dak: "DAK upload" } as const;
+const SOURCE_LABEL = {
+  customer: "Customer upload",
+  insurbe: "InsurBe generated",
+  dak: "DAK upload",
+  dak_letter: "Membership letter",
+} as const;
 const REVIEW_LABEL = { pending: "Pending review", reviewed: "Reviewed", auto: "Auto" } as const;
 
 function Card({ title, children, action }: { title: string; children: ReactNode; action?: ReactNode }) {

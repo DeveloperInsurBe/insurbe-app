@@ -55,6 +55,8 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
           allowedTypes: ["application/pdf"],
           maxBytes: DAK_MAX_UPLOAD_BYTES,
           uploadedBy: reviewer.name,
+          // The customer can download this letter from their dashboard.
+          source: "dak_letter",
         })
       : null;
 

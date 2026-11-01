@@ -3,7 +3,8 @@ import { randomUUID } from "crypto";
 import { prisma } from "../prisma";
 import { getMawsitaBucketName, getSupabaseStorageAdmin } from "../supabaseStorageAdmin";
 
-export type DakDocumentSource = "customer" | "insurbe" | "dak";
+/** dak_letter = the membership confirmation letter, the one DAK file the customer can download. */
+export type DakDocumentSource = "customer" | "insurbe" | "dak" | "dak_letter";
 
 const safeFileName = (name: string) =>
   name
@@ -111,6 +112,7 @@ export async function registerDakUpload({
   allowedTypes,
   maxBytes,
   uploadedBy,
+  source = "dak",
 }: {
   caseId: string;
   storagePath: string;
@@ -118,6 +120,7 @@ export async function registerDakUpload({
   allowedTypes: string[];
   maxBytes: number;
   uploadedBy: string;
+  source?: "dak" | "dak_letter";
 }) {
   if (!storagePath.startsWith(`dak/${caseId}/${UPLOAD_PREFIX}`) || storagePath.includes("..")) {
     throw new DakUploadError("Invalid upload.");
@@ -142,7 +145,7 @@ export async function registerDakUpload({
       name: name.trim().slice(0, 200) || "DAK document",
       mimeType: stat.mimeType,
       size: stat.size,
-      source: "dak",
+      source,
       bucket,
       storagePath,
       reviewStatus: "reviewed",

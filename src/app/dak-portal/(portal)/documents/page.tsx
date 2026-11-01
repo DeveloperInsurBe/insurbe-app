@@ -33,10 +33,16 @@ const SOURCE_LABEL: Record<DakDocumentDto["source"], string> = {
   customer: "Customer",
   insurbe: "InsurBe Generated",
   dak: "DAK Upload",
+  dak_letter: "Membership letter",
 };
 
 function SourcePill({ source }: { source: DakDocumentDto["source"] }) {
-  const tone = source === "customer" ? "bg-sky-50 text-sky-700" : source === "dak" ? "bg-emerald-50 text-emerald-700" : "bg-violet-50 text-violet-700";
+  const tone =
+    source === "customer"
+      ? "bg-sky-50 text-sky-700"
+      : source === "dak" || source === "dak_letter"
+        ? "bg-emerald-50 text-emerald-700"
+        : "bg-violet-50 text-violet-700";
   return <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${tone}`}>{SOURCE_LABEL[source]}</span>;
 }
 
