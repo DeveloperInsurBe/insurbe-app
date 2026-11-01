@@ -22,7 +22,7 @@ export function serializeDocument(document: {
     name: document.name,
     mimeType: document.mimeType,
     size: document.size,
-    source: document.source as "customer" | "insurbe" | "dak",
+    source: document.source as "customer" | "insurbe" | "dak" | "dak_letter",
     reviewStatus: document.reviewStatus as "pending" | "reviewed" | "auto",
     reviewedBy: document.reviewedBy,
     reviewedAt: iso(document.reviewedAt),

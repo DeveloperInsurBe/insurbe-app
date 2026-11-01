@@ -220,6 +220,7 @@ const SOURCE_GROUPS: { source: DakDocumentDto["source"]; title: string }[] = [
   { source: "customer", title: "Customer uploads" },
   { source: "insurbe", title: "InsurBe generated" },
   { source: "dak", title: "DAK uploads" },
+  { source: "dak_letter", title: "Membership letter (visible to the customer)" },
 ];
 
 export function ReviewPill({ review }: { review: DakDocumentDto["reviewStatus"] }) {

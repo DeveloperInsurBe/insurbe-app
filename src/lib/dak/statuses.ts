@@ -93,3 +93,62 @@ export const DAK_UPLOAD_TYPES = ["application/pdf", "image/jpeg", "image/png"] a
 
 /** An open request is "due soon" this many days before its due date. */
 export const DAK_DUE_SOON_DAYS = 3;
+
+/* -------------------------------------------------------------------------- */
+/*                         WHAT THE CUSTOMER SEES                             */
+/* -------------------------------------------------------------------------- */
+
+/** Customer dashboard wording per status (English). */
+export const DAK_CUSTOMER_STATUS: Record<
+  DakStatus,
+  { label: string; nextStep: string; timeline: string; progress: number }
+> = {
+  Submitted: {
+    label: "Application received",
+    nextStep: "We have sent your application to DAK. They will review it soon.",
+    timeline: "Application received",
+    progress: 20,
+  },
+  "In Review": {
+    label: "DAK is checking your application",
+    nextStep: "DAK is reviewing your details. No action is needed right now.",
+    timeline: "DAK started checking your application",
+    progress: 40,
+  },
+  "Information Required": {
+    label: "DAK needs more information from you",
+    nextStep: "Please send DAK the information listed below by replying to the email we sent you.",
+    timeline: "DAK asked for more information",
+    progress: 50,
+  },
+  "Customer Responded": {
+    label: "DAK is reviewing your reply",
+    nextStep: "Thank you for your reply. DAK is checking it. No action is needed right now.",
+    timeline: "You sent the requested information",
+    progress: 65,
+  },
+  Approved: {
+    label: "Approved – your membership is being set up",
+    nextStep: "DAK approved your application and is preparing your membership details.",
+    timeline: "DAK approved your application",
+    progress: 85,
+  },
+  Active: {
+    label: "You are insured with DAK",
+    nextStep: "Your membership is confirmed. You can download your membership letter below.",
+    timeline: "Your DAK insurance is active",
+    progress: 100,
+  },
+  Cancelled: {
+    label: "Application cancelled",
+    nextStep: "This application was cancelled. You are welcome to submit a new application.",
+    timeline: "Application cancelled",
+    progress: 100,
+  },
+  "Not Eligible": {
+    label: "Application not accepted",
+    nextStep: "DAK could not accept this application.",
+    timeline: "DAK did not accept the application",
+    progress: 100,
+  },
+};
