@@ -163,10 +163,25 @@ export type TkTeamEmailInput = {
   error?: string | null;
   referral: { source: string; partnerId: string | null };
   attachments: TkAttachment[];
+  /** Problem with TK's provisional certificate, for the team to follow up. */
+  certificateWarning?: string | null;
+  /** The certificate, when we could not store it (TK only delivers it once). */
+  certificateCopy?: { filename: string; content: Buffer } | null;
 };
 
 export async function sendTkTeamEmail(input: TkTeamEmailInput): Promise<void> {
-  const { data, applicationNumber, environment, outcome, antragId, error, referral, attachments } = input;
+  const {
+    data,
+    applicationNumber,
+    environment,
+    outcome,
+    antragId,
+    error,
+    referral,
+    attachments,
+    certificateWarning,
+    certificateCopy,
+  } = input;
 
   const system = environment === "production" ? "TK production" : "TK test system (staging)";
 
@@ -196,6 +211,7 @@ export async function sendTkTeamEmail(input: TkTeamEmailInput): Promise<void> {
         <div style="font-family:Arial,sans-serif;line-height:1.6;padding:20px">
           <h2>New TK Insurance Application</h2>
           <p>${status}</p>
+          ${certificateWarning ? `<p style="color:#b91c1c"><b>Certificate:</b> ${escapeHtml(certificateWarning)}</p>` : ""}
           <p>Full details are in the attached PDF, together with the uploaded documents.</p>
           <table cellpadding="10" cellspacing="0" border="1" style="border-collapse:collapse;width:100%;margin-top:20px;">
             <tr><td><b>Application ID</b></td><td>${escapeHtml(applicationNumber)}</td></tr>
@@ -212,6 +228,7 @@ export async function sendTkTeamEmail(input: TkTeamEmailInput): Promise<void> {
       `,
       attachments: [
         { filename: `${applicationNumber}.pdf`, content: pdfBuffer },
+        ...(certificateCopy ? [certificateCopy] : []),
         ...attachments.map((file, index) => ({
           filename: `${
             index === 0 ? "photo" : index === 1 ? "passport" : index === 2 ? "proof" : `document-${index - 2}`
