@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
+import { tkCertificateRef } from "@/lib/tk/certificate";
 
 export async function GET() {
   try {
@@ -92,6 +93,10 @@ const formattedInsuranceApps =
 
       isDak:
         app.provider === "DAK",
+
+      // TK provisional certificate saved for this application.
+      certificateAvailable:
+        app.provider === "TK" && !!tkCertificateRef(app.payload),
     }),
   );
 

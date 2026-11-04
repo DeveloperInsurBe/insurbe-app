@@ -41,6 +41,8 @@ export type TkPayloadOptions = {
   vermittler: string;
   /** Our reference, echoed back by TK (max. 25 chars). */
   vorgangsId: string;
+  /** Ask TK to return the provisional insurance certificate in its response. */
+  provisionalCertificate?: boolean;
 };
 
 export const buildTkApiPayload = (data: TkFormData, options: TkPayloadOptions) => {
@@ -50,7 +52,7 @@ export const buildTkApiPayload = (data: TkFormData, options: TkPayloadOptions) =
     metaDaten: {
       vermittler: options.vermittler.slice(0, 10),
       vorgangsId: options.vorgangsId.slice(0, 25),
-      vorlBescheinigung: false,
+      vorlBescheinigung: options.provisionalCertificate === true,
     },
 
     kundengruppe: data.customerGroup,
