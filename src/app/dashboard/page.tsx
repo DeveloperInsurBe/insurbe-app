@@ -31,6 +31,8 @@ interface Policy {
   status: string;
   startDate: string;
   isDak?: boolean;
+  /** TK provisional certificate download. */
+  certificateUrl?: string;
 }
 
 interface Document {
@@ -367,6 +369,10 @@ export default function DashboardPage() {
               startDate: new Date(a.createdAt).toDateString(),
 
               isDak: isDakOrTk,
+
+              certificateUrl: a.certificateAvailable
+                ? `/api/customer/tk/certificate/${a.id}`
+                : undefined,
             };
           }),
         );
@@ -858,7 +864,17 @@ export default function DashboardPage() {
 
                               {/* Desktop buttons */}
                               <div className="hidden sm:flex items-center gap-2">
-                                {policy.isDak ? null : isCompleted ? (
+                                {policy.isDak ? (
+                                  policy.certificateUrl ? (
+                                    <a
+                                      href={policy.certificateUrl}
+                                      className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 hover:bg-gray-700 text-white text-xs font-semibold rounded-xl transition-colors"
+                                    >
+                                      <Download className="w-3.5 h-3.5" />{" "}
+                                      Provisional certificate
+                                    </a>
+                                  ) : null
+                                ) : isCompleted ? (
                                   <>
                                     <motion.button
                                       whileHover={{ y: -1 }}
@@ -943,7 +959,17 @@ export default function DashboardPage() {
 
                             {/* Mobile buttons */}
                             <div className="flex flex-col gap-2 mt-4 sm:hidden">
-                              {policy.isDak ? null : isCompleted ? (
+                              {policy.isDak ? (
+                                policy.certificateUrl ? (
+                                  <a
+                                    href={policy.certificateUrl}
+                                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl"
+                                  >
+                                    <Download className="w-3.5 h-3.5" />{" "}
+                                    Provisional certificate
+                                  </a>
+                                ) : null
+                              ) : isCompleted ? (
                                 <>
                                   <motion.button
                                     whileTap={{ scale: 0.97 }}

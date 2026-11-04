@@ -7,6 +7,12 @@ import { prisma } from "@/lib/prisma";
 import { ensureApplicationUserAccount } from "@/lib/ensureApplicationUserAccount";
 import { resolveReferralAttribution } from "@/lib/referralAttribution";
 import {
+  decodeTkCertificate,
+  storeTkCertificate,
+  tkCertificateFileName,
+  tkProvisionalCertificateEnabled,
+} from "@/lib/tk/certificate";
+import {
   getTkEnvironment,
   getTkVermittler,
   submitTkMembership,
@@ -337,12 +343,16 @@ export async function POST(req: Request) {
       ...(await Promise.all(files.extra.map((file) => toAttachment("DOKUMENT", file)))),
     ];
 
+    const certificateRequested = tkProvisionalCertificateEnabled();
+
     const tkPayload = buildTkApiPayload(data, {
       vermittler: getTkVermittler(),
       vorgangsId: applicationNumber,
+      provisionalCertificate: certificateRequested,
     });
 
     let antragId: string;
+    let certificateBase64: string | null = null;
 
     try {
       const result = await submitTkMembership(tkPayload, attachments);
@@ -361,6 +371,7 @@ export async function POST(req: Request) {
       }
 
       antragId = result.antragId;
+      certificateBase64 = result.certificateBase64;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown TK error";
       const outcomeUnknown = error instanceof TkApiError && error.outcomeUnknown;
@@ -402,6 +413,32 @@ export async function POST(req: Request) {
     console.info(`TK API ACCEPTED: ${applicationNumber} -> TK antragId ${antragId} (${environment})`);
 
     /**
+     * PROVISIONAL CERTIFICATE (best effort - the application is already accepted)
+     * TK only delivers it in this response, so a failure goes to the team.
+     */
+    const certificate = decodeTkCertificate(certificateBase64);
+    const certificateFile = certificate
+      ? { filename: tkCertificateFileName(applicationNumber), content: certificate }
+      : null;
+    let certificateStored = false;
+    let certificateWarning: string | null = null;
+
+    if (certificate) {
+      try {
+        const stored = await storeTkCertificate(applicationNumber, certificate);
+        await saveResult("SUBMITTED", { accepted: true, antragId, error: null, certificate: stored });
+        certificateStored = true;
+      } catch (error) {
+        console.error("TK CERTIFICATE STORE FAILED:", applicationNumber, error);
+        certificateWarning =
+          "It could not be saved, so the customer can't download it from the dashboard. A copy is attached.";
+      }
+    } else if (certificateRequested) {
+      console.error("TK CERTIFICATE MISSING:", applicationNumber);
+      certificateWarning = "TK accepted the application but returned no provisional certificate.";
+    }
+
+    /**
      * TEAM EMAIL COPY (best effort - never changes the outcome)
      */
     await sendTkTeamEmail({
@@ -412,6 +449,8 @@ export async function POST(req: Request) {
       antragId,
       referral,
       attachments,
+      certificateWarning,
+      certificateCopy: certificateStored ? null : certificateFile,
     });
 
     /**
@@ -463,12 +502,20 @@ export async function POST(req: Request) {
               <div style="margin:25px 0;padding:20px;background:#ecfeff;border-radius:10px;border:1px solid #cffafe">
                 <p style="margin:0;color:#115e59;font-weight:600;">✅ Application ID: ${escapeHtml(applicationNumber)}</p>
               </div>
+              ${
+                certificateFile
+                  ? `<p style="color:#555;">Your <b>provisional insurance certificate</b> from TK is attached${
+                      certificateStored ? " and you can also download it from your InsurBe dashboard" : ""
+                    }. TK will send your final membership confirmation by post.</p>`
+                  : ""
+              }
               <p style="color:#555;">Thank you for choosing InsurBe.</p>
               <br/>
               <p style="color:#333;">Warm regards,<br/><b>Team InsurBe</b></p>
             </div>
           </div>
         `,
+        attachments: certificateFile ? [certificateFile] : undefined,
       });
     } catch (mailError) {
       console.error("TK ACKNOWLEDGEMENT EMAIL FAILED:", mailError);

@@ -83,7 +83,7 @@ const describeFetchError = (error: unknown) => {
 export type TkMessage = { code: string; message: string };
 
 export type TkSubmitResult =
-  | { ok: true; antragId: string; status: number; raw: unknown }
+  | { ok: true; antragId: string; status: number; certificateBase64: string | null; raw: unknown }
   | { ok: false; status: number; messages: TkMessage[]; raw: unknown };
 
 export type TkAttachment = {
@@ -165,6 +165,8 @@ const authHeaders = (session: TkSession) => ({
 
 type TkJson = {
   antragId?: string | null;
+  /** Provisional certificate (Base64 PDF), when vorlBescheinigung was requested. */
+  vorlBescheinigungData?: string | null;
   messages?: { code?: unknown; message?: unknown }[] | null;
   statusResponse?: TkStatusEntry[];
 };
@@ -255,7 +257,14 @@ export const submitTkMembership = async (
   const json = parseJson(text);
 
   if (response.ok && json?.antragId) {
-    return { ok: true, antragId: String(json.antragId), status: response.status, raw: json };
+    const { vorlBescheinigungData, ...rest } = json;
+    return {
+      ok: true,
+      antragId: String(json.antragId),
+      status: response.status,
+      certificateBase64: vorlBescheinigungData || null,
+      raw: rest,
+    };
   }
 
   if (response.status === 400 && Array.isArray(json?.messages)) {
