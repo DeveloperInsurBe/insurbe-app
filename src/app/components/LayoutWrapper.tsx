@@ -27,6 +27,9 @@ export default function LayoutWrapper({
   // DAK provider portal (login + pages) has its own layout.
   const isDakPortalRoute =
     pathname === "/dak-portal" || pathname.startsWith("/dak-portal/");
+  // Team admin portal (login + pages) has its own top bar.
+  const isTeamPortalRoute =
+    pathname === "/team" || pathname.startsWith("/team/");
 
   return (
     <>
@@ -34,11 +37,16 @@ export default function LayoutWrapper({
         !isAgentRoute &&
         !isPortalRoute &&
         !isAdminRoute &&
-        !isDakPortalRoute && <Header />}
+        !isDakPortalRoute &&
+        !isTeamPortalRoute && <Header />}
 
       {children}
 
-      {!isAgentRoute && !isPortalRoute && !isAdminRoute && !isDakPortalRoute && <Footernew />}
+      {!isAgentRoute &&
+        !isPortalRoute &&
+        !isAdminRoute &&
+        !isDakPortalRoute &&
+        !isTeamPortalRoute && <Footernew />}
     </>
   );
 }
