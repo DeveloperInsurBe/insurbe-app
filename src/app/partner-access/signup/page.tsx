@@ -36,10 +36,14 @@ export default function PartnerAccessSignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // Team admin invite link (?invite=...): the agent joins that team.
+  const [invite, setInvite] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const type = new URLSearchParams(window.location.search).get("type");
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get("type");
+    setInvite(params.get("invite")?.trim() ?? "");
     if (type === "agent") {
       setType("insurance_agent_broker");
     } else {
@@ -86,6 +90,7 @@ export default function PartnerAccessSignupPage() {
             password: formData.password,
             confirmPassword: formData.confirmPassword,
             brokerType: partnerType,
+            invite: invite || undefined,
           };
 
       const res = await fetch(endpoint, {

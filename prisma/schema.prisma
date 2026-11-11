@@ -26,8 +26,16 @@ model User {
   commissionRate         Int?
   /// DAK portal: newest notification the reviewer has seen
   dakNotificationsSeenAt DateTime?
+  /// Agents: the team admin who onboarded them (null = managed by the superadmin)
+  teamAdminId            String?
+  /// Team admins: highest commission per application (EUR) they may give their agents
+  commissionLimit        Int?
+  /// Team admins: code in their agent invite link
+  inviteCode             String?         @unique
   partnerProfile         PartnerProfile?
   mawsitaRecords         MawsitaRecord[]
+
+  @@index([teamAdminId])
 }
 
 model PartnerProfile {
@@ -147,11 +155,14 @@ model MawsitaRecord {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now()) @updatedAt
   user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  /// Agent (User.id) who brought this customer, for the team admin view
+  agentId          String?
 
   @@index([createdAt])
   @@index([status])
   @@index([email])
   @@index([userId])
+  @@index([agentId])
 }
 
 /// DAK provider portal: review state of one DAK application.
