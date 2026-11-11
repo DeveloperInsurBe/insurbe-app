@@ -110,58 +110,17 @@ export async function POST(req: Request) {
       where: { email: normalizedEmail },
     });
 
+    // Never take over an existing account: signing up must not change another
+    // user's password or role (customers, agents, admins, ...).
     if (existingUser) {
-      // Already Partner
-      if (existingUser.role === "partner") {
-        return NextResponse.json(
-          { message: "Partner account already exists" },
-          { status: 409 },
-        );
-      }
-
-      // Upgrade existing user to partner
-      const updatedUser = await prisma.user.update({
-        where: {
-          email: normalizedEmail,
-        },
-        data: {
-          companyName,
-          title,
-          firstName,
-          lastName,
-          password: hashedPassword,
-
-          role: "partner",
-
-          partnerId: generatePartnerId(),
-        },
-      });
-
-      if (partnerType) {
-        await prisma.partnerProfile.upsert({
-          where: { userId: updatedUser.id },
-          update: { position: partnerType },
-          create: { userId: updatedUser.id, position: partnerType },
-        });
-      }
-
-      try {
-        await sendPartnerAcknowledgementEmail({
-          email: updatedUser.email,
-          firstName: updatedUser.firstName || "Partner",
-          companyName: updatedUser.companyName || "Your Company",
-          partnerId: updatedUser.partnerId || "",
-        });
-      } catch (mailError) {
-        console.error("PARTNER SIGNUP MAIL ERROR:", mailError);
-      }
-
       return NextResponse.json(
         {
-          message: "Partner account created successfully",
-          partnerId: updatedUser.partnerId,
+          message:
+            existingUser.role === "partner"
+              ? "Partner account already exists"
+              : "An account with this email already exists. Please use another email or contact support@insurbe.com.",
         },
-        { status: 200 },
+        { status: 409 },
       );
     }
 

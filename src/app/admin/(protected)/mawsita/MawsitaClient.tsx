@@ -48,7 +48,11 @@ type MawsitaRow = {
   createdByEmail: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
+  /** Agent who brought the customer (shown to that agent's team admin). */
+  agentId?: string | null;
 };
+
+export type MawsitaAgentOption = { id: string; name: string };
 
 const STATUSES = ["Purchased", "Pending Docs", "On Hold", "Cancelled"] as const;
 
@@ -83,6 +87,7 @@ type FormState = {
   premiumAmount: string;
   status: (typeof STATUSES)[number];
   notes: string;
+  agentId: string;
   documents: DocDraft[];
 };
 
@@ -97,6 +102,7 @@ const initialForm: FormState = {
   premiumAmount: "",
   status: "Purchased",
   notes: "",
+  agentId: "",
   documents: [{ ...emptyDoc }],
 };
 
@@ -135,7 +141,13 @@ function normalizeDocs(input: unknown): DocRef[] {
     .filter(Boolean) as DocRef[];
 }
 
-export default function MawsitaClient({ initialRows }: { initialRows: MawsitaRow[] }) {
+export default function MawsitaClient({
+  initialRows,
+  agents = [],
+}: {
+  initialRows: MawsitaRow[];
+  agents?: MawsitaAgentOption[];
+}) {
   const [rows, setRows] = useState(initialRows);
   const [form, setForm] = useState<FormState>(initialForm);
   const [editId, setEditId] = useState("");
@@ -225,6 +237,7 @@ export default function MawsitaClient({ initialRows }: { initialRows: MawsitaRow
         ? (row.status as (typeof STATUSES)[number])
         : "Purchased",
       notes: row.notes || "",
+      agentId: row.agentId || "",
       documents: docs.length
         ? docs.map((doc) => ({
             name: doc.name,
@@ -523,6 +536,7 @@ export default function MawsitaClient({ initialRows }: { initialRows: MawsitaRow
                 premiumAmount: data.premiumAmount,
                 status: data.status,
                 notes: data.notes,
+                agentId: data.agentId ?? null,
                 documents: data.documents,
                 updatedAt: data.updatedAt,
               }
@@ -577,6 +591,7 @@ export default function MawsitaClient({ initialRows }: { initialRows: MawsitaRow
     removeDoc,
     uploading: uploadingCreate,
     onUpload: handleCreateUpload,
+    agents,
   };
 
   return (
@@ -894,6 +909,7 @@ export default function MawsitaClient({ initialRows }: { initialRows: MawsitaRow
                 removeDoc={removeEditDoc}
                 uploading={uploadingEdit}
                 onUpload={handleEditUpload}
+                agents={agents}
               />
             </div>
 
@@ -1139,7 +1155,9 @@ function RecordFields({
   removeDoc,
   uploading,
   onUpload,
+  agents,
 }: {
+  agents: MawsitaAgentOption[];
   form: FormState;
   setField: <K extends keyof FormState>(field: K, value: FormState[K]) => void;
   setDocField: (index: number, field: keyof DocDraft, value: string) => void;
@@ -1171,6 +1189,21 @@ function RecordFields({
             onChange={(value) => setField("phone", value)}
             placeholder="+49..."
           />
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600">Agent (optional)</label>
+            <select
+              value={form.agentId}
+              onChange={(e) => setField("agentId", e.target.value)}
+              className={fieldClass}
+            >
+              <option value="">No agent (direct customer)</option>
+              {agents.map((agent) => (
+                <option key={agent.id} value={agent.id}>
+                  {agent.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </Section>
 

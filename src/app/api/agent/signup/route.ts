@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/prisma";
+import { TEAM_ADMIN_ROLE } from "@/lib/team/roles";
 
 export async function POST(req: Request) {
   try {
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
       confirmPassword,
       companyName,
       brokerType,
+      invite,
     } = body || {};
     const normalizedEmail = String(email || "").trim().toLowerCase();
 
@@ -38,42 +40,40 @@ export async function POST(req: Request) {
       );
     }
 
+    // Invite link of a team admin: the new agent joins that team.
+    let teamAdminId: string | null = null;
+    const inviteCode = String(invite || "").trim();
+    if (inviteCode) {
+      const teamAdmin = await prisma.user.findFirst({
+        where: { role: TEAM_ADMIN_ROLE, inviteCode },
+        select: { id: true },
+      });
+      if (!teamAdmin) {
+        return NextResponse.json(
+          { message: "This invite link is no longer valid. Please ask for a new one." },
+          { status: 400 },
+        );
+      }
+      teamAdminId = teamAdmin.id;
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const existingUser = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
+    // Never take over an existing account: signing up must not change another
+    // user's password or role (customers, partners, admins, ...).
     if (existingUser) {
-      if (existingUser.role === "agent") {
-        return NextResponse.json(
-          { message: "Agent account already exists" },
-          { status: 409 },
-        );
-      }
-
-      const updatedUser = await prisma.user.update({
-        where: { email: normalizedEmail },
-        data: {
-          firstName,
-          lastName,
-          companyName,
-          password: hashedPassword,
-          role: "agent",
-        },
-      });
-
-      if (brokerType) {
-        await prisma.partnerProfile.upsert({
-          where: { userId: updatedUser.id },
-          update: { position: brokerType },
-          create: { userId: updatedUser.id, position: brokerType },
-        });
-      }
-
       return NextResponse.json(
-        { message: "Agent account created successfully", email: updatedUser.email },
-        { status: 200 },
+        {
+          message:
+            existingUser.role === "agent"
+              ? "Agent account already exists"
+              : "An account with this email already exists. Please use another email or contact support@insurbe.com.",
+        },
+        { status: 409 },
       );
     }
 
@@ -85,6 +85,7 @@ export async function POST(req: Request) {
         email: normalizedEmail,
         password: hashedPassword,
         role: "agent",
+        teamAdminId,
       },
     });
 

@@ -21,8 +21,24 @@ export default async function AdminMawsitaPage() {
       createdByEmail: true,
       createdAt: true,
       updatedAt: true,
+      agentId: true,
     },
   });
 
-  return <MawsitaClient initialRows={rows} />;
+  // Agents, so a record can be linked to the agent who brought the customer.
+  const agents = await prisma.user.findMany({
+    where: { role: "agent" },
+    orderBy: [{ firstName: "asc" }, { email: "asc" }],
+    select: { id: true, firstName: true, lastName: true, email: true },
+  });
+
+  return (
+    <MawsitaClient
+      initialRows={rows}
+      agents={agents.map((agent) => ({
+        id: agent.id,
+        name: [agent.firstName, agent.lastName].filter(Boolean).join(" ").trim() || agent.email,
+      }))}
+    />
+  );
 }

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { AuthOptions } from "next-auth";
 import { prisma } from "./prisma";
 import { DAK_REVIEWER_DISABLED_ROLE } from "./dak/roles";
+import { TEAM_ADMIN_DISABLED_ROLE } from "./team/roles";
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -39,6 +40,8 @@ export const authOptions: AuthOptions = {
 
         // DAK reviewers switched off in the admin portal cannot sign in anywhere.
         if (user.role === DAK_REVIEWER_DISABLED_ROLE) return null;
+        // Same for team admins switched off by the superadmin.
+        if (user.role === TEAM_ADMIN_DISABLED_ROLE) return null;
 
         const isValid = await bcrypt.compare(
           credentials.password,

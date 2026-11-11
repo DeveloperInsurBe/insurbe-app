@@ -7,6 +7,8 @@ import Pagination, { PAGE_SIZES, parsePage, parsePageSize } from "../Pagination"
 import { FilterGroup, PeriodSwitch, RateBadge, euro, initials, pick } from "../adminUi";
 import { PERIODS, parsePeriod, periodHref, periodRange } from "../partners/publicInsurance";
 import CountUp from "../CountUp";
+import { teamAdminName, TEAM_ADMIN_DISABLED_ROLE, TEAM_ADMIN_ROLE } from "@/lib/team/access";
+import TeamAdminSelect from "./TeamAdminSelect";
 
 const SORTS = [
   { value: "apps", label: "Most applications" },
@@ -31,7 +33,7 @@ export default async function AdminAgentsPage({
   const q = (params.q || "").trim();
   const sort = pick(SORTS, params.sort);
 
-  const [agents, metrics, pendingGroups, clientGroups, defaultRate, defaultStats] =
+  const [agents, metrics, pendingGroups, clientGroups, defaultRate, defaultStats, teamAdmins] =
     await Promise.all([
       prisma.user.findMany({
         where: {
@@ -54,6 +56,7 @@ export default async function AdminAgentsPage({
           email: true,
           companyName: true,
           commissionRate: true,
+          teamAdminId: true,
         },
         orderBy: { createdAt: "desc" },
       }),
@@ -88,7 +91,14 @@ export default async function AdminAgentsPage({
       }),
       getDefaultCommissionRate("agent"),
       getDefaultRateStats("agent"),
+      prisma.user.findMany({
+        where: { role: { in: [TEAM_ADMIN_ROLE, TEAM_ADMIN_DISABLED_ROLE] } },
+        select: { id: true, firstName: true, lastName: true, email: true },
+        orderBy: { createdAt: "asc" },
+      }),
     ]);
+
+  const teamAdminOptions = teamAdmins.map((user) => ({ id: user.id, name: teamAdminName(user) }));
 
   const metricMap = new Map(
     metrics.map((item) => [
@@ -272,6 +282,9 @@ export default async function AdminAgentsPage({
                     <p className="truncate text-xs text-gray-500">
                       {[agent.companyName, agent.email].filter(Boolean).join(" · ")}
                     </p>
+                    {teamAdminOptions.length ? (
+                      <TeamAdminSelect agentId={agent.id} value={agent.teamAdminId} options={teamAdminOptions} />
+                    ) : null}
                   </div>
                 </div>
 

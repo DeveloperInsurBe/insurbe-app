@@ -41,6 +41,14 @@ function isMissingMawsitaUserIdColumn(error: unknown) {
   return column.includes("userid") || message.includes("userid");
 }
 
+/** The agent who brought the customer, if the id really is an agent. */
+async function resolveAgentId(input: unknown) {
+  const id = String(input || "").trim();
+  if (!id) return null;
+  const agent = await prisma.user.findFirst({ where: { id, role: "agent" }, select: { id: true } });
+  return agent?.id ?? null;
+}
+
 async function resolveUserIdByEmail(email: string) {
   const user = await prisma.user.findFirst({
     where: {
@@ -162,6 +170,7 @@ export async function POST(req: Request) {
 
     const documents = normalizeMawsitaDocuments(body.documents);
     const userId = await resolveUserIdByEmail(email);
+    const agentId = await resolveAgentId(body.agentId);
 
     let row;
     try {
@@ -178,6 +187,7 @@ export async function POST(req: Request) {
           premiumAmount,
           status,
           notes: notes || null,
+          agentId,
           documents,
           createdByAdminId: session.user.id || null,
           createdByEmail: session.user.email,
@@ -197,6 +207,7 @@ export async function POST(req: Request) {
           premiumAmount,
           status,
           notes: notes || null,
+          agentId,
           documents,
           createdByAdminId: session.user.id || null,
           createdByEmail: session.user.email,
