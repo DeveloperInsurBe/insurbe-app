@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Globe, GraduationCap, Briefcase, ExternalLink } from "lucide-react";
+import { MAWISTA_LINKS } from "@/app/constants/mawista";
 
 // MAWISTA booking forms (agent code UVM=IB25). Opened in a new tab, as
 // MAWISTA recommends - their pages don't work reliably inside iframes.
@@ -13,7 +14,7 @@ const plans = [
     title: "InsurBe World Education",
     subtitle: "For students & educational stays abroad",
     icon: GraduationCap,
-    applyUrl: "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25",
+    applyUrl: MAWISTA_LINKS.student,
     bookingPath: "/products/visaSeakers/insurbe-world-education",
     points: [
       "For travelers under 30 years of age",
@@ -26,7 +27,7 @@ const plans = [
     title: "InsurBe German Traveler",
     subtitle: "For residents of Germany",
     icon: Briefcase,
-    applyUrl: "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=MRC&UVM=IB25",
+    applyUrl: MAWISTA_LINKS.reisecare,
     bookingPath: undefined as string | undefined,
     points: [
       "Worldwide trips up to 5 years",
@@ -39,7 +40,7 @@ const plans = [
     title: "InsurBe World Traveler",
     subtitle: "For travelers worldwide",
     icon: Globe,
-    applyUrl: "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=VIS&UVM=IB25",
+    applyUrl: MAWISTA_LINKS.visumGroup,
     bookingPath: undefined as string | undefined,
     points: [
       "Can be taken out even after the trip has started",

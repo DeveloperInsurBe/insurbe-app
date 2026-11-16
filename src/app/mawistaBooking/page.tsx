@@ -3,12 +3,13 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Globe, Lock, ShieldCheck } from "lucide-react";
+import { MAWISTA_LINKS } from "@/app/constants/mawista";
 
 // MAWISTA asked us to open their booking as an external link instead of an
 // iframe: cross-domain security settings (and their payment providers)
 // break the application process inside embedded iframes.
 const mawistaStudentFormUrl =
-  "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25";
+  MAWISTA_LINKS.student;
 
 export default function MawistaBookingPage() {
   return (

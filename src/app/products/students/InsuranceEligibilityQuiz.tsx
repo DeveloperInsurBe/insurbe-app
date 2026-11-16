@@ -24,6 +24,7 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { INSURANCE_PLANS, TK_CONFIG } from "@/app/constants/insurance";
+import { MAWISTA_LINKS } from "@/app/constants/mawista";
 export default function InsuranceEligibilityQuiz() {
   const router = useRouter();
 
@@ -684,7 +685,7 @@ export default function InsuranceEligibilityQuiz() {
                           {/* CTA Button - Compact */}
                           {/* MAWISTA student booking (new tab, as MAWISTA recommends) */}
                           <motion.a
-                            href="https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25"
+                            href={MAWISTA_LINKS.student}
                             target="_blank"
                             rel="noopener noreferrer"
                             whileHover={{ scale: 1.02 }}
