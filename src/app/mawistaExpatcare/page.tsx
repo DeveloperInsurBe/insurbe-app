@@ -3,10 +3,11 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { ShieldCheck, Lock, Globe } from "lucide-react";
+import { MAWISTA_LINKS } from "@/app/constants/mawista";
 
 export default function MawistaExpatcarePage() {
   const mawistaFormUrl =
-    "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=MAE&UVM=IB25";
+    MAWISTA_LINKS.expatcare;
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#faf7ff] to-[#f5f3ff] px-4 py-12 sm:px-8 lg:px-16">

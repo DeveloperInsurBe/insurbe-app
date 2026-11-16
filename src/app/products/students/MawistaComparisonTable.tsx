@@ -10,6 +10,7 @@ import {
   Shield,
  
 } from "lucide-react";
+import { MAWISTA_LINKS } from "@/app/constants/mawista";
 
 interface Plan {
   id: string;
@@ -21,7 +22,7 @@ interface Plan {
 
 // MAWISTA student booking form (agent code UVM=IB25), opened in a new tab.
 const MAWISTA_STUDENT_URL =
-  "https://www2.elviab2b.de/mawista-booking/index.faces?SPRACHE=EN&PT=STU&UVM=IB25";
+  MAWISTA_LINKS.student;
 
 const PLANS: Plan[] = [
   {
