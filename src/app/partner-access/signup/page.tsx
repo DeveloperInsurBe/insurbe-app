@@ -7,11 +7,23 @@ import { toast } from "sonner";
 import { AlertCircle, ArrowRight, Loader2 } from "lucide-react";
 
 import AccessBrandPanel from "../AccessBrandPanel";
+import {
+  PARTNER_CATEGORIES,
+  PARTNER_CATEGORY_LABELS,
+  isPartnerCategory,
+  type PartnerCategory,
+} from "@/lib/partnerCategory";
 
 type AccountType = "partner" | "agent";
 type PartnerTypeOption =
   | "institution_referral_partner"
   | "insurance_agent_broker";
+
+const CATEGORY_HINTS: Record<PartnerCategory, string> = {
+  agent: "You sell insurance and onboard customers at scale.",
+  referral: "You refer people to InsurBe.",
+  institutional: "A university, language school or other institution.",
+};
 
 export default function PartnerAccessSignupPage() {
   const router = useRouter();
@@ -23,6 +35,8 @@ export default function PartnerAccessSignupPage() {
       ? "institution_referral_partner"
       : "insurance_agent_broker",
   );
+  // Partner category, picked by the partner (no approval needed).
+  const [category, setCategory] = useState<PartnerCategory>("referral");
   const [formData, setFormData] = useState({
     companyName: "",
     title: "Mr",
@@ -36,26 +50,27 @@ export default function PartnerAccessSignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  // Team admin invite link (?invite=...): the agent joins that team.
+  // Sales Leader invite link (?invite=...): the new partner joins that team.
   const [invite, setInvite] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const type = params.get("type");
+    const preset = params.get("category");
     setInvite(params.get("invite")?.trim() ?? "");
-    if (type === "agent") {
-      setType("insurance_agent_broker");
+    if (isPartnerCategory(preset)) {
+      chooseCategory(preset);
     } else {
-      setType("institution_referral_partner");
+      chooseCategory(type === "agent" ? "agent" : "referral");
     }
   }, []);
 
-  const setType = (nextType: PartnerTypeOption) => {
-    setPartnerType(nextType);
-    setAccountType(
-      nextType === "institution_referral_partner" ? "partner" : "agent",
-    );
+  // "Agent" accounts are agent users; the other categories are partner users.
+  const chooseCategory = (next: PartnerCategory) => {
+    setCategory(next);
+    setPartnerType(next === "agent" ? "insurance_agent_broker" : "institution_referral_partner");
+    setAccountType(next === "agent" ? "agent" : "partner");
   };
 
   const handleChange = (name: string, value: string) => {
@@ -81,6 +96,8 @@ export default function PartnerAccessSignupPage() {
             password: formData.password,
             confirmPassword: formData.confirmPassword,
             partnerType,
+            category,
+            invite: invite || undefined,
           }
         : {
             companyName: formData.companyName,
@@ -178,39 +195,44 @@ export default function PartnerAccessSignupPage() {
           className="modal-item-in mt-2 text-sm text-gray-500"
           style={{ animationDelay: "280ms" }}
         >
-          Institution / referral partner onboarding
+          {invite ? "You were invited by an InsurBe Sales Leader. " : ""}Choose the category that fits you.
         </p>
 
-        {/* <div className="mt-6">
-          <h2 className="mb-3 text-sm font-semibold text-gray-700">
-            Select Partner Type
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => setType("institution_referral_partner")}
-              className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
-                partnerType === "institution_referral_partner"
-                  ? "border-[#820ad1] bg-[#820ad1]/10 text-[#820ad1]"
-                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              Institution / Referral Partner
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setType("insurance_agent_broker")}
-              className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
-                partnerType === "insurance_agent_broker"
-                  ? "border-[#0f8a5f] bg-[#0f8a5f]/10 text-[#0f8a5f]"
-                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              Insurance Agent / Broker Agent
-            </button>
+        <div className="modal-item-in mt-6" style={{ animationDelay: "300ms" }}>
+          <h2 className="mb-3 text-sm font-semibold text-gray-700">Partner category</h2>
+          <div className="grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Partner category">
+            {PARTNER_CATEGORIES.map((option) => {
+              const active = category === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => chooseCategory(option)}
+                  className={`cursor-pointer rounded-2xl border px-4 py-3 text-left transition-all ${
+                    active
+                      ? option === "agent"
+                        ? "border-[#0f8a5f] bg-[#0f8a5f]/10"
+                        : "border-[#820ad1] bg-[#820ad1]/10"
+                      : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <span
+                    className={`block text-sm font-semibold ${
+                      active ? (option === "agent" ? "text-[#0f8a5f]" : "text-[#820ad1]") : "text-gray-800"
+                    }`}
+                  >
+                    {PARTNER_CATEGORY_LABELS[option]}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-gray-500">{CATEGORY_HINTS[option]}</span>
+                </button>
+              );
+            })}
           </div>
-        </div> */}
+        </div>
+
+
 
         {error ? (
           <div className="modal-item-in mt-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">

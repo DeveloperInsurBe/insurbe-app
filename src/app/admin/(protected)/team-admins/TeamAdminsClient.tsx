@@ -12,9 +12,16 @@ export type TeamAdminRow = {
   commissionLimit: number;
   inviteCode: string | null;
   createdAt: string;
-  agents: number;
+  /** Own rate per direct customer; null = InsurBe agent default. */
+  ownRate: number | null;
+  defaultOwnRate: number;
+  partners: number;
+  /** Applications and commission of their partners' customers. */
   applications: number;
   commission: number;
+  /** Their own direct customers (the commission they earn). */
+  directApplications: number;
+  directCommission: number;
 };
 
 const euro = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
@@ -22,8 +29,8 @@ const euro = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR"
 const inputClass =
   "h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm outline-none transition-all focus:border-[#820ad1] focus:bg-white focus:ring-4 focus:ring-[#820ad1]/10";
 
-/** Agent signup link for a team admin. */
-const inviteUrl = (code: string) => `${window.location.origin}/partner-access/signup?type=agent&invite=${encodeURIComponent(code)}`;
+/** Partner signup link of a Sales Leader (partners pick their category there). */
+const inviteUrl = (code: string) => `${window.location.origin}/partner-access/signup?invite=${encodeURIComponent(code)}`;
 
 async function call<T>(url: string, method: string, body: unknown): Promise<T> {
   const response = await fetch(url, {
@@ -77,9 +84,11 @@ function PasswordNotice({ email, password, onClose }: { email: string; password:
   );
 }
 
-function LimitEditor({ row, onSaved }: { row: TeamAdminRow; onSaved: () => void }) {
+/** Edits the commission limit or the Sales Leader's own rate. */
+function AmountEditor({ row, field, onSaved }: { row: TeamAdminRow; field: "limit" | "ownRate"; onSaved: () => void }) {
+  const current = field === "limit" ? row.commissionLimit : row.ownRate ?? row.defaultOwnRate;
   const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(String(row.commissionLimit));
+  const [value, setValue] = useState(String(current));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -89,9 +98,11 @@ function LimitEditor({ row, onSaved }: { row: TeamAdminRow; onSaved: () => void 
         type="button"
         onClick={() => setEditing(true)}
         className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-900 hover:text-[#820ad1]"
-        title="Change the commission limit"
+        title={field === "limit" ? "Change the commission limit" : "Change their own rate"}
       >
-        {euro.format(row.commissionLimit)} <Pencil className="h-3.5 w-3.5 text-gray-400" />
+        {euro.format(current)}
+        {field === "ownRate" && row.ownRate === null ? <span className="text-[10px] font-semibold uppercase text-gray-400">default</span> : null}
+        <Pencil className="h-3.5 w-3.5 text-gray-400" />
       </button>
     );
   }
@@ -100,7 +111,11 @@ function LimitEditor({ row, onSaved }: { row: TeamAdminRow; onSaved: () => void 
     setSaving(true);
     setError("");
     try {
-      await call(`/api/admin/team-admins/${row.id}`, "PATCH", { action: "set_limit", commissionLimit: Number(value) });
+      await call(
+        `/api/admin/team-admins/${row.id}`,
+        "PATCH",
+        field === "limit" ? { action: "set_limit", commissionLimit: Number(value) } : { action: "set_rate", commissionRate: Number(value) },
+      );
       setEditing(false);
       onSaved();
     } catch (saveError) {
@@ -121,7 +136,7 @@ function LimitEditor({ row, onSaved }: { row: TeamAdminRow; onSaved: () => void 
           value={value}
           onChange={(event) => setValue(event.target.value)}
           className="h-8 w-20 rounded-lg border border-gray-200 px-2 text-sm outline-none focus:border-[#820ad1]"
-          aria-label="Commission limit in EUR"
+          aria-label={field === "limit" ? "Commission limit in EUR" : "Own rate in EUR"}
         />
         <button type="button" onClick={save} disabled={saving} className="rounded-lg bg-[#820ad1] p-1.5 text-white disabled:opacity-60" aria-label="Save">
           {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
@@ -166,7 +181,7 @@ export default function TeamAdminsClient({ rows }: { rows: TeamAdminRow[] }) {
   const act = async (row: TeamAdminRow, action: "reset_password" | "new_invite" | "disable" | "enable") => {
     const confirmText = {
       reset_password: `Create a new password for ${row.email}? The old one stops working.`,
-      new_invite: `Create a new invite link for ${row.name}? The old link stops working; agents who already joined stay.`,
+      new_invite: `Create a new invite link for ${row.name}? The old link stops working; partners who already joined stay.`,
       disable: `Disable ${row.email}? They can no longer sign in and their invite link stops working.`,
       enable: null,
     }[action];
@@ -240,14 +255,14 @@ export default function TeamAdminsClient({ rows }: { rows: TeamAdminRow[] }) {
         ) : (
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-gray-600">
-              The commission limit is the highest rate per application a team admin may give their agents.
+              Limit = highest rate per application a Sales Leader may give their partners. Own rate = what they earn per direct customer.
             </p>
             <button
               type="button"
               onClick={() => setShowForm(true)}
               className="flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#820ad1] px-4 text-sm font-semibold text-white hover:bg-[#6d08b0]"
             >
-              <Plus className="h-4 w-4" /> Add team admin
+              <Plus className="h-4 w-4" /> Add Sales Leader
             </button>
           </div>
         )}
@@ -255,8 +270,8 @@ export default function TeamAdminsClient({ rows }: { rows: TeamAdminRow[] }) {
 
       {rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center">
-          <p className="text-sm font-semibold text-gray-900">No team admins yet</p>
-          <p className="mt-1 text-xs text-gray-500">Add one, then share their invite link with new agents.</p>
+          <p className="text-sm font-semibold text-gray-900">No Sales Leaders yet</p>
+          <p className="mt-1 text-xs text-gray-500">Add one, then share their invite link with new partners.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -300,31 +315,43 @@ export default function TeamAdminsClient({ rows }: { rows: TeamAdminRow[] }) {
                 </div>
               </div>
 
-              <dl className="mt-4 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+              <dl className="mt-4 grid grid-cols-2 gap-3 text-xs sm:grid-cols-3 lg:grid-cols-6">
                 <div>
-                  <dt className="text-gray-400">Commission limit</dt>
+                  <dt className="text-gray-400">Own rate / direct customer</dt>
                   <dd className="mt-1">
-                    <LimitEditor row={row} onSaved={() => router.refresh()} />
+                    <AmountEditor row={row} field="ownRate" onSaved={() => router.refresh()} />
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-gray-400">Agents</dt>
-                  <dd className="mt-1 text-sm font-bold text-gray-900">{row.agents}</dd>
+                  <dt className="text-gray-400">Direct customers</dt>
+                  <dd className="mt-1 text-sm font-bold text-gray-900">
+                    {row.directApplications} · <span className="text-[#820ad1]">{euro.format(row.directCommission)}</span>
+                  </dd>
                 </div>
                 <div>
-                  <dt className="text-gray-400">Applications</dt>
+                  <dt className="text-gray-400">Limit for partners</dt>
+                  <dd className="mt-1">
+                    <AmountEditor row={row} field="limit" onSaved={() => router.refresh()} />
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-gray-400">Partners</dt>
+                  <dd className="mt-1 text-sm font-bold text-gray-900">{row.partners}</dd>
+                </div>
+                <div>
+                  <dt className="text-gray-400">Partners&apos; applications</dt>
                   <dd className="mt-1 text-sm font-bold text-gray-900">{row.applications}</dd>
                 </div>
                 <div>
-                  <dt className="text-gray-400">Commission</dt>
-                  <dd className="mt-1 text-sm font-bold text-[#820ad1]">{euro.format(row.commission)}</dd>
+                  <dt className="text-gray-400">Partners&apos; commission</dt>
+                  <dd className="mt-1 text-sm font-bold text-gray-900">{euro.format(row.commission)}</dd>
                 </div>
               </dl>
 
               <div className="mt-4 flex flex-col gap-2 rounded-xl bg-gray-50 p-3 sm:flex-row sm:items-center">
                 <Link2 className="hidden h-4 w-4 shrink-0 text-gray-400 sm:block" />
                 <p className="min-w-0 flex-1 truncate font-mono text-xs text-gray-600">
-                  {row.inviteCode ? `…/partner-access/signup?type=agent&invite=${row.inviteCode}` : "No invite link"}
+                  {row.inviteCode ? `…/partner-access/signup?invite=${row.inviteCode}` : "No invite link"}
                 </p>
                 <div className="flex gap-2">
                   {row.inviteCode && row.active ? <CopyButton text={inviteUrl(row.inviteCode)} label="Copy invite link" /> : null}

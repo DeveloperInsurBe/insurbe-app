@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+import { AGENT_LIKE_ROLES, referrerKeyOf } from "@/lib/commission";
 import { prisma } from "@/lib/prisma";
 import {
   PERIODS,
@@ -108,7 +109,7 @@ export async function getFilterContext(filters: ApplicationFilters) {
     filters.q
       ? prisma.user.findMany({
           where: {
-            role: { in: ["partner", "agent"] },
+            role: { in: ["partner", ...AGENT_LIKE_ROLES] },
             OR: [
               { firstName: { contains: filters.q, mode: "insensitive" } },
               { lastName: { contains: filters.q, mode: "insensitive" } },
@@ -133,7 +134,7 @@ export async function getFilterContext(filters: ApplicationFilters) {
   }
 
   const referrerIds = referrers
-    .map((user) => (user.role === "agent" ? user.id : user.partnerId))
+    .map((user) => (user.role === "partner" ? user.partnerId : user.id))
     .filter((id): id is string => !!id);
 
   return { refs, referrerIds };
@@ -306,7 +307,7 @@ export async function getApplicationRows(
           where: {
             OR: [
               { role: "partner", partnerId: { in: referrerIds } },
-              { role: "agent", id: { in: referrerIds } },
+              { role: { in: AGENT_LIKE_ROLES }, id: { in: referrerIds } },
             ],
           },
           select: {
@@ -332,13 +333,12 @@ export async function getApplicationRows(
   const referrerName = new Map<string, string>();
 
   for (const user of referrers) {
-    const key = user.role === "agent" ? user.id : user.partnerId;
     const name =
       `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() ||
       user.companyName ||
       user.email;
 
-    if (key) referrerName.set(`${user.role}:${key}`, name);
+    referrerName.set(referrerKeyOf(user), name);
   }
 
   return applications.map((app) => {

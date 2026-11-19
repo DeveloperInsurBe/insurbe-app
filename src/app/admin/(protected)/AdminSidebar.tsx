@@ -39,7 +39,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { href: "/admin/partners", label: "Partners", icon: UserSquare2 },
       { href: "/admin/agents", label: "Agents", icon: Briefcase },
-      { href: "/admin/team-admins", label: "Team admins", icon: UsersRound },
+      { href: "/admin/team-admins", label: "Sales Leaders", icon: UsersRound },
       { href: "/admin/users", label: "Customers", icon: Users },
     ],
   },
