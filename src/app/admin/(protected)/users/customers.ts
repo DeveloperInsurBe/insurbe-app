@@ -1,3 +1,4 @@
+import { AGENT_LIKE_ROLES, referrerKeyOf } from "@/lib/commission";
 import { prisma } from "@/lib/prisma";
 import { periodRange, type Period } from "../partners/publicInsurance";
 
@@ -125,7 +126,7 @@ export async function getCustomers(period: Period): Promise<Customer[]> {
           where: {
             OR: [
               { role: "partner", partnerId: { in: referrerIds } },
-              { role: "agent", id: { in: referrerIds } },
+              { role: { in: AGENT_LIKE_ROLES }, id: { in: referrerIds } },
             ],
           },
           select: {
@@ -150,9 +151,7 @@ export async function getCustomers(period: Period): Promise<Customer[]> {
       `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() ||
       user.companyName ||
       user.email;
-    const key = user.role === "agent" ? user.id : user.partnerId;
-
-    if (key) referrerName.set(`${user.role}:${key}`, name);
+    referrerName.set(referrerKeyOf(user), name);
   }
 
   const referrerFor = (source: CustomerSource, partnerId: string | null) =>

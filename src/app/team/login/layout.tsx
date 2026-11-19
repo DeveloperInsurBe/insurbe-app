@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "Sign in | InsurBe Team Portal",
+  title: "Sign in | InsurBe Sales Leader Portal",
   robots: { index: false, follow: false },
 };
 

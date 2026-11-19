@@ -5,8 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { TEAM_ADMIN_DISABLED_ROLE, TEAM_ADMIN_ROLE } from "@/lib/team/access";
 
 /**
- * Superadmin: moves an agent (and with it their customers) to a team admin,
- * or back to the superadmin with { teamAdminId: null }.
+ * Super Admin: moves a partner of any category (and with them their
+ * customers) into a Sales Leader's team, or back to the Super Admin with
+ * { teamAdminId: null }.
  */
 export async function PATCH(req: Request, context: { params: Promise<{ id: string }> }) {
   if (!(await getCurrentAdminSession())) {
@@ -17,15 +18,15 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
   const body = await req.json().catch(() => ({}));
   const teamAdminId = typeof body?.teamAdminId === "string" && body.teamAdminId ? body.teamAdminId : null;
 
-  const agent = await prisma.user.findFirst({ where: { id, role: "agent" }, select: { id: true } });
-  if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+  const member = await prisma.user.findFirst({ where: { id, role: { in: ["agent", "partner"] } }, select: { id: true } });
+  if (!member) return NextResponse.json({ error: "Partner not found" }, { status: 404 });
 
   if (teamAdminId) {
     const teamAdmin = await prisma.user.findFirst({
       where: { id: teamAdminId, role: { in: [TEAM_ADMIN_ROLE, TEAM_ADMIN_DISABLED_ROLE] } },
       select: { id: true },
     });
-    if (!teamAdmin) return NextResponse.json({ error: "Team admin not found" }, { status: 404 });
+    if (!teamAdmin) return NextResponse.json({ error: "Sales Leader not found" }, { status: 404 });
   }
 
   await prisma.user.update({ where: { id }, data: { teamAdminId } });

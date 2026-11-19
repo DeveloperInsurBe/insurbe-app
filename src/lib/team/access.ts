@@ -15,12 +15,14 @@ export type TeamAdmin = {
   name: string;
   commissionLimit: number;
   inviteCode: string | null;
+  /** Own commission per direct customer (EUR); null = InsurBe agent default. */
+  commissionRate: number | null;
 };
 
 export const teamAdminName = (user: { firstName?: string | null; lastName?: string | null; email?: string | null }) =>
-  [user.firstName, user.lastName].filter(Boolean).join(" ").trim() || user.email || "Team admin";
+  [user.firstName, user.lastName].filter(Boolean).join(" ").trim() || user.email || "Sales Leader";
 
-/** New invite code for a team admin's agent signup link. */
+/** New invite code for a Sales Leader's partner signup link. */
 export const generateInviteCode = () => randomBytes(9).toString("base64url");
 
 /** Random password shown to the superadmin once; only the hash is stored. */
@@ -33,7 +35,16 @@ export const getCurrentTeamAdmin = cache(async (): Promise<TeamAdmin | null> => 
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, email: true, role: true, firstName: true, lastName: true, commissionLimit: true, inviteCode: true },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      firstName: true,
+      lastName: true,
+      commissionLimit: true,
+      inviteCode: true,
+      commissionRate: true,
+    },
   });
   if (!user || user.role !== TEAM_ADMIN_ROLE) return null;
 
@@ -43,6 +54,7 @@ export const getCurrentTeamAdmin = cache(async (): Promise<TeamAdmin | null> => 
     name: teamAdminName(user),
     commissionLimit: user.commissionLimit ?? 0,
     inviteCode: user.inviteCode,
+    commissionRate: user.commissionRate,
   };
 });
 

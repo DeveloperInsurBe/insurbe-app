@@ -7,7 +7,7 @@ import { BarChart3, Briefcase, LogOut, Users, UsersRound } from "lucide-react";
 
 const NAV = [
   { href: "/team/dashboard", label: "Dashboard", icon: BarChart3 },
-  { href: "/team/agents", label: "Agents", icon: Briefcase },
+  { href: "/team/partners", label: "Partners", icon: Briefcase },
   { href: "/team/customers", label: "Customers", icon: Users },
 ];
 
@@ -23,11 +23,11 @@ export default function TeamNav({ name, email }: { name: string; email: string }
           </span>
           <span className="hidden sm:block">
             <span className="block text-[15px] font-black leading-tight text-gray-900">InsurBe</span>
-            <span className="block text-[10px] font-bold uppercase tracking-[1.5px] text-[#820ad1]">Team portal</span>
+            <span className="block text-[10px] font-bold uppercase tracking-[1.5px] text-[#820ad1]">Sales Leader</span>
           </span>
         </Link>
 
-        <nav aria-label="Team portal" className="order-3 flex w-full gap-1 overflow-x-auto sm:order-none sm:ml-6 sm:w-auto">
+        <nav aria-label="Sales Leader portal" className="order-3 flex w-full gap-1 overflow-x-auto sm:order-none sm:ml-6 sm:w-auto">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active = pathname.startsWith(href);
             return (

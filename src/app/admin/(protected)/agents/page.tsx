@@ -283,7 +283,7 @@ export default async function AdminAgentsPage({
                       {[agent.companyName, agent.email].filter(Boolean).join(" · ")}
                     </p>
                     {teamAdminOptions.length ? (
-                      <TeamAdminSelect agentId={agent.id} value={agent.teamAdminId} options={teamAdminOptions} />
+                      <TeamAdminSelect userId={agent.id} value={agent.teamAdminId} options={teamAdminOptions} />
                     ) : null}
                   </div>
                 </div>

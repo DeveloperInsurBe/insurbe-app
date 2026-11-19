@@ -47,9 +47,10 @@ export async function resolveReferralAttribution(
     };
   }
 
+  // Agents, and Sales Leaders sharing their own link (their direct customers).
   const agentUser = await prisma.user.findFirst({
     where: {
-      role: "agent",
+      role: { in: ["agent", "team_admin"] },
       id: ref,
     },
     select: {
