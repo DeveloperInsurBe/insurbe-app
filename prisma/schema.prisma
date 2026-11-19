@@ -30,8 +30,10 @@ model User {
   teamAdminId            String?
   /// Team admins: highest commission per application (EUR) they may give their agents
   commissionLimit        Int?
-  /// Team admins: code in their agent invite link
+  /// Team admins (Sales Leaders): code in their partner invite link
   inviteCode             String?         @unique
+  /// Partners and agents: category picked at signup ("agent" | "referral" | "institutional")
+  partnerCategory        String?
   partnerProfile         PartnerProfile?
   mawsitaRecords         MawsitaRecord[]
 

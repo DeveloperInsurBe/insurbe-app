@@ -14,6 +14,18 @@ export const FALLBACK_COMMISSION_RATES: Record<CommissionRole, number> = {
 
 export const MAX_COMMISSION_RATE = 1000;
 
+/**
+ * Users whose customers are stored like agent customers (source "agent",
+ * partnerId = their user id): agents and Sales Leaders (role team_admin), whose
+ * own direct customers earn them commission. Disabled Sales Leaders stay in
+ * the list so their history and payouts still resolve.
+ */
+export const AGENT_LIKE_ROLES = ["agent", "team_admin", "team_admin_disabled"];
+
+/** Key of a referrer in "source:partnerId" maps (Sales Leaders count as "agent"). */
+export const referrerKeyOf = (user: { role: string | null; id: string; partnerId: string | null }) =>
+  user.role === "partner" ? `partner:${user.partnerId}` : `agent:${user.id}`;
+
 export function isCommissionRole(value: unknown): value is CommissionRole {
   return COMMISSION_ROLES.includes(value as CommissionRole);
 }
@@ -89,7 +101,7 @@ export async function getReferrerCommission(
   const referrer = await prisma.user.findFirst({
     where:
       role === "agent"
-        ? { role: "agent", id: partnerId }
+        ? { role: { in: AGENT_LIKE_ROLES }, id: partnerId }
         : { role: "partner", partnerId },
     select: { commissionRate: true },
   });

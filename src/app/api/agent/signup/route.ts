@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/prisma";
-import { TEAM_ADMIN_ROLE } from "@/lib/team/roles";
+import { INVALID_INVITE_MESSAGE, resolveTeamInvite } from "@/lib/team/invite";
 
 export async function POST(req: Request) {
   try {
@@ -40,21 +40,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // Invite link of a team admin: the new agent joins that team.
-    let teamAdminId: string | null = null;
-    const inviteCode = String(invite || "").trim();
-    if (inviteCode) {
-      const teamAdmin = await prisma.user.findFirst({
-        where: { role: TEAM_ADMIN_ROLE, inviteCode },
-        select: { id: true },
-      });
-      if (!teamAdmin) {
-        return NextResponse.json(
-          { message: "This invite link is no longer valid. Please ask for a new one." },
-          { status: 400 },
-        );
-      }
-      teamAdminId = teamAdmin.id;
+    // Invite link of a Sales Leader: the new agent joins that team.
+    const teamAdminId = await resolveTeamInvite(invite);
+    if (teamAdminId === null) {
+      return NextResponse.json({ message: INVALID_INVITE_MESSAGE }, { status: 400 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -85,7 +74,8 @@ export async function POST(req: Request) {
         email: normalizedEmail,
         password: hashedPassword,
         role: "agent",
-        teamAdminId,
+        partnerCategory: "agent",
+        teamAdminId: teamAdminId ?? null,
       },
     });
 
