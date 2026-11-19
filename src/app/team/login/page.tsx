@@ -3,7 +3,8 @@
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, signIn, signOut } from "next-auth/react";
-import { AlertCircle, Eye, EyeOff, Loader2, Lock, Mail, UsersRound } from "lucide-react";
+import Image from "next/image";
+import { AlertCircle, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 
 import { TEAM_ADMIN_ROLE } from "@/lib/team/roles";
 
@@ -46,9 +47,7 @@ export default function TeamLoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f6f7fb] px-4 py-10">
       <div className="w-full max-w-[420px] rounded-3xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#820ad1] to-[#a855f7] text-white">
-          <UsersRound className="h-5 w-5" />
-        </span>
+        <Image src="/insurbe-mark.svg" alt="InsurBe" width={44} height={44} priority unoptimized className="h-11 w-11 rounded-xl" />
         <h1 className="mt-5 text-2xl font-black text-gray-900">InsurBe Sales Leader Portal</h1>
         <p className="mt-1 text-sm text-gray-500">Sign in to see your customers, your partners and their customers.</p>
 
