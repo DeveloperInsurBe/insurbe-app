@@ -110,15 +110,15 @@ export default function AgentReferralShareCard({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-[22px] md:rounded-[30px] bg-gradient-to-br from-[#6d00c9] via-[#820ad1] to-[#a855f7] p-4 sm:p-6 text-white shadow-[0_18px_55px_rgba(130,10,209,0.22)]">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#6d00c9] via-[#820ad1] to-[#a855f7] p-4 sm:p-5 text-white shadow-[0_18px_55px_rgba(130,10,209,0.22)]">
       <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
 
       <div className="relative z-10 flex h-full flex-col">
-        <div className="inline-flex rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[2px] text-white/80 backdrop-blur-md">
+        <div className="inline-flex rounded-full bg-white/10 px-3 py-0.5 text-[10px] font-bold uppercase tracking-[1.5px] text-white/80 backdrop-blur-md">
           Agent Referral Link
         </div>
 
-        <h2 className="mt-4 text-2xl sm:text-3xl font-black leading-tight">
+        <h2 className="mt-2 text-lg font-black leading-tight">
           Invite & Earn
         </h2>
 
@@ -127,7 +127,7 @@ export default function AgentReferralShareCard({
           applications from your referral are tracked in your agent dashboard.
         </p>
 
-        <div className="mt-5 flex h-14 items-center overflow-hidden rounded-2xl border border-white/15 bg-white/10 px-4 backdrop-blur-md">
+        <div className="mt-3 flex h-11 items-center overflow-hidden rounded-xl border border-white/15 bg-white/10 px-4 backdrop-blur-md">
           <p className="truncate text-sm font-semibold text-white">
             {referralLink}
           </p>
@@ -159,7 +159,7 @@ export default function AgentReferralShareCard({
           <button
             type="button"
             onClick={copyLink}
-            className="inline-flex h-12 cursor-pointer items-center justify-center rounded-2xl bg-white px-5 text-sm font-bold text-[#820ad1] transition-all duration-200 hover:scale-[1.02] gap-2"
+            className="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl bg-white px-4 text-sm font-bold text-[#820ad1] transition-all duration-200 hover:scale-[1.02] gap-2"
           >
             <Copy size={16} />
             Copy Link
@@ -169,7 +169,7 @@ export default function AgentReferralShareCard({
             <button
               type="button"
               onClick={shareNative}
-              className="inline-flex h-12 cursor-pointer items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-5 text-sm font-bold text-white transition-all duration-200 hover:bg-white/20 gap-2"
+              className="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-bold text-white transition-all duration-200 hover:bg-white/20 gap-2"
             >
               <Share2 size={16} />
               Share
