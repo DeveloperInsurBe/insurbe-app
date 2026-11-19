@@ -38,7 +38,9 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email || session.user.role !== "partner") {
+    // Partners and Sales Leaders (role team_admin) use the same contact form.
+    const isSalesLeader = session?.user?.role === "team_admin";
+    if (!session?.user?.email || (session.user.role !== "partner" && !isSalesLeader)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -109,7 +111,7 @@ export async function POST(req: Request) {
       from: "InsurBe <noreply@insurbe.com>",
       to: "pradeep.k@insurbe.com",
       replyTo: email,
-      subject: `Partner Contact Request - ${category}`,
+      subject: `${isSalesLeader ? "Sales Leader" : "Partner"} Contact Request - ${category}`,
       html: `
         <div style="font-family:Arial,sans-serif;line-height:1.6;padding:20px">
           <h2>New Partner Contact Request</h2>

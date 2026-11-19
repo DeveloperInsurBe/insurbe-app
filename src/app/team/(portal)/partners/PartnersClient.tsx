@@ -40,16 +40,6 @@ export function InviteLink({ inviteCode }: { inviteCode: string | null }) {
   return <CopyLink path={`/partner-access/signup?invite=${encodeURIComponent(inviteCode)}`} label="Copy invite link" />;
 }
 
-/** The Sales Leader's own customer link: customers who apply through it are their direct customers. */
-export function CustomerLink({ teamAdminId }: { teamAdminId: string }) {
-  return (
-    <CopyLink
-      path={`/insurance/public-health?ref=${encodeURIComponent(teamAdminId)}#provider-comparison`}
-      label="Copy customer link"
-    />
-  );
-}
-
 /** Rate per application for one partner, up to the Sales Leader's limit. */
 export function RateEditor({ member, limit }: { member: TeamMemberRow; limit: number }) {
   const router = useRouter();

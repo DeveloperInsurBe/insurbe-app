@@ -54,23 +54,26 @@ export default function PartnerAccessLoginPage() {
         return;
       }
 
+      // One login for everyone: the account's role decides where it goes.
       const session = await getSession();
       const role = session?.user?.role;
-      const expectedRole = accountType === "partner" ? "partner" : "agent";
 
-      if (!session?.user || role !== expectedRole) {
-        await signOut({ redirect: false });
-        const message =
-          accountType === "partner"
-            ? "This account is not a partner account"
-            : "This account is not an agent account";
-        setError(message);
-        toast.error(message);
-        setLoading(false);
+      if (role === "partner" || role === "agent") {
+        router.replace("/portal/dashboard");
         return;
       }
 
-      router.replace("/portal/dashboard");
+      if (role === "team_admin") {
+        router.replace("/team/dashboard");
+        return;
+      }
+
+      // Admins, DAK reviewers, customers, ...: not for this page.
+      await signOut({ redirect: false });
+      const message = "Please use the correct login page for your account.";
+      setError(message);
+      toast.error(message);
+      setLoading(false);
     } catch (err) {
       console.error(err);
       setError("Something went wrong");
@@ -112,44 +115,8 @@ export default function PartnerAccessLoginPage() {
           className="modal-item-in mt-2 text-sm text-gray-500"
           style={{ animationDelay: "280ms" }}
         >
-          Login to your partner or agent portal.
+          Partners, agents and Sales Leaders sign in here.
         </p>
-
-        <div className="modal-item-in mt-6" style={{ animationDelay: "340ms" }}>
-          <h2 className="flex items-center justify-center gap-2 rounded-2xl border border-[#efe3fb] bg-gradient-to-r from-[#faf7ff] to-[#f3e8ff] px-4 py-3 text-center text-base font-semibold text-[#820ad1] sm:text-lg">
-            <span className="relative flex h-2 w-2 shrink-0">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-            Institution / Referral Partner
-          </h2>
-
-          {/* <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => setAccountType("partner")}
-              className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
-                accountType === "partner"
-                  ? "border-[#820ad1] bg-[#820ad1]/10 text-[#820ad1]"
-                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              Institution / Referral Partner
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setAccountType("agent")}
-              className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
-                accountType === "agent"
-                  ? "border-[#820ad1] bg-[#820ad1]/10 text-[#820ad1]"
-                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              Insurance Agent / Broker Agent
-            </button>
-          </div> */}
-        </div>
 
         {error ? (
           <div className="modal-item-in mt-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">

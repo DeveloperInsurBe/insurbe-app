@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { PARTNER_CATEGORY_LABELS } from "@/lib/partnerCategory";
 import { getCurrentTeamAdmin } from "@/lib/team/access";
 import { getTeamDashboard } from "@/lib/team/data";
-import { CustomerLink } from "../partners/PartnersClient";
+import InviteEarnCard from "./InviteEarnCard";
+import CreateApplicationButton from "@/app/partner/(protected)/dashboard/CreateApplicationButton";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,10 @@ export default async function TeamDashboardPage() {
 
   const data = await getTeamDashboard(teamAdmin.id, teamAdmin.commissionRate);
   const { direct, activity, totals, products, months } = data;
+  // Same customer link as the partners' "Invite & Earn": customers who apply
+  // through it become this Sales Leader's direct customers.
+  const baseUrl = process.env.NEXTAUTH_URL || "https://insurbe.com";
+  const customerLink = `${baseUrl}/insurance/public-health?ref=${teamAdmin.id}#provider-comparison`;
   const maxMonth = Math.max(1, ...months.map((month) => month.count));
   const topPartners = [...data.members].sort((a, b) => b.applications - a.applications).slice(0, 5);
 
@@ -30,9 +35,13 @@ export default async function TeamDashboardPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-black text-gray-900 sm:text-2xl">Hello, {teamAdmin.name}</h1>
-        <p className="mt-0.5 text-sm text-gray-500">Your own customers, your partners and the customers they brought in.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-xl font-black text-gray-900 sm:text-2xl">Hello, {teamAdmin.name}</h1>
+          <p className="mt-0.5 text-sm text-gray-500">Your own customers, your partners and the customers they brought in.</p>
+        </div>
+        {/* Fill in an application together with a customer; it counts as your direct customer. */}
+        <CreateApplicationButton partnerRef={teamAdmin.id} />
       </div>
 
       {/* Own customers: the only commission the Sales Leader earns. */}
@@ -57,12 +66,11 @@ export default async function TeamDashboardPage() {
             </div>
           ))}
         </dl>
-        <div className="mt-4">
-          <p className="mb-2 text-xs text-gray-600">Share this link with customers. Everyone who applies through it is your direct customer.</p>
-          <CustomerLink teamAdminId={teamAdmin.id} />
-        </div>
         <p className="mt-3 text-[11px] text-gray-400">You earn commission on your direct customers only. Payouts are approved and paid by InsurBe.</p>
       </section>
+
+      {/* Invite & Earn: share the customer link by WhatsApp, email and social media. */}
+      <InviteEarnCard link={customerLink} name={teamAdmin.name} rate={direct.rate} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {cards.map((card) => (
