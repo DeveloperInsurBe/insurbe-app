@@ -15,13 +15,13 @@ export default function AgentInsurancePurchaseCard({ agentRef }: Props) {
 
   return (
     <>
-      <div className="rounded-[22px] md:rounded-[30px] border border-white/50 bg-white/90 p-5 md:p-6 shadow-[0_10px_35px_rgba(130,10,209,0.06)]">
+      <div className="rounded-2xl border border-white/50 bg-white/90 p-4 sm:p-5 shadow-[0_10px_35px_rgba(130,10,209,0.06)]">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[2px] text-[#820ad1]">
+            <p className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#820ad1]">
               Insurance Purchase
             </p>
-            <h2 className="mt-2 text-2xl font-black text-[#111827]">
+            <h2 className="mt-0.5 text-lg font-black text-[#111827]">
               Create Application
             </h2>
             <p className="mt-2 text-sm text-[#667085]">
