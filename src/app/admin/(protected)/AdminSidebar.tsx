@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -15,7 +16,6 @@ import {
   LogOut,
   Menu,
   ReceiptText,
-  Shield,
   ShieldCheck,
   Users,
   UsersRound,
@@ -123,9 +123,15 @@ function SidebarTooltip({ tip }: { tip: Tip | null }) {
 function Brand({ collapsed }: { collapsed: boolean }) {
   return (
     <Link href="/admin/dashboard" className="flex min-w-0 items-center gap-2.5">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#820ad1] to-[#a855f7] text-white shadow-md shadow-[#820ad1]/25">
-        <Shield className="h-[18px] w-[18px]" />
-      </span>
+      <Image
+        src="/insurbe-mark.svg"
+        alt="InsurBe"
+        width={36}
+        height={36}
+        priority
+        unoptimized
+        className="h-9 w-9 shrink-0 rounded-xl shadow-md shadow-[#820ad1]/25"
+      />
       {collapsed ? null : (
         <span className="min-w-0">
           <span className="block truncate text-[15px] font-black leading-tight text-gray-900">
@@ -155,11 +161,17 @@ function SidebarBody({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  // Same hover as the partner portal: the pill slides from the active item to
+  // the hovered item and returns on leave.
+  const [hovered, setHovered] = useState<string | null>(null);
+  const activeHref = NAV_GROUPS.flatMap((group) => group.items).find((item) => isActive(pathname, item.href))?.href;
+  const pillHref = collapsed ? activeHref : (hovered ?? activeHref);
 
   return (
     <>
       <nav
         onScroll={hideTip}
+        onMouseLeave={() => setHovered(null)}
         className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 scrollbar-thin"
       >
         {NAV_GROUPS.map((group) => (
@@ -188,34 +200,38 @@ function SidebarBody({
                       }}
                       aria-current={active ? "page" : undefined}
                       aria-label={collapsed ? item.label : undefined}
-                      onMouseEnter={
-                        collapsed
-                          ? (event) =>
-                              showTip(event, { label: item.label, caption: group.label, current: active })
-                          : undefined
-                      }
-                      onFocus={
-                        collapsed
-                          ? (event) =>
-                              showTip(event, { label: item.label, caption: group.label, current: active })
-                          : undefined
-                      }
+                      onMouseEnter={(event) => {
+                        if (collapsed) showTip(event, { label: item.label, caption: group.label, current: active });
+                        else setHovered(item.href);
+                      }}
+                      onFocus={(event) => {
+                        if (collapsed) showTip(event, { label: item.label, caption: group.label, current: active });
+                        else setHovered(item.href);
+                      }}
                       onMouseLeave={collapsed ? hideTip : undefined}
                       onBlur={collapsed ? hideTip : undefined}
-                      className={`relative flex h-10 items-center gap-3 rounded-xl text-sm font-semibold transition-colors ${
+                      className={`group relative flex h-10 items-center gap-3 rounded-xl text-sm font-semibold transition-colors ${
                         collapsed ? "justify-center px-0" : "px-3"
-                      } ${active ? "text-[#820ad1]" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}
+                      } ${
+                        active
+                          ? "text-[#820ad1]"
+                          : collapsed
+                            ? "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                            : "text-gray-600 hover:text-[#820ad1]"
+                      }`}
                     >
-                      {active ? (
+                      {item.href === pillHref ? (
                         <motion.span
                           layoutId={indicatorId}
                           className="absolute inset-0 rounded-xl bg-[#820ad1]/10"
                           transition={{ type: "spring", stiffness: 420, damping: 34 }}
                         >
-                          <span className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-[#820ad1]" />
+                          {active ? (
+                            <span className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-[#820ad1]" />
+                          ) : null}
                         </motion.span>
                       ) : null}
-                      <Icon className="relative h-[18px] w-[18px] shrink-0" />
+                      <Icon className="relative h-[18px] w-[18px] shrink-0 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" />
                       {collapsed ? null : <span className="relative truncate">{item.label}</span>}
                     </Link>
 

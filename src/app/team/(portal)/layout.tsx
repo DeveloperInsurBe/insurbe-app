@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
 import { getCurrentTeamAdmin } from "@/lib/team/access";
-import TeamNav from "./TeamNav";
+import TeamSidebar from "./TeamSidebar";
 
 export const metadata: Metadata = {
   title: "InsurBe Sales Leader Portal",
@@ -17,9 +17,10 @@ export default async function TeamPortalLayout({ children }: { children: ReactNo
   if (!teamAdmin) redirect("/team/login");
 
   return (
-    <div className="min-h-screen bg-[#f6f7fb]">
-      <TeamNav name={teamAdmin.name} email={teamAdmin.email} />
-      <main className="mx-auto max-w-6xl px-3 py-5 sm:px-5 lg:px-8 lg:py-8">{children}</main>
+    // Same frame as the admin portal: sidebar on the left (drawer on small screens).
+    <div className="flex min-h-screen flex-col bg-[#f6f7fb] xl:flex-row">
+      <TeamSidebar name={teamAdmin.name} email={teamAdmin.email} />
+      <main className="min-w-0 flex-1 overflow-x-hidden p-3 sm:p-5 lg:p-6 xl:p-8">{children}</main>
     </div>
   );
 }
