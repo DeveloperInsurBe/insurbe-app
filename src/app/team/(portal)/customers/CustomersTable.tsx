@@ -58,7 +58,7 @@ export default function CustomersTable({ rows }: { rows: ApplicationRow[] }) {
         <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_1.25rem] gap-4 border-b border-gray-100 bg-gray-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-gray-500 lg:grid">
           <span>Customer</span>
           <span>Product</span>
-          <span>Agent</span>
+          <span>Came via</span>
           <span>Commission</span>
           <span />
         </div>
@@ -124,7 +124,7 @@ export default function CustomersTable({ rows }: { rows: ApplicationRow[] }) {
                   <Badge className={COMMISSION_TONE[selected.commissionStatus] ?? COMMISSION_TONE.Pending}>{selected.commissionStatus}</Badge>
                 </div>
                 <p className="mt-2 text-xs text-gray-500">
-                  Agent: <span className="font-semibold text-gray-700">{selected.referrer || "—"}</span>
+                  Came via: <span className="font-semibold text-gray-700">{selected.referrer || "—"}</span>
                 </p>
               </section>
 

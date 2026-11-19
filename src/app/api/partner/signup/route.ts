@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
+import { INVALID_INVITE_MESSAGE, resolveTeamInvite } from "@/lib/team/invite";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -76,7 +77,11 @@ export async function POST(req: Request) {
       password,
       confirmPassword,
       partnerType,
+      category,
+      invite,
     } = body;
+    // Referral Partner unless they picked Institutional Partner ("agent" signs up via /api/agent/signup).
+    const partnerCategory = category === "institutional" ? "institutional" : "referral";
     const normalizedEmail = String(email || "").trim().toLowerCase();
 
     // Validation
@@ -101,6 +106,12 @@ export async function POST(req: Request) {
         { message: "Passwords do not match" },
         { status: 400 },
       );
+    }
+
+    // Invite link of a Sales Leader: the new partner joins that team.
+    const teamAdminId = await resolveTeamInvite(invite);
+    if (teamAdminId === null) {
+      return NextResponse.json({ message: INVALID_INVITE_MESSAGE }, { status: 400 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -135,6 +146,8 @@ export async function POST(req: Request) {
         password: hashedPassword,
 
         role: "partner",
+        partnerCategory,
+        teamAdminId: teamAdminId ?? null,
 
         partnerId: generatePartnerId(),
       },

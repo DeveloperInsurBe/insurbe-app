@@ -2,7 +2,10 @@ import Link from "next/link";
 import { ChevronRight, Info, Search } from "lucide-react";
 
 import { getDefaultCommissionRate, getDefaultRateStats } from "@/lib/commission";
+import { partnerCategoryLabel } from "@/lib/partnerCategory";
 import { prisma } from "@/lib/prisma";
+import { teamAdminName, TEAM_ADMIN_DISABLED_ROLE, TEAM_ADMIN_ROLE } from "@/lib/team/access";
+import TeamAdminSelect from "../agents/TeamAdminSelect";
 import CommissionRateEditor from "../CommissionRateEditor";
 import {
   FilterGroup,
@@ -63,7 +66,7 @@ export default async function AdminPartnersPage({
   const sort: Sort = pick(SORTS, params.sort);
   const show: Activity = pick(ACTIVITY, params.show);
 
-  const [partners, partnerMetrics, publicCounts, defaultRate, defaultStats] = await Promise.all([
+  const [partners, partnerMetrics, publicCounts, defaultRate, defaultStats, teamAdmins] = await Promise.all([
     prisma.user.findMany({
       where: {
         role: "partner",
@@ -87,6 +90,9 @@ export default async function AdminPartnersPage({
         email: true,
         companyName: true,
         commissionRate: true,
+        role: true,
+        partnerCategory: true,
+        teamAdminId: true,
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -104,7 +110,14 @@ export default async function AdminPartnersPage({
     getPublicInsuranceCounts(period),
     getDefaultCommissionRate("partner"),
     getDefaultRateStats("partner"),
+    prisma.user.findMany({
+      where: { role: { in: [TEAM_ADMIN_ROLE, TEAM_ADMIN_DISABLED_ROLE] } },
+      select: { id: true, firstName: true, lastName: true, email: true },
+      orderBy: { createdAt: "asc" },
+    }),
   ]);
+
+  const teamAdminOptions = teamAdmins.map((user) => ({ id: user.id, name: teamAdminName(user) }));
 
   const partnerMetricMap = new Map(
     partnerMetrics.map((item) => [
@@ -479,10 +492,13 @@ export default async function AdminPartnersPage({
                             </p>
                           )}
                           <p className="truncate text-xs text-gray-500">
-                            {[partner.companyName, partner.email]
+                            {[partnerCategoryLabel(partner), partner.companyName, partner.email]
                               .filter(Boolean)
                               .join(" · ")}
                           </p>
+                          {teamAdminOptions.length ? (
+                            <TeamAdminSelect userId={partner.id} value={partner.teamAdminId} options={teamAdminOptions} />
+                          ) : null}
                         </div>
                       </div>
                     </td>

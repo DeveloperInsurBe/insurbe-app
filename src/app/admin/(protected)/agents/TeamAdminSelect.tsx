@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
-/** Superadmin: which team admin an agent (and their customers) belongs to. */
+/** Super Admin: which Sales Leader a partner or agent (and their customers) belongs to. */
 export default function TeamAdminSelect({
-  agentId,
+  userId,
   value,
   options,
 }: {
-  agentId: string;
+  userId: string;
   value: string | null;
   options: { id: string; name: string }[];
 }) {
@@ -23,7 +23,7 @@ export default function TeamAdminSelect({
     setSaving(true);
     setError(false);
     try {
-      const response = await fetch(`/api/admin/agents/${agentId}/team-admin`, {
+      const response = await fetch(`/api/admin/agents/${userId}/team-admin`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamAdminId: next || null }),
@@ -41,16 +41,16 @@ export default function TeamAdminSelect({
   return (
     <span className="mt-1 inline-flex items-center gap-1.5">
       <select
-        aria-label="Team admin"
+        aria-label="Sales Leader"
         value={current}
         disabled={saving}
         onChange={(event) => change(event.target.value)}
         className="h-7 max-w-[180px] cursor-pointer rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-semibold text-gray-600 outline-none focus:border-[#820ad1] disabled:opacity-60"
       >
-        <option value="">Superadmin (no team)</option>
+        <option value="">Super Admin (no Sales Leader)</option>
         {options.map((option) => (
           <option key={option.id} value={option.id}>
-            Team: {option.name}
+            Sales Leader: {option.name}
           </option>
         ))}
       </select>

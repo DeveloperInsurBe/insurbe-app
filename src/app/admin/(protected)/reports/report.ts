@@ -1,4 +1,4 @@
-import { getDefaultCommissionRates } from "@/lib/commission";
+import { AGENT_LIKE_ROLES, getDefaultCommissionRates, referrerKeyOf } from "@/lib/commission";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -181,7 +181,7 @@ export async function getCommissionReport(range: ReportRange): Promise<ReportRow
           where: {
             OR: [
               { role: "partner", partnerId: { in: [...partnerCodes] } },
-              { role: "agent", id: { in: [...agentIds] } },
+              { role: { in: AGENT_LIKE_ROLES }, id: { in: [...agentIds] } },
             ],
           },
           select: {
@@ -211,10 +211,7 @@ export async function getCommissionReport(range: ReportRange): Promise<ReportRow
   ]);
 
   const userByKey = new Map(
-    users.map((user) => [
-      `${user.role}:${user.role === "agent" ? user.id : user.partnerId}`,
-      user,
-    ]),
+    users.map((user) => [referrerKeyOf(user), user]),
   );
 
   const rows = new Map<string, ReportRow>();

@@ -6,7 +6,7 @@ import { getCurrentTeamAdmin } from "@/lib/team/access";
 import TeamNav from "./TeamNav";
 
 export const metadata: Metadata = {
-  title: "InsurBe Team Portal",
+  title: "InsurBe Sales Leader Portal",
   robots: { index: false, follow: false },
 };
 

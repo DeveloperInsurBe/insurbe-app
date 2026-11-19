@@ -49,8 +49,8 @@ export default function TeamLoginPage() {
         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#820ad1] to-[#a855f7] text-white">
           <UsersRound className="h-5 w-5" />
         </span>
-        <h1 className="mt-5 text-2xl font-black text-gray-900">InsurBe Team Portal</h1>
-        <p className="mt-1 text-sm text-gray-500">Sign in to see your agents and their customers.</p>
+        <h1 className="mt-5 text-2xl font-black text-gray-900">InsurBe Sales Leader Portal</h1>
+        <p className="mt-1 text-sm text-gray-500">Sign in to see your customers, your partners and their customers.</p>
 
         <form onSubmit={submit} className="mt-7 space-y-4">
           <label className="block">
