@@ -4,6 +4,7 @@ import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 import { AlertCircle, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 
 import { TEAM_ADMIN_ROLE } from "@/lib/team/roles";
@@ -105,12 +106,10 @@ export default function TeamLoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-xs text-gray-500">
-          Forgot your password? Please contact InsurBe at{" "}
-          <a href="mailto:support@insurbe.com" className="font-semibold text-[#820ad1] hover:underline">
-            support@insurbe.com
-          </a>
-          .
+        <p className="mt-6 text-center text-sm text-gray-500">
+          <Link href="/partner-access/forgot-password?portal=team" className="font-semibold text-[#820ad1] hover:underline">
+            Forgot your password?
+          </Link>
         </p>
       </div>
     </div>

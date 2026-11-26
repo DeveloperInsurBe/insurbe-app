@@ -3,10 +3,22 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 
+import {
+  RESET_PORTALS,
+  RESET_TOKEN_MINUTES,
+  normalizeEmail,
+  resetEmailSentRecently,
+  toResetPortal,
+} from "@/lib/passwordReset";
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const email = normalizeEmail(body?.email);
+    // Which login the request came from: decides who may reset here and where they sign in afterwards.
+    const portal = toResetPortal(body?.portal);
+    const rule = RESET_PORTALS[portal];
 
     if (!email) {
       return NextResponse.json(
@@ -15,34 +27,49 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
+    // Same answer whether or not the account exists (no account guessing).
+    const sameAnswer = NextResponse.json(
+      { message: "Reset link sent if email exists" },
+      { status: 200 },
+    );
+
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
+      select: { id: true, email: true, role: true, resetTokenExpiry: true },
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { message: "If the email exists, reset link will be sent" },
-        { status: 200 },
-      );
+    // Unknown email, or an account that can't be reset from this login
+    // (e.g. admins or DAK reviewers on the partner login).
+    if (!user || (rule.roles && !rule.roles.includes(user.role ?? ""))) {
+      return sameAnswer;
+    }
+
+    // At most one email per minute per account.
+    if (resetEmailSentRecently(user.resetTokenExpiry)) {
+      return sameAnswer;
     }
 
     const token = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     await prisma.user.update({
-      where: { email },
+      where: { id: user.id },
       data: {
-        resetToken: hashedToken as any,
-        resetTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
-      } as any,
+        resetToken: hashedToken,
+        resetTokenExpiry: new Date(Date.now() + RESET_TOKEN_MINUTES * 60 * 1000),
+      },
     });
 
-    const resetLink = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
+    const baseUrl = process.env.NEXTAUTH_URL || "https://insurbe.com";
+    const resetLink =
+      portal === "customer"
+        ? `${baseUrl}/reset-password?token=${token}`
+        : `${baseUrl}/partner-access/reset-password?token=${token}&portal=${portal}`;
 
     // ✅ SEND EMAIL
     const result = await resend.emails.send({
       from: "no-reply@insurbe.com",
-      to: email,
+      to: user.email,
       subject: "Reset your password",
       html: `
   <div style="font-family: Arial, sans-serif; background-color: #f4f6fb; padding: 40px 20px;">
@@ -110,10 +137,7 @@ export async function POST(req: Request) {
       console.log("FORGOT PASSWORD EMAIL SENT");
     }
 
-    return NextResponse.json(
-      { message: "Reset link sent if email exists" },
-      { status: 200 },
-    );
+    return sameAnswer;
   } catch (err) {
     console.error("FORGOT PASSWORD ERROR:", err);
     return NextResponse.json(
