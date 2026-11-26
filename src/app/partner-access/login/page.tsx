@@ -154,9 +154,12 @@ export default function PartnerAccessLoginPage() {
           </div>
 
           <div className="modal-item-in" style={{ animationDelay: "460ms" }}>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Password
-            </label>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label className="block text-sm font-semibold text-gray-700">Password</label>
+              <Link href="/partner-access/forgot-password" className="text-xs font-semibold text-[#820ad1] hover:underline">
+                Forgot password?
+              </Link>
+            </div>
             <div className="group relative">
               <svg
                 aria-hidden="true"
