@@ -10,6 +10,7 @@ import AccessBrandPanel from "../AccessBrandPanel";
 import {
   PARTNER_CATEGORIES,
   PARTNER_CATEGORY_LABELS,
+  SHOW_PARTNER_CATEGORIES,
   isPartnerCategory,
   type PartnerCategory,
 } from "@/lib/partnerCategory";
@@ -59,7 +60,10 @@ export default function PartnerAccessSignupPage() {
     const type = params.get("type");
     const preset = params.get("category");
     setInvite(params.get("invite")?.trim() ?? "");
-    if (isPartnerCategory(preset)) {
+    // Category choice switched off: everyone signs up as a partner, whatever the link says.
+    if (!SHOW_PARTNER_CATEGORIES) {
+      chooseCategory("referral");
+    } else if (isPartnerCategory(preset)) {
       chooseCategory(preset);
     } else {
       chooseCategory(type === "agent" ? "agent" : "referral");
@@ -195,9 +199,11 @@ export default function PartnerAccessSignupPage() {
           className="modal-item-in mt-2 text-sm text-gray-500"
           style={{ animationDelay: "280ms" }}
         >
-          {invite ? "You were invited by an InsurBe Sales Leader. " : ""}Choose the category that fits you.
+          {invite ? "You were invited by an InsurBe Sales Leader. " : ""}
+          {SHOW_PARTNER_CATEGORIES ? "Choose the category that fits you." : "Create your partner account."}
         </p>
 
+        {SHOW_PARTNER_CATEGORIES ? (
         <div className="modal-item-in mt-6" style={{ animationDelay: "300ms" }}>
           <h2 className="mb-3 text-sm font-semibold text-gray-700">Partner category</h2>
           <div className="grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Partner category">
@@ -231,6 +237,7 @@ export default function PartnerAccessSignupPage() {
             })}
           </div>
         </div>
+        ) : null}
 
 
 

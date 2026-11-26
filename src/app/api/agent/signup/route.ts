@@ -2,9 +2,18 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/prisma";
+import { SHOW_PARTNER_CATEGORIES } from "@/lib/partnerCategory";
 import { INVALID_INVITE_MESSAGE, resolveTeamInvite } from "@/lib/team/invite";
 
 export async function POST(req: Request) {
+  // New agent accounts are closed while the signup page only offers partner accounts.
+  if (!SHOW_PARTNER_CATEGORIES) {
+    return NextResponse.json(
+      { message: "Agent signup is currently closed. Please sign up as a partner." },
+      { status: 403 },
+    );
+  }
+
   try {
     const body = await req.json();
     const {
