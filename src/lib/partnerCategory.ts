@@ -6,6 +6,14 @@
  */
 export const PARTNER_CATEGORIES = ["agent", "referral", "institutional"] as const;
 
+/**
+ * Category choice on the signup page (Nov 2026: switched off for now).
+ * While false, every signup becomes a Referral Partner and new agent accounts
+ * can't be created through /api/agent/signup. Existing agents are not affected.
+ * Set to true to bring the category choice back.
+ */
+export const SHOW_PARTNER_CATEGORIES = false;
+
 export type PartnerCategory = (typeof PARTNER_CATEGORIES)[number];
 
 export const PARTNER_CATEGORY_LABELS: Record<PartnerCategory, string> = {

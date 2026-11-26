@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { Resend } from "resend";
+import { SHOW_PARTNER_CATEGORIES } from "@/lib/partnerCategory";
 import { prisma } from "@/lib/prisma";
 import { INVALID_INVITE_MESSAGE, resolveTeamInvite } from "@/lib/team/invite";
 
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
       invite,
     } = body;
     // Referral Partner unless they picked Institutional Partner ("agent" signs up via /api/agent/signup).
-    const partnerCategory = category === "institutional" ? "institutional" : "referral";
+    const partnerCategory = SHOW_PARTNER_CATEGORIES && category === "institutional" ? "institutional" : "referral";
     const normalizedEmail = String(email || "").trim().toLowerCase();
 
     // Validation

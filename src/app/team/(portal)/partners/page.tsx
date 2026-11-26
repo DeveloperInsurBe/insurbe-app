@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { PARTNER_CATEGORY_LABELS } from "@/lib/partnerCategory";
+import { PARTNER_CATEGORY_LABELS, SHOW_PARTNER_CATEGORIES } from "@/lib/partnerCategory";
 import { getCurrentTeamAdmin } from "@/lib/team/access";
 import { getTeamMembers } from "@/lib/team/data";
 import { InviteLink, RateEditor } from "./PartnersClient";
@@ -35,7 +35,11 @@ export default async function TeamPartnersPage() {
 
       <section className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
         <h2 className="text-[11px] font-bold uppercase tracking-wide text-gray-500">Your invite link for new partners</h2>
-        <p className="mb-3 mt-1 text-xs text-gray-500">Partners choose their category (Agent, Referral or Institutional Partner) when they sign up.</p>
+        <p className="mb-3 mt-1 text-xs text-gray-500">
+          {SHOW_PARTNER_CATEGORIES
+            ? "Partners choose their category (Agent, Referral or Institutional Partner) when they sign up."
+            : "New partners who sign up with this link join your team as Referral Partners."}
+        </p>
         <InviteLink inviteCode={teamAdmin.inviteCode} />
       </section>
 
