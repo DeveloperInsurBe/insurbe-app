@@ -40,14 +40,17 @@ function invitationEmail(params: { firstName: string; partnerName: string; link:
         <div style="text-align:center;margin:28px 0;">
           <a href="${params.link}" style="background:#6D28D9;color:#fff;text-decoration:none;padding:14px 26px;border-radius:8px;font-weight:600;display:inline-block;">Continue my DAK application</a>
         </div>
-        <p style="font-size:13px;color:#666;">This link works for ${INVITE_VALID_DAYS} days and only once. After that, you continue from your InsurBe dashboard.</p>
+        <p style="font-size:13px;color:#666;">This link works once and for ${INVITE_VALID_DAYS} days. After that, you can continue from your InsurBe account.</p>
         <hr style="border:none;border-top:1px solid #eee;margin:22px 0;" />
         <p style="font-size:12px;color:#777;line-height:1.5;">
-          <b>Why you received this email:</b> ${partnerName} shared your name, email address and any details they had with InsurBe GmbH, so that we can prepare your DAK application.
-          We use this data only for that purpose. If you did not ask for this, simply ignore this email: unused data is deleted after ${DRAFT_RETENTION_DAYS} days.
-          You can ask us to delete it sooner at <a href="mailto:support@insurbe.com" style="color:#6D28D9;">support@insurbe.com</a>.
-          More in our <a href="${baseUrl()}/privacypolicy" style="color:#6D28D9;">privacy policy</a>.
+          <b>About your data:</b> The partner who started your application shared your name, email address and the details they had with InsurBe GmbH,
+          which is responsible for this data. We use it only to prepare your DAK application, at your request.
+          If you don't continue, we delete it after ${DRAFT_RETENTION_DAYS} days.
+          You can ask us to see, correct or delete your data at any time, or object to its use, at
+          <a href="mailto:support@insurbe.com" style="color:#6D28D9;">support@insurbe.com</a>.
+          You can also complain to a data protection authority. Details: <a href="${baseUrl()}/privacypolicy" style="color:#6D28D9;">privacy policy</a>.
         </p>
+        <p style="font-size:12px;color:#777;">If you did not ask for this, you can ignore this email.</p>
       </div>
     </div>
   </div>`;
@@ -103,7 +106,7 @@ export async function sendPendingInvitations(options: { batchId?: string; draftI
     const message = ({ draft, link }: (typeof chunk)[number]) => ({
       from: FROM,
       to: draft.email,
-      subject: "Please complete your DAK health insurance application",
+      subject: "Your DAK health insurance application – please complete it",
       html: invitationEmail({ firstName: draft.firstName, partnerName: partnerName(draft.partnerUserId), link, reference: draft.reference }),
     });
 
