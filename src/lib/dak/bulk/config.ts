@@ -14,11 +14,11 @@ export const INVITE_VALID_DAYS = 14;
 export const DRAFT_RETENTION_DAYS = 60;
 
 /** Shown next to the checkbox and stored with every upload. Change the version when the text changes. */
-export const BULK_CONSENT_VERSION = "2026-11-27";
+export const BULK_CONSENT_VERSION = "2026-11-28";
 export const BULK_CONSENT_TEXT =
-  "I confirm that every person in this file has asked us to start a DAK health insurance application for them " +
-  "and has agreed that we share their details with InsurBe for this purpose. I am allowed to share this data, " +
-  "and it is accurate to the best of my knowledge.";
+  "I confirm that each person in this file asked us to start a DAK health insurance application for them and agreed " +
+  "that we share their details with InsurBe GmbH for this purpose. I have told them that InsurBe will contact them by email. " +
+  "I only share the data needed for the application, and it is correct to the best of my knowledge.";
 
 export type BulkColumnType = "text" | "email" | "date" | "phone" | "category";
 

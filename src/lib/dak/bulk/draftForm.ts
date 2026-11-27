@@ -64,16 +64,19 @@ export const DOCUMENT_TYPES = ["application/pdf", "image/jpeg", "image/png"] as 
 export type DraftDocument = { storagePath: string; name: string; size: number; mimeType: string; uploadedAt: string };
 
 /** Declarations the customer gives personally on submit. Change the version when a text changes. */
-export const DECLARATIONS_VERSION = "2026-11-27";
+export const DECLARATIONS_VERSION = "2026-11-28";
 export const DECLARATIONS = [
-  { key: "accuracy", text: "I confirm that all information in this application is complete and correct." },
+  {
+    key: "accuracy",
+    text: "I confirm that the information in this application is complete and correct, and I will tell InsurBe or DAK if anything changes.",
+  },
   {
     key: "privacy",
-    text: "I have read the InsurBe privacy policy and agree that InsurBe processes my data to prepare and manage this DAK application.",
+    text: "I have read the InsurBe privacy policy and understand how InsurBe processes my data to prepare and manage this DAK application.",
   },
   {
     key: "transmission",
-    text: "I authorise InsurBe to send this application and my documents to DAK-Gesundheit and to receive DAK's answers for me.",
+    text: "I authorise InsurBe to submit this application and my documents to DAK-Gesundheit on my behalf, and to receive and pass on DAK's messages about this application.",
   },
 ] as const;
 export type DeclarationKey = (typeof DECLARATIONS)[number]["key"];

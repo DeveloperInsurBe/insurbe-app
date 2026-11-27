@@ -67,9 +67,10 @@ export default async function DakInvitePage({ searchParams }: { searchParams: Pr
         <details className="mt-6 rounded-xl bg-gray-50 p-4 text-xs leading-relaxed text-gray-600">
           <summary className="cursor-pointer font-semibold text-gray-800">Where does my data come from?</summary>
           <p className="mt-2">
-            {partnerName} shared your name, email address and any details they had with InsurBe GmbH to prepare your DAK
-            application. We use this data only for that purpose. You can correct everything before you submit. If you don&apos;t
-            continue, the data is deleted after {DRAFT_RETENTION_DAYS} days. Questions or deletion requests:{" "}
+            The partner who started your application shared your name, email address and the details they had with InsurBe
+            GmbH, which is responsible for this data. We use it only to prepare your DAK application, at your request. You can
+            correct everything before you submit. If you don&apos;t continue, it is deleted after {DRAFT_RETENTION_DAYS} days. To
+            see, correct or delete your data, write to{" "}
             <a href="mailto:support@insurbe.com" className="font-semibold text-[#820ad1]">support@insurbe.com</a>. See our{" "}
             <Link href="/privacypolicy" className="font-semibold text-[#820ad1]">privacy policy</Link>.
           </p>
