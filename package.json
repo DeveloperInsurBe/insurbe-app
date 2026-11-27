@@ -11,6 +11,8 @@
     "postinstall": "prisma generate",
     "admin:create": "tsx scripts/createAdmin.ts",
     "dak:reviewer": "tsx scripts/createDakReviewer.ts",
+    "migrate:live": "node scripts/migrateLive.cjs",
+    "seed:dev": "node scripts/seedDev.cjs",
     "mawsita:backfill-users": "tsx scripts/backfillMawsitaUserLinks.ts",
     "mawsita:rollout": "npx prisma migrate deploy && npm run mawsita:backfill-users"
   },
@@ -20,6 +22,7 @@
     "@types/xml2js": "^0.4.14",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
+    "exceljs": "4.4.0",
     "fast-xml-parser": "^5.3.2",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.10.5",

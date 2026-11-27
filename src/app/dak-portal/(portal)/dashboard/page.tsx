@@ -28,6 +28,8 @@ type Dashboard = {
   overdue: { id: string; name: string; open: number }[];
   recent: { id: string; applicationId: string; name: string; status: string | null; createdAt: string }[];
   pendingDocuments: number;
+  /** Partner bulk uploads (counts only, null when the feature is off) */
+  bulk: { imported: number; awaitingCustomer: number; submitted: number } | null;
 };
 
 const STATS: { status: DakStatus; label: string; icon: LucideIcon; tint: string }[] = [
@@ -158,6 +160,31 @@ export default function DakDashboardPage() {
           );
         })}
       </div>
+
+      {data.bulk && data.bulk.imported > 0 ? (
+        <FadeIn index={6}>
+          <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200/70 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Partner bulk uploads</p>
+              <p className="text-xs text-slate-500">Applications appear in your queue only after the customer completes and submits them.</p>
+            </div>
+            <dl className="flex gap-6 text-sm">
+              <div>
+                <dt className="text-xs text-slate-500">Imported</dt>
+                <dd className="text-lg font-semibold text-slate-900">{data.bulk.imported}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-500">Awaiting customer</dt>
+                <dd className="text-lg font-semibold text-amber-600">{data.bulk.awaitingCustomer}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-500">Submitted</dt>
+                <dd className="text-lg font-semibold text-emerald-600">{data.bulk.submitted}</dd>
+              </div>
+            </dl>
+          </div>
+        </FadeIn>
+      ) : null}
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* ACTION QUEUE */}

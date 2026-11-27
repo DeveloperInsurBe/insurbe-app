@@ -1,5 +1,5 @@
 import { prisma } from "../prisma";
-import { DAK_REVIEWER_ROLE } from "./access";
+import { DAK_REVIEWER_ROLE } from "./roles";
 import { sendDakReviewerAlert } from "./emails";
 
 export const siteUrl = () => (process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "https://insurbe.com").replace(/\/+$/, "");

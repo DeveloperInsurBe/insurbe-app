@@ -3,6 +3,7 @@
 import {
   BarChart3,
   Euro,
+  FileSpreadsheet,
   FileText,
   HelpCircle,
   LayoutDashboard,
@@ -26,6 +27,8 @@ type PortalUser = {
 type PortalSidebarProps = {
   role: PortalRole;
   user: PortalUser;
+  /** DAK bulk upload menu item (partners only, DAK_BULK_UPLOAD). */
+  bulkUpload?: boolean;
 };
 
 const partnerGroups: NavGroup[] = [
@@ -69,11 +72,13 @@ const agentGroups: NavGroup[] = [
   },
 ];
 
+const bulkUploadItem = { href: "/portal/dak-bulk", label: "Bulk DAK upload", icon: FileSpreadsheet };
+
 /**
  * Partner and agent portal navigation: same layout as the Sales Leader and
  * admin portals, in the partner portal's glass look.
  */
-export default function PortalSidebar({ role, user }: PortalSidebarProps) {
+export default function PortalSidebar({ role, user, bulkUpload = false }: PortalSidebarProps) {
   const name =
     `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || user?.name || (role === "partner" ? "Partner" : "Agent");
 
@@ -83,7 +88,15 @@ export default function PortalSidebar({ role, user }: PortalSidebarProps) {
       email={user?.email || ""}
       brandLabel={role === "partner" ? "Partner portal" : "Agent portal"}
       homeHref="/portal/dashboard"
-      groups={role === "partner" ? partnerGroups : agentGroups}
+      groups={
+        role === "partner"
+          ? bulkUpload
+            ? partnerGroups.map((group) =>
+                group.label === "Overview" ? { ...group, items: [...group.items, bulkUploadItem] } : group,
+              )
+            : partnerGroups
+          : agentGroups
+      }
       logoutUrl={`/partner-access/login?type=${role}`}
       storageKey="portal-sidebar-collapsed"
       glass

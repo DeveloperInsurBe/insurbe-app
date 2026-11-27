@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Briefcase, LineChart, Phone, User, Users } from "lucide-react";
+import { BarChart3, Briefcase, FileSpreadsheet, LineChart, Phone, User, Users } from "lucide-react";
 
 import PortalNav, { type NavGroup } from "@/app/components/portal/PortalNav";
 
@@ -30,14 +30,22 @@ const GROUPS: NavGroup[] = [
 ];
 
 /** Sales Leader portal navigation. */
-export default function TeamSidebar({ name, email }: { name: string; email: string }) {
+export default function TeamSidebar({ name, email, showDakBulk = false }: { name: string; email: string; showDakBulk?: boolean }) {
+  // "DAK bulk uploads" only while the feature is switched on.
+  const groups = showDakBulk
+    ? GROUPS.map((group) =>
+        group.label === "My team"
+          ? { ...group, items: [...group.items, { href: "/team/dak-bulk", label: "DAK bulk uploads", icon: FileSpreadsheet }] }
+          : group,
+      )
+    : GROUPS;
   return (
     <PortalNav
       name={name}
       email={email}
       brandLabel="Sales Leader"
       homeHref="/team/dashboard"
-      groups={GROUPS}
+      groups={groups}
       logoutUrl="/team/login"
       storageKey="team-sidebar-collapsed"
     />

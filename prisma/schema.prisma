@@ -270,3 +270,89 @@ model DakSupportTicket {
 
   @@index([reviewerId, createdAt])
 }
+
+/// DAK bulk upload: one partner upload (spreadsheet) of DAK drafts.
+model DakImportBatch {
+  id             String         @id @default(cuid())
+  /// The partner who uploaded (User.id) and their referral code (User.partnerId)
+  partnerUserId  String
+  partnerRef     String
+  fileName       String
+  rowCount       Int
+  importedCount  Int            @default(0)
+  heldCount      Int            @default(0)
+  errorCount     Int            @default(0)
+  /// Exact consent text the partner confirmed, its version and when
+  consentText    String
+  consentVersion String
+  consentAt      DateTime
+  createdAt      DateTime       @default(now())
+  rows           DakImportRow[]
+
+  @@index([partnerUserId, createdAt])
+}
+
+/// One spreadsheet row of a DAK bulk upload and its outcome.
+model DakImportRow {
+  id        String         @id @default(cuid())
+  batchId   String
+  rowNumber Int
+  /// Allow-listed values only (never the raw file)
+  data      Json
+  /// "imported" | "already_imported" | "held" | "error"
+  status    String
+  /// Row problems shown to the partner (error) or InsurBe (held)
+  errors    Json?
+  draftId   String?
+  batch     DakImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId, rowNumber])
+}
+
+/// A DAK application prepared by a partner. Lives here (not in
+/// InsuranceApplication) until the customer completes and submits it, so the
+/// DAK portal never sees it before then.
+model DakDraft {
+  id              String    @id @default(cuid())
+  /// Shown to partner and customer, e.g. DAK-D-2026-000123
+  reference       String    @unique
+  email           String
+  firstName       String
+  lastName        String
+  /// Partner-supplied values for the customer to review
+  prefill         Json
+  partnerUserId   String
+  partnerRef      String
+  source          String    @default("partner")
+  batchId         String
+  rowId           String
+  /// imported | sending | invitation_sent | email_failed | started | documents_pending | ready | submitting | submitted | expired | deleted
+  status          String    @default("imported")
+  /// The customer's account once they accepted the invitation
+  customerUserId  String?
+  inviteTokenHash String?   @unique
+  inviteExpiresAt DateTime?
+  inviteSentAt    DateTime?
+  inviteError     String?
+  acceptedAt      DateTime?
+  startedAt       DateTime?
+  submittedAt     DateTime?
+  /// The customer's saved answers ({ personal, selectPlan }), autosaved while they fill in
+  form            Json?
+  /// Uploaded documents by kind (passport, contract, photo): storage path, name, size, type
+  documents       Json?
+  /// Declarations the customer gave on submit: text, version and time of each
+  declarations    Json?
+  /// Last reason a submit was refused (e.g. DAK re-apply rules)
+  submitError     String?
+  /// InsuranceApplication created on submit
+  applicationId   String?   @unique
+  /// Personal data is deleted after this date if never submitted
+  purgeAfter      DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([partnerRef, createdAt])
+  @@index([email])
+  @@index([status, purgeAfter])
+}

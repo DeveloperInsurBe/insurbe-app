@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireDakReviewer } from "@/lib/dak/access";
+import { dakBulkUploadEnabled } from "@/lib/dak/bulk/config";
 import { applicantFromPayload, ensureDakCases, listInclude, serializeListRow } from "@/lib/dak/cases";
 import { DAK_FINAL_STATUSES, DAK_STATUSES, type DakStatus } from "@/lib/dak/statuses";
 import { prisma } from "@/lib/prisma";
@@ -16,7 +17,7 @@ export async function GET() {
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const [grouped, queue, overdue, recent, pendingDocuments] = await Promise.all([
+    const [grouped, queue, overdue, recent, pendingDocuments, drafts] = await Promise.all([
       prisma.dakCase.groupBy({ by: ["status"], _count: { _all: true } }),
       prisma.dakCase.findMany({
         where: { status: { in: ["Submitted", "Customer Responded"] } },
@@ -38,7 +39,12 @@ export async function GET() {
       }),
       // Documents of final cases can no longer be reviewed.
       prisma.dakDocument.count({ where: { reviewStatus: "pending", case: { status: { notIn: DAK_FINAL_STATUSES } } } }),
+      // Partner bulk uploads: counts only. Drafts carry no personal data into this portal
+      // until the customer submits (then they are normal cases above).
+      dakBulkUploadEnabled() ? prisma.dakDraft.groupBy({ by: ["status"], _count: { _all: true } }) : Promise.resolve([]),
     ]);
+    const draftCount = (statuses: string[]) =>
+      drafts.filter((row) => statuses.includes(row.status)).reduce((sum, row) => sum + row._count._all, 0);
 
     const counts = Object.fromEntries(DAK_STATUSES.map((status) => [status, 0])) as Record<DakStatus, number>;
     grouped.forEach((row) => {
@@ -69,6 +75,13 @@ export async function GET() {
         createdAt: event.createdAt.toISOString(),
       })),
       pendingDocuments,
+      bulk: dakBulkUploadEnabled()
+        ? {
+            imported: draftCount(["imported", "sending", "invitation_sent", "email_failed", "started", "documents_pending", "ready", "submitting", "submitted", "expired"]),
+            awaitingCustomer: draftCount(["imported", "sending", "invitation_sent", "email_failed", "started", "documents_pending", "ready", "submitting"]),
+            submitted: draftCount(["submitted"]),
+          }
+        : null,
     });
   } catch (error) {
     console.error("DAK PORTAL DASHBOARD ERROR:", error);
