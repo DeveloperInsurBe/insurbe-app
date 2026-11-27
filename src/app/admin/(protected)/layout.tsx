@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getCurrentAdminSession } from "@/lib/adminAccess";
+import { dakBulkUploadEnabled } from "@/lib/dak/bulk/config";
 import AdminSidebar from "./AdminSidebar";
 
 export default async function AdminProtectedLayout({
@@ -16,7 +17,7 @@ export default async function AdminProtectedLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f6f7fb] xl:flex-row">
-      <AdminSidebar email={session.user?.email ?? ""} />
+      <AdminSidebar email={session.user?.email ?? ""} showDakBulk={dakBulkUploadEnabled()} />
 
       <main className="min-w-0 flex-1 overflow-x-hidden p-3 sm:p-5 lg:p-6 xl:p-8">
         {children}

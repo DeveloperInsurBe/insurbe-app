@@ -24,6 +24,7 @@ import { signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import DakApplications, { type CustomerDakApplication } from "./DakApplications";
+import DakDraftsCard from "./DakDraftsCard";
 
 interface Policy {
   id: string;
@@ -778,6 +779,7 @@ export default function DashboardPage() {
               </motion.div>
             </>
           )}
+          {(activePage === "Home" || activePage === "Insurance") && <DakDraftsCard />}
           {(activePage === "Home" || activePage === "Insurance") && (
             <DakApplications applications={dakApplications} onChanged={refreshDakApplications} />
           )}

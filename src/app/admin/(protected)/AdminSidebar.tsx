@@ -11,6 +11,7 @@ import {
   BarChart3,
   Briefcase,
   ChevronsLeft,
+  FileSpreadsheet,
   FileText,
   FolderOpen,
   LogOut,
@@ -48,6 +49,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { href: "/admin/applications", label: "Applications", icon: FileText },
       { href: "/admin/dak", label: "DAK Portal", icon: ShieldCheck },
+      { href: "/admin/dak-bulk", label: "DAK bulk uploads", icon: FileSpreadsheet },
       { href: "/admin/mawsita", label: "Mawsita", icon: FolderOpen },
     ],
   },
@@ -147,6 +149,7 @@ function Brand({ collapsed }: { collapsed: boolean }) {
 }
 
 function SidebarBody({
+  groups,
   collapsed,
   email,
   indicatorId,
@@ -154,6 +157,7 @@ function SidebarBody({
   showTip,
   hideTip,
 }: TipHandlers & {
+  groups: typeof NAV_GROUPS;
   collapsed: boolean;
   email: string;
   /** Separate ids so the drawer and desktop indicators don't animate into each other */
@@ -164,7 +168,7 @@ function SidebarBody({
   // Same hover as the partner portal: the pill slides from the active item to
   // the hovered item and returns on leave.
   const [hovered, setHovered] = useState<string | null>(null);
-  const activeHref = NAV_GROUPS.flatMap((group) => group.items).find((item) => isActive(pathname, item.href))?.href;
+  const activeHref = groups.flatMap((group) => group.items).find((item) => isActive(pathname, item.href))?.href;
   const pillHref = collapsed ? activeHref : (hovered ?? activeHref);
 
   return (
@@ -174,7 +178,7 @@ function SidebarBody({
         onMouseLeave={() => setHovered(null)}
         className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 scrollbar-thin"
       >
-        {NAV_GROUPS.map((group) => (
+        {groups.map((group) => (
           <div key={group.label} className="mb-5 last:mb-0">
             {collapsed ? (
               <div className="mx-auto mb-2 h-px w-6 bg-gray-200" />
@@ -284,7 +288,11 @@ function SidebarBody({
   );
 }
 
-export default function AdminSidebar({ email }: { email: string }) {
+export default function AdminSidebar({ email, showDakBulk = false }: { email: string; showDakBulk?: boolean }) {
+  // "DAK bulk uploads" only while the feature is switched on.
+  const groups = showDakBulk
+    ? NAV_GROUPS
+    : NAV_GROUPS.map((group) => ({ ...group, items: group.items.filter((item) => item.href !== "/admin/dak-bulk") }));
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -296,7 +304,7 @@ export default function AdminSidebar({ email }: { email: string }) {
   };
   const hideTip = () => setTip(null);
 
-  const current = NAV_GROUPS.flatMap((group) => group.items).find((item) =>
+  const current = groups.flatMap((group) => group.items).find((item) =>
     isActive(pathname, item.href),
   );
 
@@ -404,6 +412,7 @@ export default function AdminSidebar({ email }: { email: string }) {
                 </button>
               </div>
               <SidebarBody
+                groups={groups}
                 collapsed={false}
                 email={email}
                 indicatorId="admin-nav-drawer"
@@ -458,6 +467,7 @@ export default function AdminSidebar({ email }: { email: string }) {
         ) : null}
 
         <SidebarBody
+          groups={groups}
           collapsed={collapsed}
           email={email}
           indicatorId="admin-nav-desktop"
